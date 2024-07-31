@@ -6,9 +6,9 @@
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 
 <meta name="keywords" content="Caleb Kan"> 
-<meta name="description" content="Caleb Kan&#39;s Homepage">
+<meta name="description" content="Caleb Kan">
 <link rel="stylesheet" href="jemdoc.css" type="text/css">
-<title>Caleb Kan&#39;s Homepage</title>
+<title>Caleb Kan</title>
 
 <!-- Link to Google Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=CMU+Serif:wght@400;700&family=CMU+Sans+Serif:wght@400;700&display=swap" rel="stylesheet">
@@ -17,6 +17,25 @@
     body {
         font-family: 'CMU Serif', 'CMU Sans Serif', serif;
     }
+
+	/* LaTeX-style bullet points */
+	ul.latex-style {
+		list-style-type: disc;
+		padding-left: 15px; /* Adjust the left padding to your preference */
+	}
+
+	ul.latex-style li {
+		font-family: 'Times New Roman', Times, serif; /* LaTeX-like font */
+		font-size: 1em; /* LaTeX-like font size */
+		line-height: 1.5; /* LaTeX-like line spacing */
+		text-indent: 10px; /* Negative indent to align the text properly */
+	}
+
+	/* Optional: Custom bullet symbol, if you want to match LaTeX bullets exactly */
+	ul.latex-style li::marker {
+		content: "•"; /* LaTeX-like bullet symbol */
+		font-size: 1em; /* Adjust to match LaTeX bullet size */
+	}
 </style>
 </head>
 <body>
@@ -27,19 +46,17 @@
 		<tr>
 			<td width="720">
 				<div id="toptitle">					
-					<h1>Caleb Kan</h1><h1>
-				</h1></div>
+					<h1>Caleb Kan</h1>
+				</div>
 
-				<h3>Undergraduate Student @ Imperial College London</h3>
+				<h3>Computing (AI & ML) Student @ Imperial College London</h3>
 				<p>
-					<br>
-					Phone: +44 07828210751<br>
-					Email: calebkan1106@gmail.com<br>
-					<br>
+					<b>Phone</b>: +44 07828210751<br>
+					<b>Email</b>: calebkan1106@gmail.com<br>
 				</p>
 				<p> 
-				<a href="https://github.com/caleb-kan"><img src="./pic/github_s.jpg" height="30px" style="margin-bottom:0px"></a>
-				<a href="https://www.linkedin.com/in/caleb-kan-a98a3a214/"><img src="./pic/LinkedIn_s.png" height="30px" style="margin-bottom:0px"></a>
+				<a href="https://github.com/caleb-kan"><img src="./pic/github_s.jpg" height="30px"></a>
+				<a href="https://www.linkedin.com/in/caleb-kan-a98a3a214/"><img src="./pic/LinkedIn_s.png" height="30px"></a>
 				</p>
 				<p>
 					<span style="color: green;">Open to SWE Intern / MLE Intern / Research Intern </span><br>
@@ -52,7 +69,7 @@
 	</tbody>
 </table>
 
-<h2>Education
+<h2>Education</h2>
 	<table id="tbPublications" width="100%">
 		<tbody>
 	
@@ -60,11 +77,11 @@
 			<td width="270">
 				<img src="./indexpics/imperial_old_logo.png" width="256px" height="100px" style="box-shadow: 4px 4px 8px #888">
 			</td>
-			<td style="font-size: 14px">
-				<p style="font-size: 20px; font-weight: bold;">Imperial College London</p>
-				<p style="font-weight: bold;">Bachelor of Engineering - BEng, Computing (Artificial Intelligence and Machine Learning)</p>
-				<p>Grade: First-Class Honours (Predicted)</p>
-				<p><em>September. 2023 - June. 2026</em></p>
+			<td style="font-size: 14px;">
+				<p style="font-size: 18px;"><b>Imperial College London</b></p>
+				<p><b>Degree</b>: <em>Bachelor of Engineering - BEng, Computing (Artificial Intelligence and Machine Learning)</em></p>
+				<p><b>Grade</b>: <em>First-Class Honours (Predicted)</em></p>
+				<p><b><em>September. 2023 - June. 2026</em></b></p>
 			</td>
 		</tr>
 		<tr>&nbsp</tr>
@@ -90,7 +107,7 @@
 		</tbody>
 	</table>
 
-<h2>Work Experience
+<h2>Work Experience</h2>
 <table id="tbPublications" width="100%">
 	<tbody>
 
@@ -99,10 +116,16 @@
 			<img src="./indexpics/cityu.jpeg" width="256px" height="100px" style="box-shadow: 4px 4px 8px #888">
 		</td>
 		<td style="font-size: 14px;">
-			<p style="font-size: 20px; font-weight: bold;">Department of Computer Science, City University of Hong Kong</p>
-			<p style="font-weight: bold;">Research Intern, Supervised by Prof. Jianping Wang</p>
-			<p>Technology: Python, LangChain, OpenAI</p>
-			<p><em>July. 2023 - August. 2023</em>
+			<p style="font-size: 18px;"><b>Department of Computer Science, City University of Hong Kong</b> | <em>Python</em></p>
+			<p style="font-weight: bold;">Research Intern, supervised by Prof. Jianping Wang & Yanbing Jiang</p>
+
+			<ul class="latex-style">
+				<li>Collaborated with a distinguished professor to develop a GDPR compliance checker browser extension, utilising web scraping (BeautifulSoup4) and LangChain with OpenAI's LLM for automated analysis.</li>
+				<li>Implemented a user-friendly interface to display GDPR compliance status of websites, enhancing user awareness of data privacy practices.</li>
+				<li>Designed and integrated a one-click feature enabling users to automatically request data erasure from websites, streamlining the exercise of GDPR rights.</li>
+			</ul>
+
+			<p><b><em>July. 2023 - August. 2023</em></b>
 				[<a href="https://www.cs.cityu.edu.hk/" target="_blank">website</a>]
 			</p>
 		</td>
@@ -114,17 +137,55 @@
 	</tbody>
 </table>
 
-<h2>Projects
+<h2>Projects</h2>
 	<table id="tbPublications" width="100%">
 		<tbody>
 
 		<tr>
-			<td width="270">
-			<img src="./indexpics/tracking.gif" width="256px" height="100px" style="box-shadow: 4px 4px 8px #888">
+			<td style="font-size: 14px;">
+				<p style="font-size: 18px;"><b>ARMv8 Emulator, Assembler, and Visualiser</b> | <em>C</em></p>
+				<ul class="latex-style">
+					<li>Designed and developed a robust ARMv8 architecture emulator and two-pass assembler in C, accurately simulating CPU operations, memory, registers, program counter, and flags, fully adhering to the ARMv8 instruction set.</li>
+					<li>Implemented an efficient fetch-decode-execute pipeline, seamlessly processing and executing instructions from binary files, precisely replicating ARMv8 processor behavior, utilising advanced string parsing and instruction construction algorithms.</li>
+					<li>Developed a GUI interface using the SDL2 library in C, allowing users to drag and drop assembly files for visualisation of the execution process, displaying the graphical architecture and real-time changes in registers, memory, ALU, flags, and program counter.</li>
+				</ul>
+				<p><b><em>May. 2024 - June. 2024</em></b>
+					[<a href="https://github.com/caleb-kan/armv8" target="_blank">website</a>]
+				</p>
 			</td>
-			<td> Multi-Obj-Tracking <br>
-			<b> A Muti-object tracking model based on CenterNet <br>
-			<p>[<a href="https://github.com/iamtonymwt/Multi_Obj_Tracking" target="_blank">link</a>] </p>
+		</tr>
+		<tr>&nbsp</tr>
+		<tr>&nbsp</tr>
+		<tr>&nbsp</tr>
+
+		<tr>
+			<td style="font-size: 14px;">
+				<p style="font-size: 18px;"><b>Chess AI</b> | <em>Kotlin</em></p>
+				<ul class="latex-style">
+					<li>Developed a Chess AI algorithm in Kotlin to play a pawn race game, implementing comprehensive game logic and a terminal-based GUI with ASCII board representation.</li>
+					<li>Created an intuitive user interaction system where players input moves, ensuring validity and providing feedback for any invalid moves, facilitating an engaging user experience.</li>
+					<li>Utilised the minimax algorithm with alpha-beta pruning for AI decision-making, delivering an efficient and challenging opponent, demonstrating advanced skills in AI programming, algorithm optimisation, and game development.</li>
+				</ul>
+				<p><b><em>December. 2023 - January. 2024</em></b>
+					[<a href="https://github.com/caleb-kan/pawn_race" target="_blank">website</a>]
+				</p>
+			</td>
+		</tr>
+		<tr>&nbsp</tr>
+		<tr>&nbsp</tr>
+		<tr>&nbsp</tr>
+
+		<tr>
+			<td style="font-size: 14px;">
+				<p style="font-size: 18px;"><b>AI Research Agent</b> | <em>Python, NoSQL</em></p>
+				<ul class="latex-style">
+					<li>Engineered an AI-driven web research agent using Python, LangChain, and OpenAI models, integrating BeautifulSoup4 for web scraping to generate keyword-based summaries with citations.</li>
+					<li>Developed Twitter API integration for automated content posting, and implemented geolocation tracking with MongoDB Atlas for secure GPS coordinate storage, enabling comprehensive usage analytics.</li>
+					<li>Contributed to a global visualisation project, leveraging collected geolocation data to plot worldwide AI agent usage, facilitating data-driven insights into geographical reach and user engagement patterns.</li>
+				</ul>
+				<p><b><em>July. 2023 - August. 2023</em></b>
+					[<a href="https://github.com/caleb-kan/AI-Research-Agent" target="_blank">website</a>]
+				</p>
 			</td>
 		</tr>
 		<tr>&nbsp</tr>
@@ -150,15 +211,18 @@
 
 
 <h2>Technical Skills</h2>
-<table style="border-spacing:2px">
-	<tbody>
-		<tr><td> <b>Languages</b>: <b>Native</b>: English, Madarin, Cantonese </td></tr>
-		<tr><td> <b>Programming Languages</b>: <b>Proficient</b>: C, Haskell, Java, Kotlin, Python, SQL <b>Familiar</b>: HTML/CSS, JavaScript, NoSQL, Solidity, TypeScript </td></tr>
-		<tr><td> <b>Frameworks</b>: FastAPI, Firebase, Flask, LangChain, MongoDB, MySQL, Node.js, PostgreSQL, React.js, SQLite </td></tr>
-		<tr><td> <b>Libraries</b>: Keras, Matplotlib, Numpy, OpenCV, Pandas, SciPy, Scikit-learn, TensorFlow </td></tr>
-		<tr><td> <b>Tools</b>: Android Studio, Atom, BitBucket, CLion, Docker, Fusion 360, Git, GitHub, GitLab, IntelliJ, PyCharm, Visual Studio, Visual Studio Code, Xcode </td></tr>
-	</tbody>
-</table>
+	<table id="tbPublications" width="100%">
+		<tbody>
+			<tr><td> <b>Languages</b>: <b>Native</b>: English, Madarin, Cantonese </td></tr>
+			<tr><td> <b>Programming Languages</b>: <b>Proficient</b>: C, Haskell, Java, Kotlin, Python, SQL <b>Familiar</b>: HTML/CSS, JavaScript, NoSQL, Solidity, TypeScript </td></tr>
+			<tr><td> <b>Frameworks</b>: FastAPI, Firebase, Flask, LangChain, MongoDB, MySQL, Node.js, PostgreSQL, React.js, SQLite </td></tr>
+			<tr><td> <b>Libraries</b>: Keras, Matplotlib, Numpy, OpenCV, Pandas, SciPy, Scikit-learn, TensorFlow </td></tr>
+			<tr><td> <b>Tools</b>: Android Studio, Atom, BitBucket, CLion, Docker, Fusion 360, Git, GitHub, GitLab, IntelliJ, PyCharm, Visual Studio, Visual Studio Code, Xcode </td></tr>
+			<tr>&nbsp</tr>
+			<tr>&nbsp</tr>
+			<tr>&nbsp</tr>
+	
+	</tbody></table>
 
 <div id="footer">
 	<div id="footer-text"></div>
@@ -168,7 +232,7 @@
 			<script type="text/javascript" id="clstr_globe" src="//clustrmaps.com/globe.js?d=pkoKAJIvzKUT4HxJsUzgiNEAUIDYUC_01M9PvIn3tAU"></script>
 	</div>        
 	<br>
-        &copy; Caleb Kan | Last updated: July 2024
+        &copy; Caleb Kan 2024
      
     </center></p>
 
