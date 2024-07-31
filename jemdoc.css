@@ -16,7 +16,7 @@ html {
         background-position: 100% 50%;
     }
     100% {
-        background-position: 0% 50%;
+        background-position: 50% 0%;
     }
 }
 
@@ -84,7 +84,7 @@ tt {
 
 pre, tt {
     font-size: 90%;
-    font-family: monaco, monospace;
+    font-family: 'CMU Serif', 'CMU Sans Serif', serif;
 }
 
 a, a > tt {
