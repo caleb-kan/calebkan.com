@@ -34,6 +34,7 @@ body {
     padding-top: 10px;
     padding-bottom: 30px;
     max-width: 960px;
+    overflow-x: hidden;
 }
 
 #layout-content {
@@ -66,9 +67,8 @@ h1, h2, h3 {
     color: #527bbd;
     margin-top: 0.7em;
     margin-bottom: 0.5em;
-    padding-bottom: 0.2em;
+    padding-bottom: 0.3em;
     line-height: 1.0;
-    padding-top: 0.5em;
     border-bottom: 1px solid #aaaaaa;
 }
 
