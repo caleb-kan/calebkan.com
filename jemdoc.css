@@ -1,7 +1,4 @@
-/* Default css file for jemdoc. */
-
 /* General Styles */
-
 html {
     background: linear-gradient(-45deg, #6452ee, #b73ce7, #1e91bb, #32b395);
     background-size: 300% 300%;
@@ -26,7 +23,6 @@ body {
     padding: 0;
     background-color: #ffffff;
     max-width: 100%;
-    overflow-x: hidden; /* Prevent horizontal scrolling */
     color: #000;
     text-align: left;
     margin-top: 30px;
@@ -46,38 +42,25 @@ body {
     max-width: 100%;
 }
 
-/* Remove Borders from Tables */
-table#tlayout {
-    border: none;
-    border-collapse: separate;
-    background: white;
-    width: 100%;
-    margin-bottom: 1em;
+/* LaTeX-style bullet points */
+ul.latex-style {
+    list-style-type: disc;
+    padding-left: 15px; /* Adjust the left padding to your preference */
 }
 
-#layout-menu {
-    background: #f6f6f6;
-    border: 1px solid #dddddd;
-    padding-top: 0.5em;
-    padding-left: 8px;
-    padding-right: 8px;
-    font-size: 1.0em;
-    width: auto;
-    white-space: nowrap;
-    text-align: left;
-    vertical-align: top;
+ul.latex-style li {
+    font-family: 'CMU Serif', 'CMU Sans Serif', serif; /* LaTeX-like font */
+    font-size: 1em; /* LaTeX-like font size */
+    line-height: 1.5; /* LaTeX-like line spacing */
+    text-indent: 15px; /* Negative indent to align the text properly */
 }
 
-#layout-menu td {
-    background: #f4f4f4;
-    vertical-align: top;
+ul.latex-style li::marker {
+    content: "•"; /* LaTeX-like bullet symbol */
+    font-size: 1em; /* Adjust to match LaTeX bullet size */
 }
 
-#layout-menu a {
-    line-height: 1.5em;
-    margin-left: 0.5em;
-}
-
+/* Additional Styles */
 tt {
     background: #ffffdd;
 }
@@ -96,37 +79,9 @@ a:hover {
     border-bottom: 1px gray dotted;
 }
 
-#layout-menu a.current:link, #layout-menu a.current:visited {
-    color: #022b6d;
-    border-bottom: 1px gray solid;
-}
-
-#layout-menu a:link, #layout-menu a:visited, #layout-menu a:hover {
-    color: #527bbd;
-    text-decoration: none;
-}
-
-#layout-menu a:hover {
-    text-decoration: none;
-}
-
-div.menu-category {
-    border-bottom: 1px solid gray;
-    margin-top: 0.8em;
-    padding-top: 0.2em;
-    padding-bottom: 0.1em;
-    font-weight: bold;
-}
-
-div.menu-item {
-    padding-left: 16px;
-    text-indent: -16px;
-}
-
 div#toptitle {
     padding-bottom: 0.2em;
     margin-bottom: 1.5em;
-    /*border-bottom: 3px double gray;*/
 }
 
 div#toptitle + h2, div#toptitle + h3 {
@@ -391,59 +346,4 @@ img {
 table.imgtable, table.imgtable td {
     border: none;
     text-align: left;
-}
-
-/* LaTeX-style bullet points */
-ul.latex-style {
-    list-style-type: disc;
-    padding-left: 15px; /* Adjust the left padding to your preference */
-}
-
-ul.latex-style li {
-    font-family: 'CMU Serif', 'CMU Sans Serif', serif; /* LaTeX-like font */
-    font-size: 1em; /* LaTeX-like font size */
-    line-height: 1.5; /* LaTeX-like line spacing */
-    text-indent: 15px; /* Negative indent to align the text properly */
-}
-
-ul.latex-style li::marker {
-    content: "•"; /* LaTeX-like bullet symbol */
-    font-size: 1em; /* Adjust to match LaTeX bullet size */
-}
-
-/* Responsive Design for Smaller Screens */
-@media (max-width: 768px) {
-    body {
-        padding: 10px; /* Reduce padding on smaller screens */
-    }
-
-    td, th {
-        padding: 5px;
-    }
-
-    h1 {
-        font-size: 140%;
-    }
-
-    h2 {
-        font-size: 110%;
-    }
-
-    h3 {
-        font-size: 100%;
-    }
-
-    ul.latex-style li {
-        font-size: 0.9em;
-    }
-
-    #layout-menu {
-        padding-left: 5px;
-        padding-right: 5px;
-    }
-
-    #layout-content {
-        padding-left: 10px;
-        padding-right: 10px;
-    }
 }
