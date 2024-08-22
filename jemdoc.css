@@ -64,7 +64,7 @@ ul.latex-style li::marker {
 /* Additional Styles */
 
 h1, h2, h3 {
-    color: #527bbd;
+    color: #3498db;
     margin-top: 0.7em;
     margin-bottom: 0.5em;
     padding-bottom: 0.3em;
@@ -98,4 +98,11 @@ a img {
 a img:hover {
     transform: scale(1.2); /* Slightly increase the size of the icon */
     opacity: 0.9; /* Reduce opacity to make it slightly transparent */
+}
+
+.bordered-img {
+    border: 5px solid #3498db; /* Blue solid border */
+    border-radius: 15px; /* Slightly rounded corners */
+    padding: 5px; /* Adds space between the image and the border */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 1.0); /* Optional: Add a shadow for a 3D effect */
 }
