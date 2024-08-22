@@ -90,3 +90,12 @@ h3 {
     font-size: 110%;
     border-bottom: none;
 }
+
+a img {
+    transition: transform 0.3s ease, opacity 0.3s ease; /* Smooth animation for transform and opacity */
+}
+
+a img:hover {
+    transform: scale(1.2); /* Slightly increase the size of the icon */
+    opacity: 0.9; /* Reduce opacity to make it slightly transparent */
+}
