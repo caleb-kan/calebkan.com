@@ -103,7 +103,7 @@ a img:hover {
 
 .bordered-img {
     border: 5px solid #3498db; /* Blue solid border */
-    border-radius: 15px; /* Slightly rounded corners */
+    border-radius: 20px; /* Slightly rounded corners */
     padding: 5px; /* Adds space between the image and the border */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 1.0); /* Optional: Add a shadow for a 3D effect */
 }
