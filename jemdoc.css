@@ -36,6 +36,7 @@ body {
     padding-bottom: 30px;
     max-width: 960px;
     overflow-x: hidden;
+    border-radius: 20px; 
 }
 
 #layout-content {
