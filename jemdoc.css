@@ -111,7 +111,7 @@ a img:hover {
 /* navbar style */
 .navbar-custom {
     background-color: #ffffff; /* White background */
-    border-bottom: 1px solid #e5e5e5; /* Light border at the bottom for subtle separation */
+    border-bottom: 1px solid #aaaaaa; /* Light border at the bottom for subtle separation */
 }
 
 .navbar-custom .navbar-brand {
@@ -136,7 +136,7 @@ a img:hover {
 }
 
 .navbar-custom .navbar-toggler {
-    border-color: #cccccc; /* Light gray border for toggle button */
+    border-color: #aaaaaa; /* Light gray border for toggle button */
     background-color: #ffffff; /* White background to ensure visibility */
 }
 
