@@ -7,11 +7,17 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
 <script>
-	$(document).ready(function() {
-		$('.navbar-toggler').click(function() {
-			$('#navbarNav').toggleClass('show');
-		});
-	});
+    $(document).ready(function() {
+        $('.navbar-toggler').click(function() {
+            if ($('#navbarNav').hasClass('show')) {
+                // If the navbar is already expanded, hide it
+                $('#navbarNav').removeClass('show');
+            } else {
+                // If the navbar is collapsed, show it
+                $('#navbarNav').addClass('show');
+            }
+        });
+    });
 </script>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
