@@ -143,15 +143,3 @@ a img:hover {
 .navbar-custom .navbar-toggler-icon {
     background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(51, 51, 51, 0.7)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/ %3E%3C/svg%3E");
 }
-
-/* Ensure navbar links are visible in mobile view */
-@media (max-width: 991.98px) {
-    .navbar-custom .navbar-collapse {
-        background-color: #ffffff; /* White background when collapsed */
-    }
-    .navbar-custom .navbar-nav .nav-link {
-        color: #000; /* Ensure link text is black when collapsed */
-        text-align: center; /* Center-align text for better mobile display */
-        padding: 1rem; /* Increase padding for better touch interaction */
-    }
-}
