@@ -107,3 +107,36 @@ a img:hover {
     padding: 5px; /* Adds space between the image and the border */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 1.0); /* Optional: Add a shadow for a 3D effect */
 }
+
+.navbar-custom {
+    background-color: #ffffff; /* Light gray background */
+}
+
+.navbar-custom .navbar-brand {
+    font-weight: bold;
+    font-size: 1.25rem;
+    color: #000; /* Dark gray text for brand */
+}
+
+.navbar-custom .navbar-nav .nav-link {
+    color: #000; /* Dark gray text for links */
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    transition: color 0.3s ease;
+}
+
+.navbar-custom .navbar-nav .nav-link:hover {
+    color: #3498db; /* Apple blue on hover */
+}
+
+.navbar-custom .navbar-nav .nav-item {
+    margin: 0 15px; /* Spacing between items */
+}
+
+.navbar-custom .navbar-toggler {
+    border-color: #ffffff; /* Light gray border for toggle button */
+}
+
+.navbar-custom .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(51, 51, 51, 0.7)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/ %3E%3C/svg%3E");
+}
