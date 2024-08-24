@@ -9,13 +9,7 @@
 <script>
     $(document).ready(function() {
         $('.navbar-toggler').click(function() {
-            if ($('#navbarNav').hasClass('show')) {
-                // If the navbar is already expanded, hide it
-                $('#navbarNav').removeClass('show');
-            } else {
-                // If the navbar is collapsed, show it
-                $('#navbarNav').addClass('show');
-            }
+            $('#navbarNav').collapse('toggle');
         });
     });
 </script>
