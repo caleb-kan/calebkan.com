@@ -1,13 +1,26 @@
 /* General Styles */
-html {
+html, body {
+    height: 100%;
+}
+
+body {
     background: linear-gradient(-45deg, #6452ee, #b73ce7, #1e91bb, #32b395);
     background-size: 300% 300%;
     animation: gradient 15s ease infinite;
-    scroll-behavior: smooth;
-    height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
+    padding-top: 40px;
+    padding-bottom: 40px;
+}
+
+.container {
+    background-color: #ffffff;
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 960px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 1.0);
 }
 
 @keyframes gradient {
@@ -20,43 +33,6 @@ html {
     100% {
         background-position: 0% 50%;
     }
-}
-
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    margin: 0;
-    padding: 30px 50px;
-    background-color: #ffffff;
-    color: #000;
-    text-align: left;
-    max-width: 960px;
-    width: 100%;
-    overflow-x: hidden;
-    border-radius: 20px;
-    box-sizing: border-box;
-}
-
-#layout-content {
-    margin: 20px auto;
-    padding: 20px;
-    max-width: 100%;
-}
-
-/* LaTeX-style bullet points */
-ul.latex-style {
-    list-style-type: disc;
-    padding-left: 15px; /* Adjust the left padding to your preference */
-}
-
-ul.latex-style li {
-    font-size: 1em; /* LaTeX-like font size */
-    line-height: 1.5; /* LaTeX-like line spacing */
-    text-indent: 15px; /* Negative indent to align the text properly */
-}
-
-ul.latex-style li::marker {
-    content: "•"; /* LaTeX-like bullet symbol */
-    font-size: 1em; /* Adjust to match LaTeX bullet size */
 }
 
 /* Additional Styles */
@@ -90,57 +66,17 @@ h3 {
 }
 
 a img {
-    transition: transform 0.3s ease, opacity 0.3s ease; /* Smooth animation for transform and opacity */
+    transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
 a img:hover {
-    transform: scale(1.2); /* Slightly increase the size of the icon */
-    opacity: 0.9; /* Reduce opacity to make it slightly transparent */
+    transform: scale(1.2);
+    opacity: 0.9;
 }
 
 .bordered-img {
-    border: 5px solid #3498db; /* Blue solid border */
-    border-radius: 20px; /* Slightly rounded corners */
-    padding: 5px; /* Adds space between the image and the border */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 1.0); /* Optional: Add a shadow for a 3D effect */
-}
-
-/* navbar style */
-.navbar-custom {
-    background-color: #ffffff; /* White background */
-    border-bottom: 1px solid #aaaaaa; /* Light border at the bottom for subtle separation */
-}
-
-.navbar-custom .navbar-brand {
-    font-weight: bold;
-    font-size: 1.25rem;
-    color: #000; /* Black text for brand */
-}
-
-.navbar-custom .navbar-nav .nav-link {
-    color: #000; /* Black text for links */
-    font-weight: 500;
-    padding: 0.5rem 1rem;
-    transition: color 0.3s ease;
-}
-
-.navbar-custom .navbar-nav .nav-link:hover {
-    color: #3498db; /* Apple blue on hover */
-}
-
-.navbar-custom .navbar-nav .nav-item {
-    margin: 0 15px; /* Spacing between items */
-}
-
-.navbar-custom .navbar-toggler {
-    border-color: #aaaaaa; /* Light gray border for toggle button */
-    background-color: #ffffff; /* White background to ensure visibility */
-}
-
-.navbar-custom .navbar-toggler-icon {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Cpath stroke='black' stroke-width='2' stroke-linecap='round' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
-    width: 24px;
-    height: 24px;
-    background-size: contain;
-    background-repeat: no-repeat;
+    border: 5px solid #3498db;
+    border-radius: 20px;
+    padding: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 1.0);
 }
