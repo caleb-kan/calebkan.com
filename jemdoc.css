@@ -1,63 +1,62 @@
-/* General Styles */
+:root {
+    --primary-color: #3498db;
+    --gradient-color-1: #6452ee;
+    --gradient-color-2: #b73ce7;
+    --gradient-color-3: #1e91bb;
+    --gradient-color-4: #32b395;
+    --background-color: #ffffff;
+    --text-color: #333333;
+    --border-color: #aaaaaa;
+}
+
+/* Reset and Base Styles */
 html, body {
     height: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 body {
-    background: linear-gradient(-45deg, #6452ee, #b73ce7, #1e91bb, #32b395);
+    background: linear-gradient(-45deg, 
+        var(--gradient-color-1), 
+        var(--gradient-color-2), 
+        var(--gradient-color-3), 
+        var(--gradient-color-4));
     background-size: 300% 300%;
     animation: gradient 15s ease infinite;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding-top: 40px;
-    padding-bottom: 40px;
+    padding: 40px 0;
+    color: var(--text-color);
 }
 
+/* Container Styles */
 .container {
-    background-color: #ffffff;
+    background-color: var(--background-color);
     border-radius: 20px;
     padding: 30px;
     max-width: 960px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 1.0);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-@keyframes gradient {
-    0% {
-        background-position: 0% 50%;
-    }
-    50% {
-        background-position: 100% 50%;
-    }
-    100% {
-        background-position: 0% 50%;
-    }
-}
-
-/* Additional Styles */
-
+/* Heading Styles */
 h1, h2, h3 {
-    color: #3498db;
-    margin-top: 0.7em;
-    margin-bottom: 0.5em;
+    color: var(--primary-color);
+    margin: 0.7em 0 0.5em;
     padding-bottom: 0.3em;
-    line-height: 1.0;
-    border-bottom: 1px solid #aaaaaa;
+    line-height: 1.2;
+    border-bottom: 1px solid var(--border-color);
 }
 
 h1 {
     font-size: 165%;
-    padding-bottom: 0.3em;
 }
 
 h2 {
-    padding-top: 0.8em;
     font-size: 125%;
-}
-
-h2 + h3 {
-    padding-top: 0.2em;
+    padding-top: 0.8em;
 }
 
 h3 {
@@ -65,6 +64,11 @@ h3 {
     border-bottom: none;
 }
 
+h2 + h3 {
+    padding-top: 0.2em;
+}
+
+/* Image Styles */
 a img {
     transition: transform 0.3s ease, opacity 0.3s ease;
 }
@@ -75,8 +79,14 @@ a img:hover {
 }
 
 .bordered-img {
-    border: 5px solid #3498db;
+    border: 5px solid var(--primary-color);
     border-radius: 20px;
     padding: 5px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 1.0);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Animation */
+@keyframes gradient {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
 }
