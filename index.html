@@ -2,7 +2,7 @@
   "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-<link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+<link id="favicon" rel="shortcut icon" type="image/x-icon" href="/favicon/frame_00_delay-0.1s.ico">
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,18 +11,49 @@
 
 <!-- Bootstrap CSS -->
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
 
 <!-- jQuery and Bootstrap JS -->
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
 
 <link rel="stylesheet" href="jemdoc.css" type="text/css">
 
 <title>Caleb Kan</title>
+
+<script>
+    // Array to store individual frames
+    const frames = [
+        '/favicon/frame_00_delay-0.1s.ico',
+        '/favicon/frame_01_delay-0.1s.ico',
+        '/favicon/frame_02_delay-0.1s.ico',
+        '/favicon/frame_03_delay-0.1s.ico',
+        '/favicon/frame_04_delay-0.1s.ico',
+        '/favicon/frame_05_delay-0.1s.ico',
+        '/favicon/frame_06_delay-0.1s.ico',
+        '/favicon/frame_07_delay-0.1s.ico',
+        '/favicon/frame_08_delay-0.1s.ico',
+        '/favicon/frame_09_delay-0.1s.ico',
+        '/favicon/frame_10_delay-0.1s.ico',
+        '/favicon/frame_11_delay-0.1s.ico',
+        '/favicon/frame_12_delay-0.1s.ico'
+    ];
+
+    let currentFrame = 0;
+
+    function updateFavicon() {
+        const favicon = document.getElementById('favicon');
+        favicon.href = frames[currentFrame];
+        currentFrame = (currentFrame + 1) % frames.length;
+    }
+
+    // Start the animation when the page loads
+    window.onload = function() {
+        setInterval(updateFavicon, 100);
+    };
+</script>
 
 </head>
 <body>
