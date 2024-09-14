@@ -9,7 +9,6 @@
     --border-color: #aaaaaa;
 }
 
-/* Reset and Base Styles */
 html, body {
     height: 100%;
     margin: 0;
@@ -32,7 +31,6 @@ body {
     color: var(--text-color);
 }
 
-/* Container Styles */
 .container {
     background-color: var(--background-color);
     border-radius: 20px;
@@ -41,7 +39,6 @@ body {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
-/* Heading Styles */
 h1, h2, h3 {
     color: var(--primary-color);
     margin: 0.7em 0 0.5em;
@@ -68,7 +65,6 @@ h2 + h3 {
     padding-top: 0.2em;
 }
 
-/* Image Styles */
 a img {
     transition: transform 0.3s ease, opacity 0.3s ease;
 }
@@ -85,7 +81,6 @@ a img:hover {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
-/* Animation */
 @keyframes gradient {
     0%, 100% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }

@@ -24,35 +24,45 @@
 <title>Caleb Kan</title>
 
 <script>
-    // Array to store individual frames
-    const frames = [
-        '/favicon/frame_00_delay-0.1s.ico',
-        '/favicon/frame_01_delay-0.1s.ico',
-        '/favicon/frame_02_delay-0.1s.ico',
-        '/favicon/frame_03_delay-0.1s.ico',
-        '/favicon/frame_04_delay-0.1s.ico',
-        '/favicon/frame_05_delay-0.1s.ico',
-        '/favicon/frame_06_delay-0.1s.ico',
-        '/favicon/frame_07_delay-0.1s.ico',
-        '/favicon/frame_08_delay-0.1s.ico',
-        '/favicon/frame_09_delay-0.1s.ico',
-        '/favicon/frame_10_delay-0.1s.ico',
-        '/favicon/frame_11_delay-0.1s.ico',
-        '/favicon/frame_12_delay-0.1s.ico'
-    ];
+    (function() {
+        const frames = [
+            '/favicon/frame_00_delay-0.1s.ico',
+            '/favicon/frame_01_delay-0.1s.ico',
+            '/favicon/frame_02_delay-0.1s.ico',
+            '/favicon/frame_03_delay-0.1s.ico',
+            '/favicon/frame_04_delay-0.1s.ico',
+            '/favicon/frame_05_delay-0.1s.ico',
+            '/favicon/frame_06_delay-0.1s.ico',
+            '/favicon/frame_07_delay-0.1s.ico',
+            '/favicon/frame_08_delay-0.1s.ico',
+            '/favicon/frame_09_delay-0.1s.ico',
+            '/favicon/frame_10_delay-0.1s.ico',
+            '/favicon/frame_11_delay-0.1s.ico',
+            '/favicon/frame_12_delay-0.1s.ico'
+        ];
 
-    let currentFrame = 0;
+        let currentFrame = 0;
 
-    function updateFavicon() {
-        const favicon = document.getElementById('favicon');
-        favicon.href = frames[currentFrame];
-        currentFrame = (currentFrame + 1) % frames.length;
-    }
+        function getFaviconElement() {
+            let favicon = document.querySelector('link[rel*="icon"]');
+            if (!favicon) {
+                favicon = document.createElement('link');
+                favicon.rel = 'icon';
+                document.head.appendChild(favicon);
+            }
+            return favicon;
+        }
 
-    // Start the animation when the page loads
-    window.onload = function() {
-        setInterval(updateFavicon, 100);
-    };
+        function updateFavicon() {
+            const favicon = getFaviconElement();
+            favicon.href = frames[currentFrame];
+            currentFrame = (currentFrame + 1) % frames.length;
+        }
+
+        window.addEventListener('load', function() {
+            setInterval(updateFavicon, 100);
+        });
+    })();
 </script>
 
 </head>
