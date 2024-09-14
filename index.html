@@ -22,7 +22,6 @@
 
 <script>
 	(function() {
-		// Hard-coded array of favicon frames
 		const frames = [
 			'/favicon/frame_00_delay-0.1s.ico',
 			'/favicon/frame_01_delay-0.1s.ico',
@@ -43,7 +42,6 @@
 		let intervalId = null;
 		let favicon = null;
 	
-		// Preload favicon images
 		const images = frames.map(src => {
 			const img = new Image();
 			img.src = src;
@@ -90,8 +88,7 @@
 		}
 	
 		document.addEventListener('visibilitychange', handleVisibilityChange);
-	
-		// Start the animation when the page loads and is visible
+
 		window.addEventListener('load', function() {
 			if (document.visibilityState === 'visible') {
 				startAnimation();
