@@ -1,100 +1,91 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
-  "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="keywords" content="Caleb Kan"> 
-<meta name="description" content="Caleb Kan">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="keywords" content="Caleb Kan"> 
+    <meta name="description" content="Caleb Kan">
 
-<!-- Bootstrap CSS -->
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-<link href="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-<!-- jQuery and Bootstrap JS -->
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="jemdoc.css" type="text/css">
 
-<link rel="stylesheet" href="jemdoc.css" type="text/css">
+    <script>
+        (function() {
+            const frames = [
+                './favicon/frame_00_delay-0.1s.ico',
+                './favicon/frame_01_delay-0.1s.ico',
+                './favicon/frame_02_delay-0.1s.ico',
+                './favicon/frame_03_delay-0.1s.ico',
+                './favicon/frame_04_delay-0.1s.ico',
+                './favicon/frame_05_delay-0.1s.ico',
+                './favicon/frame_06_delay-0.1s.ico',
+                './favicon/frame_07_delay-0.1s.ico',
+                './favicon/frame_08_delay-0.1s.ico',
+                './favicon/frame_09_delay-0.1s.ico',
+                './favicon/frame_10_delay-0.1s.ico',
+                './favicon/frame_11_delay-0.1s.ico',
+                './favicon/frame_12_delay-0.1s.ico'
+            ];
 
-<script>
-    (function() {
-        const frames = [
-            './favicon/frame_00_delay-0.1s.ico',
-            './favicon/frame_01_delay-0.1s.ico',
-            './favicon/frame_02_delay-0.1s.ico',
-            './favicon/frame_03_delay-0.1s.ico',
-            './favicon/frame_04_delay-0.1s.ico',
-            './favicon/frame_05_delay-0.1s.ico',
-            './favicon/frame_06_delay-0.1s.ico',
-            './favicon/frame_07_delay-0.1s.ico',
-            './favicon/frame_08_delay-0.1s.ico',
-            './favicon/frame_09_delay-0.1s.ico',
-            './favicon/frame_10_delay-0.1s.ico',
-            './favicon/frame_11_delay-0.1s.ico',
-            './favicon/frame_12_delay-0.1s.ico'
-        ];
+            let currentFrame = 0;
+            let intervalId = null;
+            let faviconElement = null;
 
-        let currentFrame = 0;
-        let intervalId = null;
-        let faviconElement = null;
+            frames.forEach(src => {
+                new Image().src = src;
+            });
 
-        frames.forEach(src => {
-            new Image().src = src;
-        });
-
-        function getFaviconElement() {
-            if (!faviconElement) {
-                faviconElement = document.querySelector('link[rel~="icon"]');
+            function getFaviconElement() {
                 if (!faviconElement) {
-                    faviconElement = document.createElement('link');
-                    faviconElement.rel = 'icon';
-                    document.head.appendChild(faviconElement);
+                    faviconElement = document.querySelector('link[rel~="icon"]');
+                    if (!faviconElement) {
+                        faviconElement = document.createElement('link');
+                        faviconElement.rel = 'icon';
+                        document.head.appendChild(faviconElement);
+                    }
+                }
+                return faviconElement;
+            }
+
+            function updateFavicon() {
+                getFaviconElement().href = frames[currentFrame];
+                currentFrame = (currentFrame + 1) % frames.length;
+            }
+
+            function startAnimation() {
+                if (!intervalId) {
+                    intervalId = setInterval(updateFavicon, 100);
                 }
             }
-            return faviconElement;
-        }
 
-        function updateFavicon() {
-            getFaviconElement().href = frames[currentFrame];
-            currentFrame = (currentFrame + 1) % frames.length;
-        }
-
-        function startAnimation() {
-            if (!intervalId) {
-                intervalId = setInterval(updateFavicon, 100);
+            function stopAnimation() {
+                if (intervalId) {
+                    clearInterval(intervalId);
+                    intervalId = null;
+                }
             }
-        }
 
-        function stopAnimation() {
-            if (intervalId) {
-                clearInterval(intervalId);
-                intervalId = null;
+            function handleVisibilityChange() {
+                if (document.visibilityState === 'visible') {
+                    startAnimation();
+                } else {
+                    stopAnimation();
+                }
             }
-        }
 
-        function handleVisibilityChange() {
-            if (document.visibilityState === 'visible') {
-                startAnimation();
-            } else {
-                stopAnimation();
-            }
-        }
+            document.addEventListener('visibilitychange', handleVisibilityChange);
 
-        document.addEventListener('visibilitychange', handleVisibilityChange);
+            window.addEventListener('load', () => {
+                if (document.visibilityState === 'visible') {
+                    startAnimation();
+                }
+            });
+        })();
+    </script>
 
-        window.addEventListener('load', () => {
-            if (document.visibilityState === 'visible') {
-                startAnimation();
-            }
-        });
-    })();
-</script>
-
-<title>Caleb Kan</title>
+    <title>Caleb Kan</title>
 
 </head>
 
@@ -107,7 +98,7 @@
                 <div id="toptitle">
                     <h1>Caleb Kan</h1>
                 </div>
-                <h3>Computing Student @ Imperial College London</h3>
+                <h3>Computing @ Imperial</h3>
                 <p><b>Phone</b>: <a href="tel:+4407828210751">+44 0782 8210751</a></p>
                 <p><b>Email</b>: <a href="mailto:calebkan1106@gmail.com">calebkan1106@gmail.com</a></p>
                 <p>Here's my <a target="_blank" href="docs/Caleb_Kan_CV_BEng.pdf">Résumé</a></p>
@@ -145,5 +136,4 @@
     <script type="text/javascript" src="./js/particles.js"></script>
 
 </body>
-
 </html>
