@@ -46,7 +46,7 @@ body {
     border-radius: 20px;
     padding: 30px;
     max-width: 960px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
     position: relative;
     z-index: 2;
 }
