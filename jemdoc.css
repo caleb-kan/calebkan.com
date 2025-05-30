@@ -43,7 +43,7 @@ body {
 .container {
     background-color: var(--background-color);
     border-radius: 20px;
-    padding: 20px;
+    padding: 30px;
     max-width: 600px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
     position: relative;
