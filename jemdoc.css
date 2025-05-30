@@ -84,13 +84,6 @@ a img:hover {
     opacity: 0.9;
 }
 
-.bordered-img {
-    border: 5px solid var(--primary-color);
-    border-radius: 20px;
-    padding: 5px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
 @keyframes gradient {
     0%, 100% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
