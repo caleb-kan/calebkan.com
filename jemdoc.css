@@ -6,7 +6,6 @@
     --gradient-color-4: #32b395;
     --background-color: #ffffff;
     --text-color: #333333;
-    --border-color: #aaaaaa;
 }
 
 canvas.particles-js-canvas-el {
@@ -65,12 +64,10 @@ h1 {
 
 h2 {
     font-size: 125%;
-    padding-top: 0.8em;
 }
 
 h3 {
     font-size: 110%;
-    border-bottom: none;
 }
 
 h2 + h3 {
