@@ -11,79 +11,8 @@
 
     <link rel="stylesheet" href="jemdoc.css" type="text/css">
 
-    <script>
-        (function() {
-            const frames = [
-                './favicon/frame_00_delay-0.1s.ico',
-                './favicon/frame_01_delay-0.1s.ico',
-                './favicon/frame_02_delay-0.1s.ico',
-                './favicon/frame_03_delay-0.1s.ico',
-                './favicon/frame_04_delay-0.1s.ico',
-                './favicon/frame_05_delay-0.1s.ico',
-                './favicon/frame_06_delay-0.1s.ico',
-                './favicon/frame_07_delay-0.1s.ico',
-                './favicon/frame_08_delay-0.1s.ico',
-                './favicon/frame_09_delay-0.1s.ico',
-                './favicon/frame_10_delay-0.1s.ico',
-                './favicon/frame_11_delay-0.1s.ico',
-                './favicon/frame_12_delay-0.1s.ico'
-            ];
-
-            let currentFrame = 0;
-            let intervalId = null;
-            let faviconElement = null;
-
-            frames.forEach(src => {
-                new Image().src = src;
-            });
-
-            function getFaviconElement() {
-                if (!faviconElement) {
-                    faviconElement = document.querySelector('link[rel~="icon"]');
-                    if (!faviconElement) {
-                        faviconElement = document.createElement('link');
-                        faviconElement.rel = 'icon';
-                        document.head.appendChild(faviconElement);
-                    }
-                }
-                return faviconElement;
-            }
-
-            function updateFavicon() {
-                getFaviconElement().href = frames[currentFrame];
-                currentFrame = (currentFrame + 1) % frames.length;
-            }
-
-            function startAnimation() {
-                if (!intervalId) {
-                    intervalId = setInterval(updateFavicon, 100);
-                }
-            }
-
-            function stopAnimation() {
-                if (intervalId) {
-                    clearInterval(intervalId);
-                    intervalId = null;
-                }
-            }
-
-            function handleVisibilityChange() {
-                if (document.visibilityState === 'visible') {
-                    startAnimation();
-                } else {
-                    stopAnimation();
-                }
-            }
-
-            document.addEventListener('visibilitychange', handleVisibilityChange);
-
-            window.addEventListener('load', () => {
-                if (document.visibilityState === 'visible') {
-                    startAnimation();
-                }
-            });
-        })();
-    </script>
+    <!-- Fallback favicon for no-script browsers -->
+    <link rel="icon" href="./favicon/frame_00_delay-0.1s.ico" type="image/x-icon">
 
     <title>Caleb Kan</title>
 
@@ -100,28 +29,24 @@
                 </div>
                 <h2>computing @ imperial</h2>
                 <p><b>email</b> <a href="mailto:calebkan1106@gmail.com">calebkan1106@gmail.com</a></p>
-                <p><b>phone</b> <a href="tel:+4407828210751">+44 0782 8210751</a></p>
-                <p><b>here's my</b> <a target="_blank" href="docs/Caleb_Kan_CV_MEng.pdf">résumé</a></p>
+                <p><b>phone</b> <a href="tel:+447828210751">+44 0782 8210751</a></p>
+                <p><b>here's my</b> <a target="_blank" rel="noopener noreferrer" href="docs/Caleb_Kan_CV_MEng.pdf">résumé</a></p>
                 <p class="d-flex align-items-center justify-content-center gap-2">
-                    <a href="https://github.com/caleb-kan"><img src="icons/github.jpg" height="40px" class="shadow-sm rounded"></a>
-                    <a href="https://www.linkedin.com/in/caleb-kan"><img src="icons/LinkedIn.png" height="40px" class="shadow-sm rounded"></a>
+                    <a href="https://github.com/caleb-kan" aria-label="GitHub" title="GitHub">
+                        <img src="icons/github.jpg" alt="GitHub" height="40" class="shadow-sm rounded" loading="lazy" decoding="async">
+                    </a>
+                    <a href="https://www.linkedin.com/in/caleb-kan" aria-label="LinkedIn" title="LinkedIn">
+                        <img src="icons/LinkedIn.png" alt="LinkedIn" height="40" class="shadow-sm rounded" loading="lazy" decoding="async">
+                    </a>
                 </p>
             </div>
         </div>
     </div>
 
     <div id="particles-js"></div>
-    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-    <script>
-        particlesJS.load(
-            'particles-js', 
-            'particles.json',
-            function(){
-                console.log('particles.json loaded')
-            }
-        )
-    </script>
-    <script type="text/javascript" src="./js/particles.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script defer src="./js/init-particles.js"></script>
+    <script defer src="./js/favicon.js"></script>
 
 </body>
 </html>
