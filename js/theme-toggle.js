@@ -1,0 +1,54 @@
+(() => {
+  function ready(fn) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', fn);
+    } else {
+      fn();
+    }
+  }
+
+  ready(() => {
+    const card = document.getElementById('card');
+    const toggle = document.querySelector('.theme-toggle');
+    if (!card || !toggle) return;
+
+    const STORAGE_KEY = 'card-theme';
+
+    function setDarkMode(enabled) {
+      card.classList.toggle('dark', enabled);
+      toggle.setAttribute('aria-pressed', String(enabled));
+    }
+
+    // Load saved preference or respect system preference on first visit
+    const saved = localStorage.getItem(STORAGE_KEY);
+    const media = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+    const prefersDark = media ? media.matches : false;
+    const initialDark = saved ? saved === 'dark' : prefersDark;
+    setDarkMode(initialDark);
+
+    // Toggle on click
+    toggle.addEventListener('click', () => {
+      const next = !card.classList.contains('dark');
+      setDarkMode(next);
+      try {
+        localStorage.setItem(STORAGE_KEY, next ? 'dark' : 'light');
+      } catch (_) {
+        // ignore storage errors (e.g., Safari private mode)
+      }
+    });
+
+    // If user has not set a preference, follow system changes in real time
+    function handleSystemChange(e) {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) return; // user preference takes precedence
+      setDarkMode(e.matches);
+    }
+    if (media) {
+      if (typeof media.addEventListener === 'function') {
+        media.addEventListener('change', handleSystemChange);
+      } else if (typeof media.addListener === 'function') {
+        media.addListener(handleSystemChange);
+      }
+    }
+  });
+})();

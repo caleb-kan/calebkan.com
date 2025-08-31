@@ -40,8 +40,9 @@ body {
     color: var(--text-color);
 }
 
-.container {
+#card {
     background-color: var(--background-color);
+    color: var(--text-color);
     border-radius: 20px;
     padding: 30px;
     padding-bottom: 40px;
@@ -49,6 +50,17 @@ body {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
     position: relative;
     z-index: 2;
+    transition:
+        background-color 0.35s ease,
+        color 0.35s ease,
+        box-shadow 0.35s ease;
+}
+
+/* Dark mode applied only to the card */
+#card.dark {
+    --background-color: #0f0f10;
+    --text-color: #f2f2f2;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.65);
 }
 
 h1, h2, h3 {
@@ -56,7 +68,15 @@ h1, h2, h3 {
     margin: 0.7em 0 0.5em;
     padding-bottom: 0.3em;
     line-height: 1.2;
-    border-bottom: 1px solid var(--border-color);
+    transition: color 0.35s ease;
+}
+
+#card.dark a {
+    color: #9bd0ff;
+}
+
+#card.dark a:hover {
+    color: #c9e4ff;
 }
 
 h1 {
@@ -88,3 +108,67 @@ a img:hover {
     0%, 100% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
 }
+
+/*
+ * Theme toggle (top-right of the card)
+ */
+.theme-toggle {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 58px;
+    height: 32px;
+    border: 0;
+    border-radius: 999px;
+    padding: 0 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    cursor: pointer;
+    background: rgba(0, 0, 0, 0.06);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) inset, 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: background-color 0.35s ease, box-shadow 0.35s ease;
+    z-index: 3;
+}
+
+
+.theme-toggle:focus-visible {
+    outline: 2px solid rgba(52, 152, 219, 0.8);
+    outline-offset: 2px;
+}
+
+.theme-toggle .icon {
+    pointer-events: none;
+    font-size: 16px;
+    line-height: 1;
+    transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.theme-toggle .sun { color: #f6c453; opacity: 1; transform: scale(1); }
+.theme-toggle .moon { color: #b0c4ff; opacity: 0.35; transform: scale(0.9); }
+
+.theme-toggle .thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    transition: transform 0.35s cubic-bezier(.4, 0, .2, 1), background-color 0.35s ease;
+}
+
+#card.dark .theme-toggle {
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+}
+
+#card.dark .theme-toggle .thumb {
+    transform: translateX(26px);
+    background: #0b0b0b;
+}
+
+#card.dark .theme-toggle .sun { opacity: 0.35; transform: scale(0.9); }
+#card.dark .theme-toggle .moon { opacity: 1; transform: scale(1); }
