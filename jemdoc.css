@@ -30,7 +30,8 @@
     --toggle-gap: 6px;
     --toggle-thumb-size: 26px;
     --toggle-sun-color: #f6c453;
-    --toggle-moon-color: #b0c4ff;
+    /* Dark blue-gray, similar to iOS moon */
+    --toggle-moon-color: #2E3440;
 }
 
 canvas.particles-js-canvas-el {
