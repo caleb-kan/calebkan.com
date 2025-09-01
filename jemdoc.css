@@ -87,8 +87,8 @@ body {
         border-color 0.35s ease;
 }
 
-/* Dark mode applied only to the card */
-#card.dark {
+/* Dark mode applied via html.dark */
+html.dark #card {
     --background-color: rgba(22, 22, 24, 0.66);
     --text-color: #e6e6e7;
     --border-color: rgba(255, 255, 255, 0.08);
@@ -179,15 +179,15 @@ h2 + h3 {
     transition: transform 0.35s cubic-bezier(.4, 0, .2, 1), background-color 0.35s ease;
 }
 
-#card.dark .theme-toggle {
+html.dark .theme-toggle {
     background: rgba(255, 255, 255, 0.08);
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
 }
 
-#card.dark .theme-toggle .thumb {
+html.dark .theme-toggle .thumb {
     transform: translateX(26px);
     background: #0b0b0b;
 }
 
-#card.dark .theme-toggle .sun { opacity: 1; transform: scale(1); }
-#card.dark .theme-toggle .moon { opacity: 0.35; transform: scale(0.9); }
+html.dark .theme-toggle .sun { opacity: 1; transform: scale(1); }
+html.dark .theme-toggle .moon { opacity: 0.35; transform: scale(0.9); }

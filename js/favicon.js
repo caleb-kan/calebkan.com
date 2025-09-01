@@ -20,11 +20,12 @@
   let faviconElement = null;
 
   // Preload frames
-  frames.forEach(src => { new Image().src = src; });
+  frames.forEach(src => { const img = new Image(); img.src = src; });
 
   function getFaviconElement() {
     if (!faviconElement) {
-      faviconElement = document.querySelector('link[rel~="icon"]');
+      // Match common rel values (icon, shortcut icon, etc.)
+      faviconElement = document.querySelector('link[rel*="icon"]');
       if (!faviconElement) {
         faviconElement = document.createElement('link');
         faviconElement.rel = 'icon';
@@ -34,8 +35,12 @@
     return faviconElement;
   }
 
+  function setFavicon(index) {
+    getFaviconElement().href = frames[index];
+  }
+
   function updateFavicon() {
-    getFaviconElement().href = frames[currentFrame];
+    setFavicon(currentFrame);
     currentFrame = (currentFrame + 1) % frames.length;
   }
 
