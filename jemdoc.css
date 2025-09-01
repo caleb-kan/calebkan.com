@@ -1,11 +1,36 @@
 :root {
-    --primary-color: #3498db;
+    color-scheme: light dark;
+    /* Apple‑like system blue and neutrals */
+    --primary-color: #0a84ff; /* macOS/iOS system blue */
+
+    /* Background animated gradient (kept, but softened via glass card) */
     --gradient-color-1: #6452ee;
     --gradient-color-2: #b73ce7;
     --gradient-color-3: #1e91bb;
     --gradient-color-4: #32b395;
-    --background-color: #ffffff;
-    --text-color: #333333;
+
+    /* Card surface defaults (light) */
+    --background-color: rgba(255, 255, 255, 0.66);
+    --text-color: #0b0b0c;
+    --border-color: rgba(0, 0, 0, 0.08);
+    --shadow-ambient: 0 8px 30px rgba(0, 0, 0, 0.06);
+
+    /* Surface & component tokens */
+    --radius-card: 24px;
+    --blur-strength: 16px;
+    --card-padding: 40px 32px 48px;
+
+    /* Links */
+    --link-color: #007aff;
+    --link-hover-color: #005ecb;
+
+    /* Toggle */
+    --toggle-width: 58px;
+    --toggle-height: 32px;
+    --toggle-gap: 6px;
+    --toggle-thumb-size: 26px;
+    --toggle-sun-color: #f6c453;
+    --toggle-moon-color: #b0c4ff;
 }
 
 canvas.particles-js-canvas-el {
@@ -25,89 +50,82 @@ html, body {
 }
 
 body {
-    background: linear-gradient(-45deg, 
-        var(--gradient-color-1), 
-        var(--gradient-color-2), 
-        var(--gradient-color-3), 
+    background: linear-gradient(-45deg,
+        var(--gradient-color-1),
+        var(--gradient-color-2),
+        var(--gradient-color-3),
         var(--gradient-color-4));
     background-size: 300% 300%;
     animation: gradient 15s ease infinite;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 40px 0;
+    padding: 48px 16px;
     color: var(--text-color);
 }
 
 #card {
     background-color: var(--background-color);
     color: var(--text-color);
-    border-radius: 20px;
-    padding: 30px;
-    padding-bottom: 40px;
-    max-width: 720px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    border-radius: var(--radius-card);
+    padding: var(--card-padding);
+    max-width: 760px;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-ambient);
     position: relative;
     z-index: 2;
+    backdrop-filter: saturate(180%) blur(var(--blur-strength));
+    -webkit-backdrop-filter: saturate(180%) blur(var(--blur-strength));
     transition:
         background-color 0.35s ease,
         color 0.35s ease,
-        box-shadow 0.35s ease;
+        box-shadow 0.35s ease,
+        border-color 0.35s ease;
 }
 
 /* Dark mode applied only to the card */
 #card.dark {
-    --background-color: #0f0f10;
-    --text-color: #f2f2f2;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.65);
+    --background-color: rgba(22, 22, 24, 0.66);
+    --text-color: #e6e6e7;
+    --border-color: rgba(255, 255, 255, 0.08);
+    --link-color: #61adff;
+    --link-hover-color: #8ac6ff;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
 }
 
 h1, h2, h3 {
-    color: var(--primary-color);
-    margin: 0.7em 0 0.5em;
-    padding-bottom: 0.3em;
-    line-height: 1.2;
+    color: var(--text-color);
+    margin: 0.6em 0 0.4em;
+    line-height: 1.18;
+    font-weight: 700;
+    letter-spacing: -0.01em;
     transition: color 0.35s ease;
 }
 
-#card.dark a {
-    color: #9bd0ff;
-}
+/* Links */
+#card a { color: var(--link-color); text-decoration: none; }
+#card a:hover { color: var(--link-hover-color); text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1.5px; }
 
-#card.dark a:hover {
-    color: #c9e4ff;
-}
-
-h1 {
-    font-size: 165%;
-}
-
-h2 {
-    font-size: 125%;
-}
-
-h3 {
-    font-size: 110%;
-}
+h1 { font-size: clamp(28px, 4vw, 36px); }
+h2 { font-size: clamp(18px, 2.5vw, 22px); font-weight: 600; opacity: 0.9; }
+h3 { font-size: clamp(16px, 2.2vw, 18px); font-weight: 600; opacity: 0.9; }
 
 h2 + h3 {
     padding-top: 0.2em;
 }
 
-a img {
-    transition: transform 0.3s ease, opacity 0.3s ease;
-}
-
-a img:hover {
-    transform: scale(1.2);
-    opacity: 0.9;
-}
+#card a img { transition: transform 0.25s ease, opacity 0.25s ease; }
+#card a img:hover { transform: scale(1.08); opacity: 0.95; }
 
 @keyframes gradient {
     0%, 100% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
 }
+
+
 
 /*
  * Theme toggle (top-right of the card)
@@ -116,25 +134,25 @@ a img:hover {
     position: absolute;
     top: 12px;
     right: 12px;
-    width: 58px;
-    height: 32px;
+    width: var(--toggle-width);
+    height: var(--toggle-height);
     border: 0;
     border-radius: 999px;
     padding: 0 8px;
     display: inline-flex;
     align-items: center;
     justify-content: space-between;
-    gap: 6px;
+    gap: var(--toggle-gap);
     cursor: pointer;
     background: rgba(0, 0, 0, 0.06);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) inset, 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06) inset, 0 2px 10px rgba(0, 0, 0, 0.12);
     transition: background-color 0.35s ease, box-shadow 0.35s ease;
     z-index: 3;
 }
 
 
 .theme-toggle:focus-visible {
-    outline: 2px solid rgba(52, 152, 219, 0.8);
+    outline: 2px solid var(--primary-color);
     outline-offset: 2px;
 }
 
@@ -145,24 +163,24 @@ a img:hover {
     transition: opacity 0.35s ease, transform 0.35s ease;
 }
 
-.theme-toggle .sun { color: #f6c453; opacity: 1; transform: scale(1); }
-.theme-toggle .moon { color: #b0c4ff; opacity: 0.35; transform: scale(0.9); }
+.theme-toggle .sun { color: var(--toggle-sun-color); opacity: 0.35; transform: scale(0.9); }
+.theme-toggle .moon { color: var(--toggle-moon-color); opacity: 1; transform: scale(1); }
 
 .theme-toggle .thumb {
     position: absolute;
     top: 3px;
     left: 3px;
-    width: 26px;
-    height: 26px;
+    width: var(--toggle-thumb-size);
+    height: var(--toggle-thumb-size);
     border-radius: 50%;
     background: #ffffff;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05) inset;
     transition: transform 0.35s cubic-bezier(.4, 0, .2, 1), background-color 0.35s ease;
 }
 
 #card.dark .theme-toggle {
     background: rgba(255, 255, 255, 0.08);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
 }
 
 #card.dark .theme-toggle .thumb {
@@ -170,5 +188,5 @@ a img:hover {
     background: #0b0b0b;
 }
 
-#card.dark .theme-toggle .sun { opacity: 0.35; transform: scale(0.9); }
-#card.dark .theme-toggle .moon { opacity: 1; transform: scale(1); }
+#card.dark .theme-toggle .sun { opacity: 1; transform: scale(1); }
+#card.dark .theme-toggle .moon { opacity: 0.35; transform: scale(0.9); }

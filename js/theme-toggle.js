@@ -14,9 +14,16 @@
 
     const STORAGE_KEY = 'card-theme';
 
+    function updateToggleA11y(isDark) {
+      const label = isDark ? 'Switch to light mode' : 'Switch to dark mode';
+      toggle.setAttribute('aria-label', label);
+      toggle.title = label;
+    }
+
     function setDarkMode(enabled) {
       card.classList.toggle('dark', enabled);
       toggle.setAttribute('aria-pressed', String(enabled));
+      updateToggleA11y(enabled);
     }
 
     // Load saved preference or respect system preference on first visit
