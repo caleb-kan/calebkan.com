@@ -5,19 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="keywords" content="Caleb Kan"> 
     <meta name="description" content="Caleb Kan">
-    <meta name="color-scheme" content="light dark">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0b0b0b">
 
     <script>
         (function() {
             try {
                 var saved = localStorage.getItem('card-theme');
-                if (saved === 'light') {
-                    document.documentElement.classList.remove('dark');
-                } else {
-                    document.documentElement.classList.add('dark');
-                }
+                var isDark = saved !== 'light';
+                var root = document.documentElement;
+                root.classList.toggle('dark', isDark);
+
+                var cs = document.querySelector('meta[name="color-scheme"]');
+                if (cs) cs.setAttribute('content', isDark ? 'dark' : 'light');
+
+                var tc = document.querySelector('meta[name="theme-color"]');
+                if (!tc) { tc = document.createElement('meta'); tc.setAttribute('name', 'theme-color'); document.head.appendChild(tc); }
+                tc.setAttribute('content', isDark ? '#0b0b0b' : '#ffffff');
             } catch (_) {
-                document.documentElement.classList.add('dark');
+                var root2 = document.documentElement;
+                root2.classList.add('dark');
+                var cs2 = document.querySelector('meta[name="color-scheme"]');
+                if (cs2) cs2.setAttribute('content', 'dark');
+                var tc2 = document.querySelector('meta[name="theme-color"]');
+                if (!tc2) { tc2 = document.createElement('meta'); tc2.setAttribute('name', 'theme-color'); document.head.appendChild(tc2); }
+                tc2.setAttribute('content', '#0b0b0b');
             }
         })();
     </script>

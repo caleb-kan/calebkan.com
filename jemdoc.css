@@ -1,5 +1,5 @@
 :root {
-    color-scheme: light dark;
+    color-scheme: dark;
     /* Apple‑like system blue and neutrals */
     --primary-color: #0a84ff; /* macOS/iOS system blue */
 
@@ -33,6 +33,9 @@
     /* Dark blue-gray, similar to iOS moon */
     --toggle-moon-color: #2E3440;
 }
+
+/* Ensure built-in UI (forms, scrollbars) matches theme */
+html:not(.dark) { color-scheme: light; }
 
 canvas.particles-js-canvas-el {
     position: fixed;
@@ -161,11 +164,11 @@ h2 + h3 {
     pointer-events: none;
     font-size: 16px;
     line-height: 1;
-    transition: opacity 0.35s ease, transform 0.35s ease;
+    transition: opacity 0.35s ease;
 }
 
-.theme-toggle .sun { color: var(--toggle-sun-color); opacity: 0.35; transform: scale(0.9); }
-.theme-toggle .moon { color: var(--toggle-moon-color); opacity: 1; transform: scale(1); }
+.theme-toggle .sun { color: var(--toggle-sun-color); opacity: 0.35; }
+.theme-toggle .moon { color: var(--toggle-moon-color); opacity: 1; }
 
 .theme-toggle .thumb {
     position: absolute;
@@ -189,5 +192,5 @@ html.dark .theme-toggle .thumb {
     background: #0b0b0b;
 }
 
-html.dark .theme-toggle .sun { opacity: 1; transform: scale(1); }
-html.dark .theme-toggle .moon { opacity: 0.35; transform: scale(0.9); }
+html.dark .theme-toggle .sun { opacity: 1; }
+html.dark .theme-toggle .moon { opacity: 0.35; }
