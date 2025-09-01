@@ -26,11 +26,11 @@
       updateToggleA11y(enabled);
     }
 
-    // Load saved preference or respect system preference on first visit
+    // Load saved preference or default to dark on first visit
     const saved = localStorage.getItem(STORAGE_KEY);
     const media = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
-    const prefersDark = media ? media.matches : false;
-    const initialDark = saved ? saved === 'dark' : prefersDark;
+    // Default to dark when no saved preference exists
+    const initialDark = saved ? saved === 'dark' : true;
     setDarkMode(initialDark);
 
     // Toggle on click
