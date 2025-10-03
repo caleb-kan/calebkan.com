@@ -1,18 +1,18 @@
 (function() {
   const frames = [
-    './favicon/frame_00_delay-0.1s.ico',
-    './favicon/frame_01_delay-0.1s.ico',
-    './favicon/frame_02_delay-0.1s.ico',
-    './favicon/frame_03_delay-0.1s.ico',
-    './favicon/frame_04_delay-0.1s.ico',
-    './favicon/frame_05_delay-0.1s.ico',
-    './favicon/frame_06_delay-0.1s.ico',
-    './favicon/frame_07_delay-0.1s.ico',
-    './favicon/frame_08_delay-0.1s.ico',
-    './favicon/frame_09_delay-0.1s.ico',
-    './favicon/frame_10_delay-0.1s.ico',
-    './favicon/frame_11_delay-0.1s.ico',
-    './favicon/frame_12_delay-0.1s.ico'
+    './favicon/frame_00_delay_0.1s.ico',
+    './favicon/frame_01_delay_0.1s.ico',
+    './favicon/frame_02_delay_0.1s.ico',
+    './favicon/frame_03_delay_0.1s.ico',
+    './favicon/frame_04_delay_0.1s.ico',
+    './favicon/frame_05_delay_0.1s.ico',
+    './favicon/frame_06_delay_0.1s.ico',
+    './favicon/frame_07_delay_0.1s.ico',
+    './favicon/frame_08_delay_0.1s.ico',
+    './favicon/frame_09_delay_0.1s.ico',
+    './favicon/frame_10_delay_0.1s.ico',
+    './favicon/frame_11_delay_0.1s.ico',
+    './favicon/frame_12_delay_0.1s.ico'
   ];
 
   let currentFrame = 0;
