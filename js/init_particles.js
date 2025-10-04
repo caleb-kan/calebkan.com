@@ -1,9 +1,13 @@
 (function () {
   function initParticles() {
-    if (typeof particlesJS === 'function' && document.getElementById('particles-js')) {
+    var container = document.getElementById('particles-js');
+    if (typeof particlesJS === 'function' && container) {
       particlesJS.load('particles-js', 'particles.json', function () {
-        // loaded
+        // Particles loaded successfully
       });
+    } else if (container && typeof particlesJS !== 'function') {
+      // Particles library failed to load - fail silently and continue without particles
+      console.warn('particles.js library not loaded');
     }
   }
 

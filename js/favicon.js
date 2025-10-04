@@ -45,7 +45,7 @@
   }
 
   function startAnimation() {
-    if (!intervalId) {
+    if (!intervalId && document.visibilityState === 'visible') {
       intervalId = setInterval(updateFavicon, 100);
     }
   }
