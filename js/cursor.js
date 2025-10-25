@@ -11,20 +11,19 @@
     var cursor = document.getElementById('custom-cursor');
     if (!cursor) return;
 
+    // Only run on devices with fine pointer (desktop/laptop)
+    if (!window.matchMedia('(pointer: fine)').matches) return;
+
     var mouseX = 0;
     var mouseY = 0;
     var cursorX = 0;
     var cursorY = 0;
 
-    // Smooth cursor follow effect using requestAnimationFrame
+    // Smooth cursor animation loop
     function updateCursor() {
-      // Easing for smooth trailing effect
-      var ease = 0.15;
-      cursorX += (mouseX - cursorX) * ease;
-      cursorY += (mouseY - cursorY) * ease;
-
+      cursorX += (mouseX - cursorX) * 0.15;
+      cursorY += (mouseY - cursorY) * 0.15;
       cursor.style.transform = 'translate(' + cursorX + 'px, ' + cursorY + 'px) translate(-50%, -50%)';
-
       requestAnimationFrame(updateCursor);
     }
 
@@ -34,30 +33,27 @@
       mouseY = e.clientY;
     });
 
-    // Handle hover states for clickable elements
-    var clickableSelectors = 'a, button, [role="button"], input, textarea, select, [onclick]';
-    var clickableElements = document.querySelectorAll(clickableSelectors);
+    // Check if element is clickable
+    function isClickable(el) {
+      var tags = ['A', 'BUTTON', 'INPUT', 'TEXTAREA', 'SELECT'];
+      return tags.includes(el.tagName) ||
+             el.getAttribute('role') === 'button' ||
+             el.hasAttribute('onclick');
+    }
 
-    clickableElements.forEach(function (el) {
-      el.addEventListener('mouseenter', function () {
+    // Handle hover states using event delegation
+    document.body.addEventListener('mouseenter', function (e) {
+      if (isClickable(e.target)) {
         document.body.classList.add('cursor-hover');
-      });
+      }
+    }, true);
 
-      el.addEventListener('mouseleave', function () {
+    document.body.addEventListener('mouseleave', function (e) {
+      if (isClickable(e.target)) {
         document.body.classList.remove('cursor-hover');
-      });
-    });
+      }
+    }, true);
 
-    // Hide cursor when mouse leaves the window
-    document.addEventListener('mouseleave', function () {
-      cursor.style.opacity = '0';
-    });
-
-    document.addEventListener('mouseenter', function () {
-      cursor.style.opacity = '1';
-    });
-
-    // Start the animation loop
     updateCursor();
   });
 })();
