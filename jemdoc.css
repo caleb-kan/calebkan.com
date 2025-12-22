@@ -279,3 +279,17 @@ html.dark .theme-toggle .moon { opacity: 0.35; }
         100% { filter: hue-rotate(360deg) brightness(1.2); }
     }
 }
+
+/*
+ * GitHub contribution calendar
+ */
+#github-calendar {
+    margin-top: 1rem;
+}
+
+#github-calendar svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+}

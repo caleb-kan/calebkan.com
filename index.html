@@ -7,7 +7,7 @@
     <meta name="description" content="Caleb Kan">
     <meta name="color-scheme" content="dark">
     <meta name="theme-color" content="#0b0b0b">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; font-src https://cdnjs.cloudflare.com; img-src 'self' data:; connect-src 'self'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; font-src https://cdnjs.cloudflare.com; img-src 'self' data:; connect-src 'self' https://github-contributions-api.jogruber.de https://cdn.jsdelivr.net">
 
     <script>
         (function() {
@@ -76,6 +76,12 @@
                         <img src="icons/LinkedIn.png" alt="LinkedIn" height="40" class="shadow-sm rounded" loading="lazy" decoding="async">
                     </a>
                 </p>
+                <div id="github-calendar">
+                    Loading contributions...
+                </div>
+                <noscript>
+                    <p><a href="https://github.com/caleb-kan" target="_blank" rel="noopener noreferrer">View my GitHub profile</a></p>
+                </noscript>
             </div>
         </div>
     </div>
@@ -87,6 +93,7 @@
     <script defer src="./js/cursor.js"></script>
     <script defer src="./js/favicon.js"></script>
     <script defer src="./js/theme_toggle.js"></script>
+    <script defer src="./js/github_calendar.js"></script>
 
 </body>
 </html>
