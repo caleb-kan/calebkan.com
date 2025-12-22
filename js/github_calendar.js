@@ -87,7 +87,7 @@
     rect.setAttribute('height', CELL_SIZE);
     rect.setAttribute('x', week * (CELL_SIZE + CELL_GAP));
     rect.setAttribute('y', day * (CELL_SIZE + CELL_GAP));
-    rect.setAttribute('rx', '2');
+    rect.setAttribute('rx', '5.5');
 
     if (level === 0) {
       rect.setAttribute('fill', 'transparent');
