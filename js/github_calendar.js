@@ -3,6 +3,7 @@
   var API_URL = 'https://github-contributions-api.jogruber.de/v4/';
   var CELL_SIZE = 11;
   var CELL_GAP = 3;
+  var STROKE_PADDING = 1; // Padding for stroke on empty squares
   var CONTRIBUTION_COLORS = ['transparent', '#9be9a8', '#40c463', '#30a14e', '#216e39'];
 
   var cachedData = null;
@@ -114,10 +115,10 @@
     today.setHours(23, 59, 59, 999);
 
     var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    var svgWidth = weeks * (CELL_SIZE + CELL_GAP);
-    var svgHeight = 7 * (CELL_SIZE + CELL_GAP);
+    var svgWidth = weeks * (CELL_SIZE + CELL_GAP) - CELL_GAP + (2 * STROKE_PADDING);
+    var svgHeight = 7 * (CELL_SIZE + CELL_GAP) - CELL_GAP + (2 * STROKE_PADDING);
 
-    svg.setAttribute('viewBox', '0 0 ' + svgWidth + ' ' + svgHeight);
+    svg.setAttribute('viewBox', (-STROKE_PADDING) + ' ' + (-STROKE_PADDING) + ' ' + svgWidth + ' ' + svgHeight);
 
     for (var week = 0; week < weeks; week++) {
       for (var day = 0; day < 7; day++) {
