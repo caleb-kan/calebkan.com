@@ -120,9 +120,9 @@
 
     svg.setAttribute('viewBox', (-STROKE_PADDING) + ' ' + (-STROKE_PADDING) + ' ' + svgWidth + ' ' + svgHeight);
 
-    for (var week = 0; week < weeks; week++) {
+    renderLoop: for (var week = 0; week < weeks; week++) {
       for (var day = 0; day < 7; day++) {
-        if (currentDate > today) break;
+        if (currentDate > today) break renderLoop;
 
         var dateStr = formatDate(currentDate);
         var count = contributionMap[dateStr] || 0;
