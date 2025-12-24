@@ -90,10 +90,13 @@
     rect.setAttribute('y', day * (CELL_SIZE + CELL_GAP));
     rect.setAttribute('rx', '5.5');
 
+    // Apply stroke to all squares for better definition
+    rect.setAttribute('stroke', getStrokeColor());
+    rect.setAttribute('stroke-width', '1');
+
+    // Set fill based on contribution level
     if (level === 0) {
       rect.setAttribute('fill', 'transparent');
-      rect.setAttribute('stroke', getStrokeColor());
-      rect.setAttribute('stroke-width', '1');
     } else {
       rect.setAttribute('fill', CONTRIBUTION_COLORS[level]);
     }
