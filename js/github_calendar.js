@@ -4,7 +4,7 @@
   var CELL_SIZE = 11;
   var CELL_GAP = 3;
   var STROKE_PADDING = 1; // Padding for stroke on empty squares
-  var CONTRIBUTION_COLORS = ['transparent', '#9be9a8', '#40c463', '#30a14e', '#216e39'];
+  var CONTRIBUTION_COLORS = ['transparent', '#0e4429', '#006d32', '#26a641', '#39d353'];
 
   var cachedData = null;
 
