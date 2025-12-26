@@ -3,8 +3,11 @@
   var API_URL = 'https://github-contributions-api.jogruber.de/v4/';
   var CELL_SIZE = 11;
   var CELL_GAP = 3;
-  var STROKE_PADDING = 1; // Padding for stroke on empty squares
-  var CONTRIBUTION_COLORS = ['transparent', '#0e4429', '#006d32', '#26a641', '#39d353'];
+  var STROKE_PADDING = 2; // Padding to prevent stroke clipping
+
+  // GitHub's official contribution colors
+  var CONTRIBUTION_COLORS_DARK = ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'];
+  var CONTRIBUTION_COLORS_LIGHT = ['#ebedf0', '#9be9a8', '#30c463', '#30a14e', '#216e39'];
 
   var cachedData = null;
 
@@ -46,6 +49,11 @@
     return isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.4)';
   }
 
+  function getContributionColors() {
+    var isDark = document.documentElement.classList.contains('dark');
+    return isDark ? CONTRIBUTION_COLORS_DARK : CONTRIBUTION_COLORS_LIGHT;
+  }
+
   function getStartDate() {
     var today = new Date();
     var oneYearAgo = new Date(today);
@@ -83,6 +91,7 @@
   function createSquare(week, day, date, count, quartiles) {
     var rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
     var level = getContributionLevel(count, quartiles);
+    var colors = getContributionColors();
 
     rect.setAttribute('width', CELL_SIZE);
     rect.setAttribute('height', CELL_SIZE);
@@ -95,11 +104,7 @@
     rect.setAttribute('stroke-width', '1');
 
     // Set fill based on contribution level
-    if (level === 0) {
-      rect.setAttribute('fill', 'transparent');
-    } else {
-      rect.setAttribute('fill', CONTRIBUTION_COLORS[level]);
-    }
+    rect.setAttribute('fill', colors[level]);
 
     var title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
     title.textContent = count + ' contributions on ' + date;
