@@ -1,15 +1,15 @@
 (function () {
-  var GITHUB_USERNAME = 'caleb-kan';
-  var API_URL = 'https://github-contributions-api.jogruber.de/v4/';
-  var CELL_SIZE = 11;
-  var CELL_GAP = 3;
-  var STROKE_PADDING = 2; // Padding to prevent stroke clipping
+  const GITHUB_USERNAME = 'caleb-kan';
+  const API_URL = 'https://github-contributions-api.jogruber.de/v4/';
+  const CELL_SIZE = 11;
+  const CELL_GAP = 3;
+  const STROKE_PADDING = 2; // Padding to prevent stroke clipping
 
   // GitHub's official contribution colors
-  var CONTRIBUTION_COLORS_DARK = ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'];
-  var CONTRIBUTION_COLORS_LIGHT = ['#ebedf0', '#9be9a8', '#30c463', '#30a14e', '#216e39'];
+  const CONTRIBUTION_COLORS_DARK = ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'];
+  const CONTRIBUTION_COLORS_LIGHT = ['#ebedf0', '#9be9a8', '#30c463', '#30a14e', '#216e39'];
 
-  var cachedData = null;
+  let cachedData = null;
 
   function ready(fn) {
     if (document.readyState === 'loading') {
@@ -22,16 +22,16 @@
   function calculateQuartiles(data) {
     if (!data || !data.contributions) return [0, 1, 3, 6];
 
-    var counts = data.contributions
+    const counts = data.contributions
       .map(function(d) { return d.count; })
       .filter(function(c) { return c > 0; })
       .sort(function(a, b) { return a - b; });
 
     if (counts.length === 0) return [0, 1, 3, 6];
 
-    var q1 = counts[Math.floor(counts.length * 0.25)] || 1;
-    var q2 = counts[Math.floor(counts.length * 0.50)] || 3;
-    var q3 = counts[Math.floor(counts.length * 0.75)] || 6;
+    const q1 = counts[Math.floor(counts.length * 0.25)] || 1;
+    const q2 = counts[Math.floor(counts.length * 0.50)] || 3;
+    const q3 = counts[Math.floor(counts.length * 0.75)] || 6;
 
     return [0, q1, q2, q3];
   }
@@ -45,18 +45,18 @@
   }
 
   function getStrokeColor() {
-    var isDark = document.documentElement.classList.contains('dark');
+    const isDark = document.documentElement.classList.contains('dark');
     return isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.4)';
   }
 
   function getContributionColors() {
-    var isDark = document.documentElement.classList.contains('dark');
+    const isDark = document.documentElement.classList.contains('dark');
     return isDark ? CONTRIBUTION_COLORS_DARK : CONTRIBUTION_COLORS_LIGHT;
   }
 
   function getStartDate() {
-    var today = new Date();
-    var oneYearAgo = new Date(today);
+    const today = new Date();
+    const oneYearAgo = new Date(today);
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
     while (oneYearAgo.getDay() !== 0) {
       oneYearAgo.setDate(oneYearAgo.getDate() - 1);
@@ -65,21 +65,21 @@
   }
 
   function getWeekCount(startDate) {
-    var today = new Date();
-    var weekMs = 7 * 24 * 60 * 60 * 1000;
-    var weeks = Math.ceil((today - startDate) / weekMs);
+    const today = new Date();
+    const weekMs = 7 * 24 * 60 * 60 * 1000;
+    const weeks = Math.ceil((today - startDate) / weekMs);
     return Math.min(weeks, 53);
   }
 
   function formatDate(date) {
-    var year = date.getFullYear();
-    var month = String(date.getMonth() + 1).padStart(2, '0');
-    var day = String(date.getDate()).padStart(2, '0');
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
     return year + '-' + month + '-' + day;
   }
 
   function buildContributionMap(data) {
-    var map = {};
+    const map = {};
     if (data && data.contributions) {
       data.contributions.forEach(function(day) {
         map[day.date] = day.count;
@@ -89,9 +89,9 @@
   }
 
   function createSquare(week, day, date, count, quartiles) {
-    var rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    var level = getContributionLevel(count, quartiles);
-    var colors = getContributionColors();
+    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    const level = getContributionLevel(count, quartiles);
+    const colors = getContributionColors();
 
     rect.setAttribute('width', CELL_SIZE);
     rect.setAttribute('height', CELL_SIZE);
@@ -106,7 +106,7 @@
     // Set fill based on contribution level
     rect.setAttribute('fill', colors[level]);
 
-    var title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+    const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
     title.textContent = count + ' contributions on ' + date;
     rect.appendChild(title);
 
@@ -114,27 +114,27 @@
   }
 
   function renderCalendar(container, data) {
-    var startDate = getStartDate();
-    var weeks = getWeekCount(startDate);
-    var contributionMap = buildContributionMap(data);
-    var quartiles = calculateQuartiles(data);
-    var currentDate = new Date(startDate);
-    var today = new Date();
+    const startDate = getStartDate();
+    const weeks = getWeekCount(startDate);
+    const contributionMap = buildContributionMap(data);
+    const quartiles = calculateQuartiles(data);
+    const currentDate = new Date(startDate);
+    const today = new Date();
     today.setHours(23, 59, 59, 999);
 
-    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    var svgWidth = weeks * (CELL_SIZE + CELL_GAP) - CELL_GAP + (2 * STROKE_PADDING);
-    var svgHeight = 7 * (CELL_SIZE + CELL_GAP) - CELL_GAP + (2 * STROKE_PADDING);
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    const svgWidth = weeks * (CELL_SIZE + CELL_GAP) - CELL_GAP + (2 * STROKE_PADDING);
+    const svgHeight = 7 * (CELL_SIZE + CELL_GAP) - CELL_GAP + (2 * STROKE_PADDING);
 
     svg.setAttribute('viewBox', (-STROKE_PADDING) + ' ' + (-STROKE_PADDING) + ' ' + svgWidth + ' ' + svgHeight);
 
-    renderLoop: for (var week = 0; week < weeks; week++) {
-      for (var day = 0; day < 7; day++) {
+    renderLoop: for (let week = 0; week < weeks; week++) {
+      for (let day = 0; day < 7; day++) {
         if (currentDate > today) break renderLoop;
 
-        var dateStr = formatDate(currentDate);
-        var count = contributionMap[dateStr] || 0;
-        var square = createSquare(week, day, dateStr, count, quartiles);
+        const dateStr = formatDate(currentDate);
+        const count = contributionMap[dateStr] || 0;
+        const square = createSquare(week, day, dateStr, count, quartiles);
 
         svg.appendChild(square);
         currentDate.setDate(currentDate.getDate() + 1);
@@ -146,7 +146,7 @@
   }
 
   function loadCalendar() {
-    var container = document.getElementById('github-calendar');
+    const container = document.getElementById('github-calendar');
     if (!container) return;
 
     container.textContent = 'Loading contributions...';
@@ -168,7 +168,7 @@
 
   function updateCalendarTheme() {
     if (cachedData) {
-      var container = document.getElementById('github-calendar');
+      const container = document.getElementById('github-calendar');
       if (container) renderCalendar(container, cachedData);
     }
   }
@@ -176,7 +176,7 @@
   ready(function () {
     loadCalendar();
 
-    var observer = new MutationObserver(function(mutations) {
+    const observer = new MutationObserver(function(mutations) {
       mutations.forEach(function(mutation) {
         if (mutation.attributeName === 'class') {
           updateCalendarTheme();

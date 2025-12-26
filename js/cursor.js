@@ -8,16 +8,16 @@
   }
 
   ready(function () {
-    var cursor = document.getElementById('custom-cursor');
+    const cursor = document.getElementById('custom-cursor');
     if (!cursor) return;
 
     // Only run on devices with fine pointer (desktop/laptop)
     if (!window.matchMedia('(pointer: fine)').matches) return;
 
-    var mouseX = 0;
-    var mouseY = 0;
-    var cursorX = 0;
-    var cursorY = 0;
+    let mouseX = 0;
+    let mouseY = 0;
+    let cursorX = 0;
+    let cursorY = 0;
 
     // Smooth cursor animation loop
     function updateCursor() {
@@ -35,7 +35,7 @@
 
     // Check if element is clickable
     function isClickable(el) {
-      var tags = ['A', 'BUTTON', 'INPUT', 'TEXTAREA', 'SELECT'];
+      const tags = ['A', 'BUTTON', 'INPUT', 'TEXTAREA', 'SELECT'];
       return tags.includes(el.tagName) ||
              el.getAttribute('role') === 'button' ||
              el.hasAttribute('onclick');

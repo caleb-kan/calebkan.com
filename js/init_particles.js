@@ -1,6 +1,6 @@
 (function () {
   function initParticles() {
-    var container = document.getElementById('particles-js');
+    const container = document.getElementById('particles-js');
     if (typeof particlesJS === 'function' && container) {
       particlesJS.load('particles-js', 'particles.json', function () {
         // Particles loaded successfully
