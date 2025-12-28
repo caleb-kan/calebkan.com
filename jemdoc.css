@@ -276,6 +276,7 @@ html.dark .theme-toggle .moon { opacity: 0.35; }
     gap: 24px;
     z-index: 2;
     position: relative;
+    width: 100%;
 }
 
 /*
