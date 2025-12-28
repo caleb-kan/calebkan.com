@@ -86,6 +86,7 @@ h1, h2, h3 {
     text-decoration: none;
     transform: translateZ(0);
     will-change: opacity;
+    transition: opacity 0.2s ease;
 }
 .card-main a:hover, .card-spotify a:hover {
     opacity: 0.6;
