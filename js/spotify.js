@@ -60,12 +60,16 @@
     // Reset state
     element.classList.remove('marquee');
     element.style.removeProperty('--marquee-offset');
+    element.style.removeProperty('--marquee-duration');
 
     // Check if text overflows
     var overflow = element.scrollWidth - element.parentElement.clientWidth;
 
     if (overflow > 0) {
+      // Fixed scroll rate: 30px per second
+      var duration = Math.max(overflow / 30, 2);
       element.style.setProperty('--marquee-offset', '-' + overflow + 'px');
+      element.style.setProperty('--marquee-duration', duration + 's');
       element.classList.add('marquee');
     }
   }

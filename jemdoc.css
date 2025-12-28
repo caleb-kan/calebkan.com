@@ -387,7 +387,10 @@ html.dark .card-spotify {
 .spotify-title.marquee,
 .spotify-artist.marquee {
     text-align: left;
-    animation: marquee 8s ease-in-out infinite;
+    animation-name: marquee;
+    animation-duration: var(--marquee-duration);
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
 }
 
 @keyframes marquee {
