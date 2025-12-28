@@ -294,8 +294,6 @@ html.dark .theme-toggle .moon { opacity: 0.35; }
     backdrop-filter: saturate(180%) blur(var(--blur-strength));
     -webkit-backdrop-filter: saturate(180%) blur(var(--blur-strength));
     transition: background-color 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
-    /* Isolate cards to own compositing layer */
-    transform: translateZ(0);
 }
 
 .card-main {
