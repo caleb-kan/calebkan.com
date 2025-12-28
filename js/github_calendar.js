@@ -151,7 +151,7 @@
 
     container.textContent = 'Loading contributions...';
 
-    fetch(API_URL + GITHUB_USERNAME + '?_=' + new Date().toISOString().slice(0, 10))
+    fetch(API_URL + GITHUB_USERNAME + '?_=' + formatDate(new Date()))
       .then(function(response) {
         if (!response.ok) throw new Error('Failed to fetch');
         return response.json();
