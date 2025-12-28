@@ -66,7 +66,7 @@
     var overflow = element.scrollWidth - element.parentElement.clientWidth;
 
     if (overflow > 0) {
-      var speed = 30;
+      var speed = 15;
       var duration = Math.max(overflow / speed, 6);
       element.style.setProperty('--marquee-offset', '-' + overflow + 'px');
       element.style.setProperty('--marquee-duration', duration + 's');
