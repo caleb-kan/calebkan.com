@@ -324,16 +324,16 @@ html.dark .card-spotify {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    margin-bottom: 8px;
-    font-size: 14px;
+    margin-bottom: 20px;
+    font-size: 13px;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    opacity: 0.7;
+    letter-spacing: 0.08em;
+    opacity: 0.6;
 }
 
 .spotify-header .fa-spotify {
-    font-size: 20px;
+    font-size: 18px;
     color: #1db954;
 }
 
@@ -341,17 +341,15 @@ html.dark .card-spotify {
     display: flex;
     flex-direction: column;
     align-items: center;
-    flex: 1;
-    justify-content: center;
+    gap: 16px;
 }
 
 .spotify-album-art {
-    width: 180px;
-    height: 180px;
+    width: 160px;
+    height: 160px;
     border-radius: 12px;
     object-fit: cover;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-    margin-bottom: 16px;
 }
 
 .spotify-info {
@@ -399,7 +397,7 @@ html.dark .card-spotify {
     height: 4px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 2px;
-    margin-top: 16px;
+    margin-top: 24px;
     overflow: hidden;
 }
 
@@ -440,7 +438,7 @@ html:not(.dark) .spotify-progress-container {
     }
 
     .spotify-album-art {
-        width: 140px;
-        height: 140px;
+        width: 120px;
+        height: 120px;
     }
 }
