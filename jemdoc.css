@@ -71,35 +71,6 @@ body {
     color: var(--text-color);
 }
 
-#card {
-    background-color: var(--background-color);
-    color: var(--text-color);
-    border-radius: var(--radius-card);
-    padding: var(--card-padding);
-    max-width: 760px;
-    border: 1px solid var(--border-color);
-    box-shadow: var(--shadow-ambient);
-    position: relative;
-    z-index: 2;
-    backdrop-filter: saturate(180%) blur(var(--blur-strength));
-    -webkit-backdrop-filter: saturate(180%) blur(var(--blur-strength));
-    transition:
-        background-color 0.35s ease,
-        color 0.35s ease,
-        box-shadow 0.35s ease,
-        border-color 0.35s ease;
-}
-
-/* Dark mode applied via html.dark */
-html.dark #card {
-    --background-color: rgba(22, 22, 24, 0.66);
-    --text-color: #e6e6e7;
-    --border-color: rgba(255, 255, 255, 0.08);
-    --link-color: #61adff;
-    --link-hover-color: #8ac6ff;
-    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
-}
-
 h1, h2, h3 {
     color: var(--text-color);
     margin: 0.6em 0 0.4em;
@@ -110,8 +81,8 @@ h1, h2, h3 {
 }
 
 /* Links */
-#card a { color: var(--link-color); text-decoration: none; }
-#card a:hover { color: var(--link-hover-color); text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1.5px; }
+.card-main a, .card-spotify a { color: var(--link-color); text-decoration: none; }
+.card-main a:hover, .card-spotify a:hover { color: var(--link-hover-color); text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1.5px; }
 
 h1 { font-size: clamp(28px, 4vw, 36px); }
 h2 { font-size: clamp(18px, 2.5vw, 22px); font-weight: 600; opacity: 0.9; }
@@ -121,8 +92,8 @@ h2 + h3 {
     padding-top: 0.2em;
 }
 
-#card a img { transition: transform 0.25s ease, opacity 0.25s ease; }
-#card a img:hover { transform: scale(1.08); opacity: 0.95; }
+.card-main a img { transition: transform 0.25s ease, opacity 0.25s ease; }
+.card-main a img:hover { transform: scale(1.08); opacity: 0.95; }
 
 @keyframes gradient {
     0%, 100% { background-position: 0% 50%; }
@@ -292,4 +263,169 @@ html.dark .theme-toggle .moon { opacity: 0.35; }
     max-width: 100%;
     height: auto;
     margin: 0 auto;
+}
+
+
+/*
+ * Cards wrapper - handles centering of one or two cards
+ */
+#cards-wrapper {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    gap: 24px;
+    z-index: 2;
+    position: relative;
+}
+
+.card-main,
+.card-spotify {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    border-radius: var(--radius-card);
+    padding: var(--card-padding);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-ambient);
+    position: relative;
+    backdrop-filter: saturate(180%) blur(var(--blur-strength));
+    -webkit-backdrop-filter: saturate(180%) blur(var(--blur-strength));
+    transition:
+        background-color 0.35s ease,
+        color 0.35s ease,
+        box-shadow 0.35s ease,
+        border-color 0.35s ease,
+        opacity 0.35s ease,
+        transform 0.35s ease;
+}
+
+.card-main {
+    max-width: 760px;
+    width: 100%;
+}
+
+.card-spotify {
+    width: 280px;
+    min-width: 280px;
+    padding: 24px 20px 28px;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-spotify[hidden] {
+    display: none;
+}
+
+html.dark .card-main,
+html.dark .card-spotify {
+    --background-color: rgba(22, 22, 24, 0.66);
+    --text-color: #e6e6e7;
+    --border-color: rgba(255, 255, 255, 0.08);
+    --link-color: #61adff;
+    --link-hover-color: #8ac6ff;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+}
+
+/*
+ * Spotify card specific styles
+ */
+.spotify-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.7;
+}
+
+.spotify-header .fa-spotify {
+    font-size: 20px;
+    color: #1db954;
+}
+
+.spotify-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    justify-content: center;
+}
+
+.spotify-album-art {
+    width: 180px;
+    height: 180px;
+    border-radius: 12px;
+    object-fit: cover;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    margin-bottom: 16px;
+}
+
+.spotify-info {
+    text-align: center;
+    width: 100%;
+}
+
+.spotify-title {
+    display: block;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+}
+
+.spotify-artist {
+    font-size: 14px;
+    opacity: 0.7;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+}
+
+.spotify-progress-container {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    margin-top: 16px;
+    overflow: hidden;
+}
+
+html:not(.dark) .spotify-progress-container {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.spotify-progress {
+    height: 100%;
+    background: #1db954;
+    border-radius: 2px;
+    width: 0%;
+    transition: width 1s linear;
+}
+
+/* Responsive: stack cards vertically on smaller screens */
+@media (max-width: 1100px) {
+    #cards-wrapper {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .card-spotify {
+        width: 100%;
+        max-width: 760px;
+        min-width: unset;
+        padding: var(--card-padding);
+    }
+
+    .spotify-album-art {
+        width: 200px;
+        height: 200px;
+    }
 }
