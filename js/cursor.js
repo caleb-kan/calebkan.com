@@ -1,4 +1,6 @@
 (function () {
+  'use strict';
+
   function ready(fn) {
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', fn);
@@ -18,14 +20,37 @@
     let mouseY = 0;
     let cursorX = 0;
     let cursorY = 0;
+    let animationId = null;
 
     // Smooth cursor animation loop
     function updateCursor() {
       cursorX += (mouseX - cursorX) * 0.15;
       cursorY += (mouseY - cursorY) * 0.15;
       cursor.style.transform = 'translate(' + cursorX + 'px, ' + cursorY + 'px) translate(-50%, -50%)';
-      requestAnimationFrame(updateCursor);
+      animationId = requestAnimationFrame(updateCursor);
     }
+
+    function startAnimation() {
+      if (!animationId && document.visibilityState === 'visible') {
+        animationId = requestAnimationFrame(updateCursor);
+      }
+    }
+
+    function stopAnimation() {
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+      }
+    }
+
+    // Pause animation when tab is hidden to save CPU
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'visible') {
+        startAnimation();
+      } else {
+        stopAnimation();
+      }
+    });
 
     // Track mouse position
     document.addEventListener('mousemove', function (e) {
@@ -54,6 +79,6 @@
       }
     }, true);
 
-    updateCursor();
+    startAnimation();
   });
 })();

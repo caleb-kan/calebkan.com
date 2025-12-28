@@ -1,4 +1,6 @@
 (function () {
+  'use strict';
+
   const GITHUB_USERNAME = 'caleb-kan';
   const API_URL = 'https://github-contributions-api.jogruber.de/v4/';
   const CELL_SIZE = 11;

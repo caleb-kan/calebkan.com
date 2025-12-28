@@ -6,6 +6,10 @@ const TOKEN_ENDPOINT = 'https://accounts.spotify.com/api/token';
 const NOW_PLAYING_ENDPOINT = 'https://api.spotify.com/v1/me/player/currently-playing';
 
 async function getAccessToken() {
+  if (!CLIENT_ID || !CLIENT_SECRET || !REFRESH_TOKEN) {
+    throw new Error('Missing Spotify credentials');
+  }
+
   const basic = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64');
 
   const response = await fetch(TOKEN_ENDPOINT, {
@@ -54,7 +58,7 @@ async function getNowPlaying() {
   };
 }
 
-export default async function handler(req, res) {
+export default async function handler(_req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET');
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');

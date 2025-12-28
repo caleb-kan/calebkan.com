@@ -52,7 +52,7 @@
 <body>
 
     <div id="cards-wrapper">
-        <div id="card" class="card-main text-center" role="main" aria-labelledby="page-title">
+        <main id="card" class="card-main text-center" aria-labelledby="page-title">
 
             <!-- Theme toggle button -->
             <button class="theme-toggle" type="button" aria-label="Switch to light mode" aria-pressed="true" title="Switch to light mode">
@@ -67,7 +67,7 @@
                         <h1 id="page-title">Caleb Kan</h1>
                     </div>
                     <p><strong>email</strong> <a href="mailto:hello@calebkan.com" aria-label="Email hello@calebkan.com">hello@calebkan.com</a></p>
-                    <p><strong>phone</strong> <a href="tel:+447828210751" aria-label="Call +44 07828210751">+44 07828210751</a></p>
+                    <p><strong>phone</strong> <a href="tel:+447828210751" aria-label="Call +44 07828210751">+44&nbsp;07828210751</a></p>
                     <p><strong>here's my</strong> <a target="_blank" rel="noopener noreferrer" href="docs/Caleb_Kan_CV.pdf" aria-label="Download résumé (opens in new tab)">résumé</a></p>
                     <p class="d-flex align-items-center justify-content-center gap-2">
                         <a href="https://github.com/caleb-kan" target="_blank" rel="noopener noreferrer" aria-label="GitHub" title="GitHub">
@@ -82,15 +82,15 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </main>
 
-        <div id="spotify-card" class="card-spotify text-center" aria-label="Currently playing on Spotify" hidden>
+        <section id="spotify-card" class="card-spotify text-center" aria-label="Currently playing on Spotify" hidden>
             <div class="spotify-header">
                 <i class="fa-brands fa-spotify" aria-hidden="true"></i>
                 <span>Now Playing</span>
             </div>
             <div class="spotify-content">
-                <img id="spotify-album-art" src="" alt="Album art" class="spotify-album-art">
+                <img id="spotify-album-art" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Album art" class="spotify-album-art">
                 <div class="spotify-info">
                     <a id="spotify-title" href="" target="_blank" rel="noopener noreferrer" class="spotify-title" aria-label="Open song on Spotify"></a>
                     <p id="spotify-artist" class="spotify-artist"></p>
@@ -99,7 +99,7 @@
             <div class="spotify-progress-container">
                 <div id="spotify-progress" class="spotify-progress"></div>
             </div>
-        </div>
+        </section>
     </div>
 
     <div id="particles-js"></div>
