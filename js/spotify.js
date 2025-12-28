@@ -56,6 +56,20 @@
     }
   }
 
+  function updateMarquee(element) {
+    // Reset state
+    element.classList.remove('marquee');
+    element.style.removeProperty('--marquee-offset');
+
+    // Check if text overflows
+    var overflow = element.scrollWidth - element.parentElement.clientWidth;
+
+    if (overflow > 0) {
+      element.style.setProperty('--marquee-offset', '-' + overflow + 'px');
+      element.classList.add('marquee');
+    }
+  }
+
   function showSpotifyCard(data) {
     // Only update DOM if track changed
     var trackId = data.title + '-' + data.artist;
@@ -66,6 +80,12 @@
       titleEl.textContent = data.title;
       titleEl.href = data.songUrl;
       artistEl.textContent = data.artist;
+
+      // Check for marquee after DOM update
+      requestAnimationFrame(function() {
+        updateMarquee(titleEl);
+        updateMarquee(artistEl);
+      });
     }
 
     currentProgress = data.progress;

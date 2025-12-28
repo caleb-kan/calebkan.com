@@ -362,27 +362,39 @@ html.dark .card-spotify {
 .spotify-info {
     text-align: center;
     width: 100%;
+    overflow: hidden;
+}
+
+.spotify-title,
+.spotify-artist {
+    display: block;
+    white-space: nowrap;
+    position: relative;
 }
 
 .spotify-title {
-    display: block;
     font-size: 16px;
     font-weight: 600;
     margin-bottom: 4px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 100%;
 }
 
 .spotify-artist {
     font-size: 14px;
     opacity: 0.7;
     margin: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 100%;
+}
+
+/* Marquee animation for overflowing text */
+.spotify-title.marquee,
+.spotify-artist.marquee {
+    text-align: left;
+    animation: marquee 8s ease-in-out infinite;
+}
+
+@keyframes marquee {
+    0%, 20% { transform: translateX(0); }
+    40%, 60% { transform: translateX(var(--marquee-offset)); }
+    80%, 100% { transform: translateX(0); }
 }
 
 .spotify-progress-container {
