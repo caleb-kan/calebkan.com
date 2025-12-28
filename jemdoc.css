@@ -299,8 +299,9 @@ html.dark .theme-toggle .moon { opacity: 0.35; }
 }
 
 .card-main {
-    max-width: 760px;
-    width: 100%;
+    width: 760px;
+    max-width: 100%;
+    flex-shrink: 0;
 }
 
 .card-spotify {
@@ -407,7 +408,6 @@ html:not(.dark) .spotify-progress-container {
     background: #1db954;
     border-radius: 2px;
     width: 0%;
-    transition: width 1s linear;
 }
 
 /* Responsive: stack cards vertically on smaller screens */

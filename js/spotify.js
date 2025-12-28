@@ -1,8 +1,7 @@
 (function() {
   'use strict';
 
-  const POLL_INTERVAL = 30000; // 30 seconds
-  const PROGRESS_UPDATE_INTERVAL = 1000; // 1 second
+  const POLL_INTERVAL = 5000; // 5 seconds for near real-time updates
 
   const spotifyCard = document.getElementById('spotify-card');
   const albumArt = document.getElementById('spotify-album-art');
@@ -11,10 +10,11 @@
   const progressEl = document.getElementById('spotify-progress');
 
   let currentTrackId = null;
-  let progressInterval = null;
+  let progressAnimationId = null;
   let currentProgress = 0;
   let currentDuration = 0;
   let lastFetchTime = 0;
+  let isPlaying = false;
 
   function fetchNowPlaying() {
     return fetch('/api/now-playing')
@@ -31,61 +31,76 @@
   }
 
   function updateProgress() {
-    if (!currentDuration) return;
+    if (!currentDuration || !isPlaying) return;
 
     var elapsed = Date.now() - lastFetchTime;
     var newProgress = Math.min(currentProgress + elapsed, currentDuration);
     var percentage = (newProgress / currentDuration) * 100;
     progressEl.style.width = percentage + '%';
+
+    // Continue animation
+    progressAnimationId = requestAnimationFrame(updateProgress);
+  }
+
+  function startProgressAnimation() {
+    if (progressAnimationId) {
+      cancelAnimationFrame(progressAnimationId);
+    }
+    progressAnimationId = requestAnimationFrame(updateProgress);
+  }
+
+  function stopProgressAnimation() {
+    if (progressAnimationId) {
+      cancelAnimationFrame(progressAnimationId);
+      progressAnimationId = null;
+    }
   }
 
   function showSpotifyCard(data) {
-    albumArt.src = data.albumArt;
-    albumArt.alt = data.album + ' album art';
-    titleEl.textContent = data.title;
-    titleEl.href = data.songUrl;
-    artistEl.textContent = data.artist;
+    // Only update DOM if track changed
+    var trackId = data.title + '-' + data.artist;
+    if (trackId !== currentTrackId) {
+      currentTrackId = trackId;
+      albumArt.src = data.albumArt;
+      albumArt.alt = data.album + ' album art';
+      titleEl.textContent = data.title;
+      titleEl.href = data.songUrl;
+      artistEl.textContent = data.artist;
+    }
 
     currentProgress = data.progress;
     currentDuration = data.duration;
     lastFetchTime = Date.now();
+    isPlaying = data.isPlaying;
 
     var percentage = (data.progress / data.duration) * 100;
     progressEl.style.width = percentage + '%';
 
-    spotifyCard.hidden = false;
-
-    // Start progress animation
-    if (progressInterval) {
-      clearInterval(progressInterval);
+    if (spotifyCard.hidden) {
+      spotifyCard.hidden = false;
     }
-    progressInterval = setInterval(updateProgress, PROGRESS_UPDATE_INTERVAL);
+
+    // Start smooth progress animation
+    if (isPlaying) {
+      startProgressAnimation();
+    } else {
+      stopProgressAnimation();
+    }
   }
 
   function hideSpotifyCard() {
-    spotifyCard.hidden = true;
-    currentTrackId = null;
-
-    if (progressInterval) {
-      clearInterval(progressInterval);
-      progressInterval = null;
+    if (!spotifyCard.hidden) {
+      spotifyCard.hidden = true;
     }
+    currentTrackId = null;
+    isPlaying = false;
+    stopProgressAnimation();
   }
 
   function update() {
     fetchNowPlaying().then(function(data) {
       if (data.isPlaying) {
-        var trackId = data.title + '-' + data.artist;
-
-        if (trackId !== currentTrackId) {
-          currentTrackId = trackId;
-          showSpotifyCard(data);
-        } else {
-          // Same track, just update progress
-          currentProgress = data.progress;
-          currentDuration = data.duration;
-          lastFetchTime = Date.now();
-        }
+        showSpotifyCard(data);
       } else {
         hideSpotifyCard();
       }
@@ -95,16 +110,16 @@
   // Initial fetch
   update();
 
-  // Poll for updates
+  // Poll frequently for near real-time updates
   setInterval(update, POLL_INTERVAL);
 
-  // Pause progress animation when tab is hidden
+  // Immediately update when tab becomes visible
   document.addEventListener('visibilitychange', function() {
-    if (document.hidden && progressInterval) {
-      clearInterval(progressInterval);
-      progressInterval = null;
-    } else if (!document.hidden && !spotifyCard.hidden) {
-      progressInterval = setInterval(updateProgress, PROGRESS_UPDATE_INTERVAL);
+    if (document.hidden) {
+      stopProgressAnimation();
+    } else {
+      // Immediately fetch fresh data when tab becomes visible
+      update();
     }
   });
 })();
