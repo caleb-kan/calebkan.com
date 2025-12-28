@@ -66,10 +66,9 @@
       el.style.removeProperty('--marquee-duration');
     });
 
-    // 2) Measure overflow (matches your existing approach)
+    // 2) Measure overflow
     function overflowPx(el) {
-      var containerW = el.parentElement ? el.parentElement.clientWidth : el.clientWidth;
-      return Math.max(0, Math.ceil(el.scrollWidth - containerW));
+      return Math.max(0, Math.ceil(el.scrollWidth - el.clientWidth));
     }
 
     var titleOverflow = overflowPx(titleEl);
@@ -78,10 +77,9 @@
 
     if (maxOverflow === 0) return;
 
-    // 3) Fixed scroll speed during the moving segment of YOUR keyframes
-    // Your marquee moves only from 40% to 60% => 20% of total animation time
-    var speedPxPerSec = 15;     // tune this
-    var moveFraction = 0.20;    // because only 20% of the timeline is moving
+    // 3) Fixed scroll speed during the moving segment of keyframes
+    var speedPxPerSec = 15;
+    var moveFraction = 0.35;
     var minDurationSec = 6;
 
     var totalDurationSec = (maxOverflow / speedPxPerSec) / moveFraction;
