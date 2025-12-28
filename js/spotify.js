@@ -24,11 +24,8 @@
     if (!spotifyCard || !albumArt || !titleEl || !artistEl || !progressEl) return;
 
     let currentTrackId = null;
-    let progressAnimationId = null;
-    let currentProgress = 0;
     let currentDuration = 0;
-    let lastFetchTime = 0;
-    let isPlaying = false;
+    let pollTimeoutId = null;
 
     function fetchNowPlaying() {
       return fetch('/api/now-playing')
@@ -44,29 +41,18 @@
         });
     }
 
-    function updateProgress() {
-      if (!currentDuration || !isPlaying) return;
-
-      const elapsed = Date.now() - lastFetchTime;
-      const newProgress = Math.min(currentProgress + elapsed, currentDuration);
-      const percentage = (newProgress / currentDuration) * 100;
+    // Disable CSS transition temporarily for instant jumps
+    function setProgressInstant(percentage) {
+      progressEl.style.transition = 'none';
       progressEl.style.width = percentage + '%';
-
-      progressAnimationId = requestAnimationFrame(updateProgress);
+      // Force reflow to apply instant change
+      void progressEl.offsetWidth;
+      progressEl.style.transition = '';
     }
 
-    function startProgressAnimation() {
-      if (progressAnimationId) {
-        cancelAnimationFrame(progressAnimationId);
-      }
-      progressAnimationId = requestAnimationFrame(updateProgress);
-    }
-
-    function stopProgressAnimation() {
-      if (progressAnimationId) {
-        cancelAnimationFrame(progressAnimationId);
-        progressAnimationId = null;
-      }
+    // Set progress with smooth CSS transition
+    function setProgressSmooth(percentage) {
+      progressEl.style.width = percentage + '%';
     }
 
     function getOverflowPx(el) {
@@ -118,8 +104,9 @@
 
     function showSpotifyCard(data) {
       const trackId = data.title + '-' + data.artist;
+      const isNewTrack = trackId !== currentTrackId;
 
-      if (trackId !== currentTrackId) {
+      if (isNewTrack) {
         currentTrackId = trackId;
         albumArt.src = data.albumArt || PLACEHOLDER_IMAGE;
         albumArt.alt = data.album ? data.album + ' album art' : 'Album art';
@@ -130,22 +117,32 @@
         requestAnimationFrame(updateMarquee);
       }
 
-      currentProgress = data.progress || 0;
       currentDuration = data.duration || 0;
-      lastFetchTime = Date.now();
-      isPlaying = data.isPlaying;
-
-      const percentage = currentDuration > 0 ? (currentProgress / currentDuration) * 100 : 0;
-      progressEl.style.width = percentage + '%';
+      const currentProgress = data.progress || 0;
+      const currentPercentage = currentDuration > 0 ? (currentProgress / currentDuration) * 100 : 0;
 
       if (spotifyCard.hidden) {
         spotifyCard.hidden = false;
       }
 
-      if (isPlaying) {
-        startProgressAnimation();
+      if (data.isPlaying && currentDuration > 0) {
+        // Calculate where progress will be at the next poll
+        const progressAtNextPoll = Math.min(currentProgress + POLL_INTERVAL, currentDuration);
+        const targetPercentage = (progressAtNextPoll / currentDuration) * 100;
+
+        if (isNewTrack) {
+          // New track: jump to current position instantly, then animate
+          setProgressInstant(currentPercentage);
+          requestAnimationFrame(function() {
+            setProgressSmooth(targetPercentage);
+          });
+        } else {
+          // Same track: smoothly animate to target
+          setProgressSmooth(targetPercentage);
+        }
       } else {
-        stopProgressAnimation();
+        // Paused: show current position without animation
+        setProgressInstant(currentPercentage);
       }
     }
 
@@ -154,8 +151,6 @@
         spotifyCard.hidden = true;
       }
       currentTrackId = null;
-      isPlaying = false;
-      stopProgressAnimation();
     }
 
     function update() {
@@ -168,15 +163,26 @@
       });
     }
 
-    update();
+    function startPolling() {
+      if (pollTimeoutId) return; // Already polling
+      update();
+      pollTimeoutId = setInterval(update, POLL_INTERVAL);
+    }
 
-    setInterval(update, POLL_INTERVAL);
+    function stopPolling() {
+      if (pollTimeoutId) {
+        clearInterval(pollTimeoutId);
+        pollTimeoutId = null;
+      }
+    }
+
+    startPolling();
 
     document.addEventListener('visibilitychange', function() {
       if (document.hidden) {
-        stopProgressAnimation();
+        stopPolling();
       } else {
-        update();
+        startPolling();
       }
     });
   });

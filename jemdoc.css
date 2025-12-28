@@ -410,6 +410,8 @@ html:not(.dark) .spotify-progress-container {
     background: #1db954;
     border-radius: 2px;
     width: 0%;
+    transition: width 1s linear;
+    will-change: width;
 }
 
 /* Responsive: stack cards on tablet/mobile */
