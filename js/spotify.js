@@ -56,22 +56,50 @@
     }
   }
 
-  function updateMarquee(element) {
-    // Reset state
-    element.classList.remove('marquee');
-    element.style.removeProperty('--marquee-offset');
-    element.style.removeProperty('--marquee-duration');
+  function updateMarqueePair(titleEl, artistEl) {
+    var els = [titleEl, artistEl];
 
-    // Check if text overflows
-    var overflow = element.scrollWidth - element.parentElement.clientWidth;
+    // 1) Reset both
+    els.forEach(function(el) {
+      el.classList.remove('marquee');
+      el.style.removeProperty('--marquee-offset');
+      el.style.removeProperty('--marquee-duration');
+    });
 
-    if (overflow > 0) {
-      var speed = 15;
-      var duration = Math.max(overflow / speed, 6);
-      element.style.setProperty('--marquee-offset', '-' + overflow + 'px');
-      element.style.setProperty('--marquee-duration', duration + 's');
-      element.classList.add('marquee');
+    // 2) Measure overflow (matches your existing approach)
+    function overflowPx(el) {
+      var containerW = el.parentElement ? el.parentElement.clientWidth : el.clientWidth;
+      return Math.max(0, Math.ceil(el.scrollWidth - containerW));
     }
+
+    var titleOverflow = overflowPx(titleEl);
+    var artistOverflow = overflowPx(artistEl);
+    var maxOverflow = Math.max(titleOverflow, artistOverflow);
+
+    if (maxOverflow === 0) return;
+
+    // 3) Fixed scroll speed during the moving segment of YOUR keyframes
+    // Your marquee moves only from 40% to 60% => 20% of total animation time
+    var speedPxPerSec = 15;     // tune this
+    var moveFraction = 0.20;    // because only 20% of the timeline is moving
+    var minDurationSec = 6;
+
+    var totalDurationSec = (maxOverflow / speedPxPerSec) / moveFraction;
+    totalDurationSec = Math.max(totalDurationSec, minDurationSec);
+    var duration = totalDurationSec + 's';
+
+    // 4) Apply offsets (each element travels its own distance) and shared duration
+    if (titleOverflow > 0) titleEl.style.setProperty('--marquee-offset', '-' + titleOverflow + 'px');
+    if (artistOverflow > 0) artistEl.style.setProperty('--marquee-offset', '-' + artistOverflow + 'px');
+
+    titleEl.style.setProperty('--marquee-duration', duration);
+    artistEl.style.setProperty('--marquee-duration', duration);
+
+    // 5) Force a reflow once so both animations restart together
+    void titleEl.offsetWidth;
+
+    if (titleOverflow > 0) titleEl.classList.add('marquee');
+    if (artistOverflow > 0) artistEl.classList.add('marquee');
   }
 
   function showSpotifyCard(data) {
@@ -87,8 +115,7 @@
 
       // Check for marquee after DOM update
       requestAnimationFrame(function() {
-        updateMarquee(titleEl);
-        updateMarquee(artistEl);
+        updateMarqueePair(titleEl, artistEl);
       });
     }
 
