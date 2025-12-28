@@ -102,6 +102,18 @@
       if (artistOverflow > 0) artistEl.classList.add('marquee');
     }
 
+    function updateSongLink(songUrl) {
+      if (songUrl) {
+        titleEl.href = songUrl;
+        titleEl.removeAttribute('aria-disabled');
+        titleEl.classList.remove('is-disabled');
+      } else {
+        titleEl.removeAttribute('href');
+        titleEl.setAttribute('aria-disabled', 'true');
+        titleEl.classList.add('is-disabled');
+      }
+    }
+
     function showSpotifyCard(data) {
       const trackId = data.title + '-' + data.artist;
       const isNewTrack = trackId !== currentTrackId;
@@ -111,11 +123,12 @@
         albumArt.src = data.albumArt || PLACEHOLDER_IMAGE;
         albumArt.alt = data.album ? data.album + ' album art' : 'Album art';
         titleEl.textContent = data.title || 'Unknown';
-        titleEl.href = data.songUrl || '#';
         artistEl.textContent = data.artist || 'Unknown';
 
         requestAnimationFrame(updateMarquee);
       }
+
+      updateSongLink(data.songUrl || '');
 
       currentDuration = data.duration || 0;
       const currentProgress = data.progress || 0;

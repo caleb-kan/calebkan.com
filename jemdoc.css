@@ -376,6 +376,12 @@ html.dark .card-spotify {
     margin: 0;
 }
 
+.spotify-title.is-disabled {
+    pointer-events: none;
+    text-decoration: none;
+    opacity: 0.7;
+}
+
 /* Marquee animation for overflowing text */
 .spotify-title.marquee,
 .spotify-artist.marquee {

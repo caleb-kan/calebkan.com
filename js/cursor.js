@@ -58,12 +58,10 @@
       mouseY = e.clientY;
     });
 
-    // Check if element is clickable
+    // Check if element or its ancestors are clickable
     function isClickable(el) {
-      const tags = ['A', 'BUTTON', 'INPUT', 'TEXTAREA', 'SELECT'];
-      return tags.includes(el.tagName) ||
-             el.getAttribute('role') === 'button' ||
-             el.hasAttribute('onclick');
+      const selector = 'a,button,input,textarea,select,[role="button"],[onclick]';
+      return el && typeof el.closest === 'function' ? Boolean(el.closest(selector)) : false;
     }
 
     // Handle hover states using event delegation

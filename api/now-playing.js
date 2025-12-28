@@ -5,9 +5,17 @@ const REFRESH_TOKEN = process.env.SPOTIFY_REFRESH_TOKEN;
 const TOKEN_ENDPOINT = 'https://accounts.spotify.com/api/token';
 const NOW_PLAYING_ENDPOINT = 'https://api.spotify.com/v1/me/player/currently-playing';
 
+let cachedToken = null;
+let tokenExpiresAt = 0;
+
 async function getAccessToken() {
   if (!CLIENT_ID || !CLIENT_SECRET || !REFRESH_TOKEN) {
     throw new Error('Missing Spotify credentials');
+  }
+
+  const now = Date.now();
+  if (cachedToken && now < tokenExpiresAt) {
+    return cachedToken;
   }
 
   const basic = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64');
@@ -24,17 +32,40 @@ async function getAccessToken() {
     }),
   });
 
-  return response.json();
+  if (!response.ok) {
+    throw new Error(`Spotify token refresh failed: ${response.status}`);
+  }
+
+  const data = await response.json();
+  if (!data.access_token) {
+    throw new Error('Spotify token refresh returned no access token');
+  }
+
+  cachedToken = data.access_token;
+  const expiresInSeconds = Number(data.expires_in) || 3600;
+  tokenExpiresAt = now + expiresInSeconds * 1000 - 60 * 1000;
+
+  return cachedToken;
 }
 
 async function getNowPlaying() {
-  const { access_token } = await getAccessToken();
-
-  const response = await fetch(NOW_PLAYING_ENDPOINT, {
+  let accessToken = await getAccessToken();
+  let response = await fetch(NOW_PLAYING_ENDPOINT, {
     headers: {
-      'Authorization': `Bearer ${access_token}`,
+      'Authorization': `Bearer ${accessToken}`,
     },
   });
+
+  if (response.status === 401) {
+    cachedToken = null;
+    tokenExpiresAt = 0;
+    accessToken = await getAccessToken();
+    response = await fetch(NOW_PLAYING_ENDPOINT, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    });
+  }
 
   if (response.status === 204 || response.status >= 400) {
     return { isPlaying: false };
@@ -58,8 +89,16 @@ async function getNowPlaying() {
   };
 }
 
-export default async function handler(_req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+const ALLOWED_ORIGINS = new Set([
+  'https://calebkan.com',
+  'https://www.calebkan.com',
+]);
+
+export default async function handler(req, res) {
+  const origin = req.headers.origin;
+  if (origin && ALLOWED_ORIGINS.has(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET');
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
 
