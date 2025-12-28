@@ -63,7 +63,7 @@
     element.style.removeProperty('--marquee-duration');
 
     // Check if text overflows
-    var overflow = element.scrollWidth - element.clientWidth;
+    var overflow = element.scrollWidth - element.parentElement.clientWidth;
 
     if (overflow > 0) {
       var speed = 30;
