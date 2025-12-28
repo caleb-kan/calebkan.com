@@ -299,7 +299,8 @@ html.dark .theme-toggle .moon { opacity: 0.35; }
 }
 
 .card-main {
-    max-width: 760px;
+    width: 760px;
+    max-width: 100%;
 }
 
 .card-spotify {
