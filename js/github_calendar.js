@@ -56,19 +56,12 @@
 
   function getStartDate() {
     const today = new Date();
-    const oneYearAgo = new Date(today);
-    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-    while (oneYearAgo.getDay() !== 0) {
-      oneYearAgo.setDate(oneYearAgo.getDate() - 1);
-    }
-    return oneYearAgo;
-  }
-
-  function getWeekCount(startDate) {
-    const today = new Date();
-    const weekMs = 7 * 24 * 60 * 60 * 1000;
-    const weeks = Math.ceil((today - startDate) / weekMs);
-    return Math.min(weeks, 53);
+    // Go to start of current week (Sunday)
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay());
+    // Go back 52 weeks to get 53 total weeks
+    startOfWeek.setDate(startOfWeek.getDate() - 52 * 7);
+    return startOfWeek;
   }
 
   function formatDate(date) {
@@ -115,7 +108,7 @@
 
   function renderCalendar(container, data) {
     const startDate = getStartDate();
-    const weeks = getWeekCount(startDate);
+    const weeks = 53;
     const contributionMap = buildContributionMap(data);
     const quartiles = calculateQuartiles(data);
     const currentDate = new Date(startDate);

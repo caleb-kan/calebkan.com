@@ -57,7 +57,7 @@ async function getNowPlaying() {
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET');
-  res.setHeader('Cache-Control', 'public, s-maxage=2, stale-while-revalidate=1');
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
 
   try {
     const nowPlaying = await getNowPlaying();

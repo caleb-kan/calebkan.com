@@ -276,6 +276,8 @@ html.dark .theme-toggle .moon { opacity: 0.35; }
     gap: 24px;
     z-index: 2;
     position: relative;
+    width: 100%;
+    max-width: 100%;
 }
 
 .card-main,
@@ -299,12 +301,14 @@ html.dark .theme-toggle .moon { opacity: 0.35; }
 }
 
 .card-main {
-    width: 760px;
-    max-width: 100%;
+    flex: 1 1 760px;
+    max-width: 760px;
+    min-width: 0;
 }
 
 .card-spotify {
-    width: 280px;
+    flex: 0 1 280px;
+    min-width: 0;
     display: flex;
     flex-direction: column;
 }
@@ -413,8 +417,10 @@ html:not(.dark) .spotify-progress-container {
         flex-direction: column;
     }
 
+    .card-main,
     .card-spotify {
-        max-width: 760px;
+        flex: 0 0 auto;
         width: 100%;
+        max-width: 760px;
     }
 }

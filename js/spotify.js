@@ -1,7 +1,7 @@
 (function() {
   'use strict';
 
-  const POLL_INTERVAL = 2000; // 2 seconds for real-time updates
+  const POLL_INTERVAL = 1000; // 1 second
 
   const spotifyCard = document.getElementById('spotify-card');
   const albumArt = document.getElementById('spotify-album-art');
