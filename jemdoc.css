@@ -267,7 +267,7 @@ html.dark .theme-toggle .moon { opacity: 0.35; }
 
 
 /*
- * Cards wrapper - handles centering of one or two cards
+ * Cards wrapper
  */
 #cards-wrapper {
     display: flex;
@@ -276,10 +276,11 @@ html.dark .theme-toggle .moon { opacity: 0.35; }
     gap: 24px;
     z-index: 2;
     position: relative;
-    width: 100%;
-    max-width: 100%;
 }
 
+/*
+ * Shared card styles
+ */
 .card-main,
 .card-spotify {
     background-color: var(--background-color);
@@ -291,24 +292,16 @@ html.dark .theme-toggle .moon { opacity: 0.35; }
     position: relative;
     backdrop-filter: saturate(180%) blur(var(--blur-strength));
     -webkit-backdrop-filter: saturate(180%) blur(var(--blur-strength));
-    transition:
-        background-color 0.35s ease,
-        color 0.35s ease,
-        box-shadow 0.35s ease,
-        border-color 0.35s ease,
-        opacity 0.35s ease,
-        transform 0.35s ease;
+    transition: background-color 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
 }
 
 .card-main {
-    flex: 1 1 760px;
-    max-width: 760px;
-    min-width: 0;
+    width: 760px;
+    max-width: 100%;
 }
 
 .card-spotify {
-    flex: 0 1 280px;
-    min-width: 0;
+    width: 280px;
     display: flex;
     flex-direction: column;
 }
@@ -411,15 +404,15 @@ html:not(.dark) .spotify-progress-container {
     width: 0%;
 }
 
-/* Responsive: stack cards vertically on smaller screens */
+/* Responsive: stack cards on mobile */
 @media (max-width: 1100px) {
     #cards-wrapper {
         flex-direction: column;
+        align-items: center;
     }
 
     .card-main,
     .card-spotify {
-        flex: 0 0 auto;
         width: 100%;
         max-width: 760px;
     }
