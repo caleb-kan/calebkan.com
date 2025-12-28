@@ -1,174 +1,183 @@
 (function() {
   'use strict';
 
-  const POLL_INTERVAL = 1000; // 1 second
+  const POLL_INTERVAL = 1000;
 
-  const spotifyCard = document.getElementById('spotify-card');
-  const albumArt = document.getElementById('spotify-album-art');
-  const titleEl = document.getElementById('spotify-title');
-  const artistEl = document.getElementById('spotify-artist');
-  const progressEl = document.getElementById('spotify-progress');
-
-  let currentTrackId = null;
-  let progressAnimationId = null;
-  let currentProgress = 0;
-  let currentDuration = 0;
-  let lastFetchTime = 0;
-  let isPlaying = false;
-
-  function fetchNowPlaying() {
-    return fetch('/api/now-playing')
-      .then(function(response) {
-        if (!response.ok) {
-          throw new Error('Failed to fetch');
-        }
-        return response.json();
-      })
-      .catch(function(error) {
-        console.warn('Spotify API error:', error);
-        return { isPlaying: false };
-      });
-  }
-
-  function updateProgress() {
-    if (!currentDuration || !isPlaying) return;
-
-    var elapsed = Date.now() - lastFetchTime;
-    var newProgress = Math.min(currentProgress + elapsed, currentDuration);
-    var percentage = (newProgress / currentDuration) * 100;
-    progressEl.style.width = percentage + '%';
-
-    // Continue animation
-    progressAnimationId = requestAnimationFrame(updateProgress);
-  }
-
-  function startProgressAnimation() {
-    if (progressAnimationId) {
-      cancelAnimationFrame(progressAnimationId);
-    }
-    progressAnimationId = requestAnimationFrame(updateProgress);
-  }
-
-  function stopProgressAnimation() {
-    if (progressAnimationId) {
-      cancelAnimationFrame(progressAnimationId);
-      progressAnimationId = null;
+  function ready(fn) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', fn);
+    } else {
+      fn();
     }
   }
 
-  function updateMarqueePair(titleEl, artistEl) {
-    var els = [titleEl, artistEl];
+  // 1x1 transparent placeholder to avoid broken image icon
+  const PLACEHOLDER_IMAGE = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
-    // 1) Reset both
-    els.forEach(function(el) {
-      el.classList.remove('marquee');
-      el.style.removeProperty('--marquee-offset');
-      el.style.removeProperty('--marquee-duration');
-    });
+  ready(function() {
+    const spotifyCard = document.getElementById('spotify-card');
+    const albumArt = document.getElementById('spotify-album-art');
+    const titleEl = document.getElementById('spotify-title');
+    const artistEl = document.getElementById('spotify-artist');
+    const progressEl = document.getElementById('spotify-progress');
 
-    // 2) Measure overflow
-    function overflowPx(el) {
+    if (!spotifyCard || !albumArt || !titleEl || !artistEl || !progressEl) return;
+
+    let currentTrackId = null;
+    let progressAnimationId = null;
+    let currentProgress = 0;
+    let currentDuration = 0;
+    let lastFetchTime = 0;
+    let isPlaying = false;
+
+    function fetchNowPlaying() {
+      return fetch('/api/now-playing')
+        .then(function(response) {
+          if (!response.ok) {
+            throw new Error('Failed to fetch');
+          }
+          return response.json();
+        })
+        .catch(function(error) {
+          console.warn('Spotify API error:', error);
+          return { isPlaying: false };
+        });
+    }
+
+    function updateProgress() {
+      if (!currentDuration || !isPlaying) return;
+
+      const elapsed = Date.now() - lastFetchTime;
+      const newProgress = Math.min(currentProgress + elapsed, currentDuration);
+      const percentage = (newProgress / currentDuration) * 100;
+      progressEl.style.width = percentage + '%';
+
+      progressAnimationId = requestAnimationFrame(updateProgress);
+    }
+
+    function startProgressAnimation() {
+      if (progressAnimationId) {
+        cancelAnimationFrame(progressAnimationId);
+      }
+      progressAnimationId = requestAnimationFrame(updateProgress);
+    }
+
+    function stopProgressAnimation() {
+      if (progressAnimationId) {
+        cancelAnimationFrame(progressAnimationId);
+        progressAnimationId = null;
+      }
+    }
+
+    function getOverflowPx(el) {
       return Math.max(0, Math.ceil(el.scrollWidth - el.clientWidth));
     }
 
-    var titleOverflow = overflowPx(titleEl);
-    var artistOverflow = overflowPx(artistEl);
-    var maxOverflow = Math.max(titleOverflow, artistOverflow);
+    function updateMarquee() {
+      // Reset both elements
+      titleEl.classList.remove('marquee');
+      artistEl.classList.remove('marquee');
+      titleEl.style.removeProperty('--marquee-offset');
+      titleEl.style.removeProperty('--marquee-duration');
+      artistEl.style.removeProperty('--marquee-offset');
+      artistEl.style.removeProperty('--marquee-duration');
 
-    if (maxOverflow === 0) return;
+      // Measure overflow
+      const titleOverflow = getOverflowPx(titleEl);
+      const artistOverflow = getOverflowPx(artistEl);
+      const maxOverflow = Math.max(titleOverflow, artistOverflow);
 
-    // 3) Fixed scroll speed during the moving segment of keyframes
-    var speedPxPerSec = 15;
-    var moveFraction = 0.35;
-    var minDurationSec = 6;
+      if (maxOverflow === 0) return;
 
-    var totalDurationSec = (maxOverflow / speedPxPerSec) / moveFraction;
-    totalDurationSec = Math.max(totalDurationSec, minDurationSec);
-    var duration = totalDurationSec + 's';
+      // Calculate animation duration based on scroll distance
+      const speedPxPerSec = 15;
+      const moveFraction = 0.35;
+      const minDurationSec = 6;
 
-    // 4) Apply offsets (each element travels its own distance) and shared duration
-    if (titleOverflow > 0) titleEl.style.setProperty('--marquee-offset', '-' + titleOverflow + 'px');
-    if (artistOverflow > 0) artistEl.style.setProperty('--marquee-offset', '-' + artistOverflow + 'px');
+      let totalDurationSec = (maxOverflow / speedPxPerSec) / moveFraction;
+      totalDurationSec = Math.max(totalDurationSec, minDurationSec);
+      const duration = totalDurationSec + 's';
 
-    titleEl.style.setProperty('--marquee-duration', duration);
-    artistEl.style.setProperty('--marquee-duration', duration);
+      // Apply offsets and shared duration
+      if (titleOverflow > 0) {
+        titleEl.style.setProperty('--marquee-offset', '-' + titleOverflow + 'px');
+      }
+      if (artistOverflow > 0) {
+        artistEl.style.setProperty('--marquee-offset', '-' + artistOverflow + 'px');
+      }
 
-    // 5) Force a reflow once so both animations restart together
-    void titleEl.offsetWidth;
+      titleEl.style.setProperty('--marquee-duration', duration);
+      artistEl.style.setProperty('--marquee-duration', duration);
 
-    if (titleOverflow > 0) titleEl.classList.add('marquee');
-    if (artistOverflow > 0) artistEl.classList.add('marquee');
-  }
+      // Force reflow so animations restart in sync
+      void titleEl.offsetWidth;
 
-  function showSpotifyCard(data) {
-    // Only update DOM if track changed
-    var trackId = data.title + '-' + data.artist;
-    if (trackId !== currentTrackId) {
-      currentTrackId = trackId;
-      albumArt.src = data.albumArt;
-      albumArt.alt = data.album + ' album art';
-      titleEl.textContent = data.title;
-      titleEl.href = data.songUrl;
-      artistEl.textContent = data.artist;
+      if (titleOverflow > 0) titleEl.classList.add('marquee');
+      if (artistOverflow > 0) artistEl.classList.add('marquee');
+    }
 
-      // Check for marquee after DOM update
-      requestAnimationFrame(function() {
-        updateMarqueePair(titleEl, artistEl);
+    function showSpotifyCard(data) {
+      const trackId = data.title + '-' + data.artist;
+
+      if (trackId !== currentTrackId) {
+        currentTrackId = trackId;
+        albumArt.src = data.albumArt || PLACEHOLDER_IMAGE;
+        albumArt.alt = data.album ? data.album + ' album art' : 'Album art';
+        titleEl.textContent = data.title || 'Unknown';
+        titleEl.href = data.songUrl || '#';
+        artistEl.textContent = data.artist || 'Unknown';
+
+        requestAnimationFrame(updateMarquee);
+      }
+
+      currentProgress = data.progress || 0;
+      currentDuration = data.duration || 0;
+      lastFetchTime = Date.now();
+      isPlaying = data.isPlaying;
+
+      const percentage = currentDuration > 0 ? (currentProgress / currentDuration) * 100 : 0;
+      progressEl.style.width = percentage + '%';
+
+      if (spotifyCard.hidden) {
+        spotifyCard.hidden = false;
+      }
+
+      if (isPlaying) {
+        startProgressAnimation();
+      } else {
+        stopProgressAnimation();
+      }
+    }
+
+    function hideSpotifyCard() {
+      if (!spotifyCard.hidden) {
+        spotifyCard.hidden = true;
+      }
+      currentTrackId = null;
+      isPlaying = false;
+      stopProgressAnimation();
+    }
+
+    function update() {
+      fetchNowPlaying().then(function(data) {
+        if (data.isPlaying) {
+          showSpotifyCard(data);
+        } else {
+          hideSpotifyCard();
+        }
       });
     }
 
-    currentProgress = data.progress;
-    currentDuration = data.duration;
-    lastFetchTime = Date.now();
-    isPlaying = data.isPlaying;
+    update();
 
-    var percentage = (data.progress / data.duration) * 100;
-    progressEl.style.width = percentage + '%';
+    setInterval(update, POLL_INTERVAL);
 
-    if (spotifyCard.hidden) {
-      spotifyCard.hidden = false;
-    }
-
-    // Start smooth progress animation
-    if (isPlaying) {
-      startProgressAnimation();
-    } else {
-      stopProgressAnimation();
-    }
-  }
-
-  function hideSpotifyCard() {
-    if (!spotifyCard.hidden) {
-      spotifyCard.hidden = true;
-    }
-    currentTrackId = null;
-    isPlaying = false;
-    stopProgressAnimation();
-  }
-
-  function update() {
-    fetchNowPlaying().then(function(data) {
-      if (data.isPlaying) {
-        showSpotifyCard(data);
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden) {
+        stopProgressAnimation();
       } else {
-        hideSpotifyCard();
+        update();
       }
     });
-  }
-
-  // Initial fetch
-  update();
-
-  // Poll frequently for near real-time updates
-  setInterval(update, POLL_INTERVAL);
-
-  // Immediately update when tab becomes visible
-  document.addEventListener('visibilitychange', function() {
-    if (document.hidden) {
-      stopProgressAnimation();
-    } else {
-      // Immediately fetch fresh data when tab becomes visible
-      update();
-    }
   });
 })();

@@ -100,8 +100,6 @@ h2 + h3 {
     50% { background-position: 100% 50%; }
 }
 
-
-
 /*
  * Theme toggle (top-right of the card)
  */
@@ -124,7 +122,6 @@ h2 + h3 {
     transition: background-color 0.35s ease, box-shadow 0.35s ease;
     z-index: 3;
 }
-
 
 .theme-toggle:focus-visible {
     outline: 2px solid var(--primary-color);
@@ -165,7 +162,6 @@ html.dark .theme-toggle .thumb {
 
 html.dark .theme-toggle .sun { opacity: 1; }
 html.dark .theme-toggle .moon { opacity: 0.35; }
-
 
 /*
  * Custom RGB glowing cursor
@@ -264,7 +260,6 @@ html.dark .theme-toggle .moon { opacity: 0.35; }
     height: auto;
     margin: 0 auto;
 }
-
 
 /*
  * Cards wrapper

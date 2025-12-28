@@ -32,7 +32,7 @@ async function getNowPlaying() {
     },
   });
 
-  if (response.status === 204 || response.status > 400) {
+  if (response.status === 204 || response.status >= 400) {
     return { isPlaying: false };
   }
 
@@ -44,13 +44,13 @@ async function getNowPlaying() {
 
   return {
     isPlaying: data.is_playing,
-    title: data.item.name,
-    artist: data.item.artists.map((artist) => artist.name).join(', '),
-    album: data.item.album.name,
-    albumArt: data.item.album.images[0]?.url,
-    songUrl: data.item.external_urls.spotify,
-    progress: data.progress_ms,
-    duration: data.item.duration_ms,
+    title: data.item.name || 'Unknown',
+    artist: data.item.artists?.map((artist) => artist.name).join(', ') || 'Unknown',
+    album: data.item.album?.name || 'Unknown',
+    albumArt: data.item.album?.images?.[0]?.url || '',
+    songUrl: data.item.external_urls?.spotify || '',
+    progress: data.progress_ms || 0,
+    duration: data.item.duration_ms || 0,
   };
 }
 

@@ -1,4 +1,7 @@
 (function() {
+  'use strict';
+
+  const FRAME_INTERVAL = 100;
   const frames = [
     './favicon/frame_00_delay_0.1s.ico',
     './favicon/frame_01_delay_0.1s.ico',
@@ -19,12 +22,16 @@
   let intervalId = null;
   let faviconElement = null;
 
-  // Preload frames
-  frames.forEach(src => { const img = new Image(); img.src = src; });
+  function ready(fn) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', fn);
+    } else {
+      fn();
+    }
+  }
 
   function getFaviconElement() {
     if (!faviconElement) {
-      // Match common rel values (icon, shortcut icon, etc.)
       faviconElement = document.querySelector('link[rel*="icon"]');
       if (!faviconElement) {
         faviconElement = document.createElement('link');
@@ -35,18 +42,14 @@
     return faviconElement;
   }
 
-  function setFavicon(index) {
-    getFaviconElement().href = frames[index];
-  }
-
   function updateFavicon() {
-    setFavicon(currentFrame);
+    getFaviconElement().href = frames[currentFrame];
     currentFrame = (currentFrame + 1) % frames.length;
   }
 
   function startAnimation() {
     if (!intervalId && document.visibilityState === 'visible') {
-      intervalId = setInterval(updateFavicon, 100);
+      intervalId = setInterval(updateFavicon, FRAME_INTERVAL);
     }
   }
 
@@ -57,19 +60,21 @@
     }
   }
 
-  function handleVisibilityChange() {
+  document.addEventListener('visibilitychange', function() {
     if (document.visibilityState === 'visible') {
       startAnimation();
     } else {
       stopAnimation();
     }
-  }
+  });
 
-  document.addEventListener('visibilitychange', handleVisibilityChange);
+  ready(function() {
+    // Preload all frames
+    frames.forEach(function(src) {
+      const img = new Image();
+      img.src = src;
+    });
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', startAnimation);
-  } else {
     startAnimation();
-  }
+  });
 })();
