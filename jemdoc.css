@@ -369,7 +369,6 @@ html.dark .card-spotify {
 .spotify-artist {
     display: block;
     white-space: nowrap;
-    position: relative;
 }
 
 .spotify-title {
