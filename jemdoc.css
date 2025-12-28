@@ -359,16 +359,17 @@ html.dark .card-spotify {
     margin-bottom: 16px;
 }
 
+/* Keep the container clipping */
 .spotify-info {
-    text-align: center;
-    width: 100%;
-    overflow: hidden;
+  overflow: hidden;
 }
 
+/* Make transforms predictable */
 .spotify-title,
 .spotify-artist {
-    display: block;
-    white-space: nowrap;
+  display: inline-block;
+  max-width: 100%;
+  white-space: nowrap;
 }
 
 .spotify-title {
@@ -383,20 +384,21 @@ html.dark .card-spotify {
     margin: 0;
 }
 
-/* Marquee animation for overflowing text */
+/* Fixed-rate marquee */
 .spotify-title.marquee,
 .spotify-artist.marquee {
-    text-align: left;
-    animation-name: marquee;
-    animation-duration: var(--marquee-duration);
-    animation-timing-function: ease-in-out;
-    animation-iteration-count: infinite;
+  text-align: left;
+  animation-name: marquee-linear;
+  animation-duration: var(--marquee-duration);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  animation-play-state: running;
 }
 
-@keyframes marquee {
-    0%, 20% { transform: translateX(0); }
-    40%, 60% { transform: translateX(var(--marquee-offset)); }
-    80%, 100% { transform: translateX(0); }
+@keyframes marquee-linear {
+  from { transform: translateX(0); }
+  to   { transform: translateX(var(--marquee-offset)); }
 }
 
 .spotify-progress-container {

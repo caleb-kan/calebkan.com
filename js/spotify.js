@@ -63,11 +63,11 @@
     element.style.removeProperty('--marquee-duration');
 
     // Check if text overflows
-    var overflow = element.scrollWidth - element.parentElement.clientWidth;
+    var overflow = element.scrollWidth - element.clientWidth;
 
     if (overflow > 0) {
-      // Fixed scroll rate: 30px per second
-      var duration = Math.max(overflow / 30, 2);
+      var speed = 30;
+      var duration = Math.max(overflow / speed, 6);
       element.style.setProperty('--marquee-offset', '-' + overflow + 'px');
       element.style.setProperty('--marquee-duration', duration + 's');
       element.classList.add('marquee');
