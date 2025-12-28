@@ -26,6 +26,8 @@
     let currentTrackId = null;
     let currentDuration = 0;
     let pollTimeoutId = null;
+    let inFlight = false;
+    let isActive = false;
 
     function fetchNowPlaying() {
       return fetch('/api/now-playing')
@@ -102,6 +104,11 @@
       if (artistOverflow > 0) artistEl.classList.add('marquee');
     }
 
+    function scheduleMarqueeUpdate() {
+      if (spotifyCard.hidden) return;
+      requestAnimationFrame(updateMarquee);
+    }
+
     function updateSongLink(songUrl) {
       if (songUrl) {
         titleEl.href = songUrl;
@@ -125,7 +132,7 @@
         titleEl.textContent = data.title || 'Unknown';
         artistEl.textContent = data.artist || 'Unknown';
 
-        requestAnimationFrame(updateMarquee);
+        scheduleMarqueeUpdate();
       }
 
       updateSongLink(data.songUrl || '');
@@ -166,30 +173,51 @@
       currentTrackId = null;
     }
 
-    function update() {
-      fetchNowPlaying().then(function(data) {
-        if (data.isPlaying) {
-          showSpotifyCard(data);
-        } else {
-          hideSpotifyCard();
-        }
-      });
+    function scheduleNextPoll() {
+      if (!isActive || pollTimeoutId) return;
+      pollTimeoutId = setTimeout(function() {
+        pollTimeoutId = null;
+        pollOnce();
+      }, POLL_INTERVAL);
+    }
+
+    function pollOnce() {
+      if (!isActive || inFlight) {
+        scheduleNextPoll();
+        return;
+      }
+
+      inFlight = true;
+      fetchNowPlaying()
+        .then(function(data) {
+          if (data.isPlaying) {
+            showSpotifyCard(data);
+          } else {
+            hideSpotifyCard();
+          }
+        })
+        .finally(function() {
+          inFlight = false;
+          scheduleNextPoll();
+        });
     }
 
     function startPolling() {
-      if (pollTimeoutId) return; // Already polling
-      update();
-      pollTimeoutId = setInterval(update, POLL_INTERVAL);
+      if (isActive) return;
+      isActive = true;
+      pollOnce();
     }
 
     function stopPolling() {
-      if (pollTimeoutId) {
-        clearInterval(pollTimeoutId);
-        pollTimeoutId = null;
-      }
+      isActive = false;
+      if (pollTimeoutId) clearTimeout(pollTimeoutId);
+      pollTimeoutId = null;
     }
 
     startPolling();
+
+    window.addEventListener('resize', scheduleMarqueeUpdate);
+    window.addEventListener('load', scheduleMarqueeUpdate);
 
     document.addEventListener('visibilitychange', function() {
       if (document.hidden) {

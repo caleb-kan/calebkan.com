@@ -58,21 +58,26 @@
       mouseY = e.clientY;
     });
 
-    // Check if element or its ancestors are clickable
-    function isClickable(el) {
-      const selector = 'a,button,input,textarea,select,[role="button"],[onclick]';
-      return el && typeof el.closest === 'function' ? Boolean(el.closest(selector)) : false;
+    // Handle hover states using event delegation
+    function getClickableAncestor(el) {
+      if (!el || typeof el.closest !== 'function') return null;
+      return el.closest('a,button,input,textarea,select,[role="button"],[onclick]');
     }
 
-    // Handle hover states using event delegation
-    document.body.addEventListener('mouseenter', function (e) {
-      if (isClickable(e.target)) {
+    document.body.addEventListener('pointerover', function (e) {
+      const entering = getClickableAncestor(e.target);
+      if (!entering) return;
+      const from = getClickableAncestor(e.relatedTarget);
+      if (entering !== from) {
         document.body.classList.add('cursor-hover');
       }
     }, true);
 
-    document.body.addEventListener('mouseleave', function (e) {
-      if (isClickable(e.target)) {
+    document.body.addEventListener('pointerout', function (e) {
+      const leaving = getClickableAncestor(e.target);
+      if (!leaving) return;
+      const to = getClickableAncestor(e.relatedTarget);
+      if (leaving !== to) {
         document.body.classList.remove('cursor-hover');
       }
     }, true);
