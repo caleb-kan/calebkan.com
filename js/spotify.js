@@ -24,7 +24,6 @@
     if (!spotifyCard || !albumArt || !titleEl || !artistEl || !progressEl) return;
 
     let currentTrackId = null;
-    let currentDuration = 0;
     let pollTimeoutId = null;
     let inFlight = false;
     let isActive = false;
@@ -122,7 +121,7 @@
     }
 
     function showSpotifyCard(data) {
-      const trackId = data.title + '-' + data.artist;
+      const trackId = data.songUrl || (data.title + '-' + data.artist);
       const isNewTrack = trackId !== currentTrackId;
 
       if (isNewTrack) {
@@ -137,18 +136,18 @@
 
       updateSongLink(data.songUrl || '');
 
-      currentDuration = data.duration || 0;
-      const currentProgress = data.progress || 0;
-      const currentPercentage = currentDuration > 0 ? (currentProgress / currentDuration) * 100 : 0;
+      const duration = data.duration || 0;
+      const progress = data.progress || 0;
+      const currentPercentage = duration > 0 ? Math.min((progress / duration) * 100, 100) : 0;
 
       if (spotifyCard.hidden) {
         spotifyCard.hidden = false;
       }
 
-      if (data.isPlaying && currentDuration > 0) {
+      if (data.isPlaying && duration > 0) {
         // Calculate where progress will be at the next poll
-        const progressAtNextPoll = Math.min(currentProgress + POLL_INTERVAL, currentDuration);
-        const targetPercentage = (progressAtNextPoll / currentDuration) * 100;
+        const progressAtNextPoll = Math.min(progress + POLL_INTERVAL, duration);
+        const targetPercentage = (progressAtNextPoll / duration) * 100;
 
         if (isNewTrack) {
           // New track: jump to current position instantly, then animate
@@ -173,21 +172,12 @@
       currentTrackId = null;
     }
 
-    function scheduleNextPoll() {
-      if (!isActive || pollTimeoutId) return;
-      pollTimeoutId = setTimeout(function() {
-        pollTimeoutId = null;
-        pollOnce();
-      }, POLL_INTERVAL);
-    }
-
     function pollOnce() {
-      if (!isActive || inFlight) {
-        scheduleNextPoll();
-        return;
-      }
+      if (!isActive || inFlight) return;
 
+      const pollStartTime = Date.now();
       inFlight = true;
+
       fetchNowPlaying()
         .then(function(data) {
           if (data.isPlaying) {
@@ -198,7 +188,16 @@
         })
         .finally(function() {
           inFlight = false;
-          scheduleNextPoll();
+          if (!isActive) return;
+
+          // Schedule next poll relative to when this poll started
+          // to prevent latency from causing drift
+          const elapsed = Date.now() - pollStartTime;
+          const delay = Math.max(0, POLL_INTERVAL - elapsed);
+          pollTimeoutId = setTimeout(function() {
+            pollTimeoutId = null;
+            pollOnce();
+          }, delay);
         });
     }
 

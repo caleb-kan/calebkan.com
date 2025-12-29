@@ -58,18 +58,22 @@
 
   function getStartDate() {
     const today = new Date();
-    // Go to start of current week (Sunday)
-    const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - today.getDay());
-    // Go back 52 weeks to get 53 total weeks
-    startOfWeek.setDate(startOfWeek.getDate() - 52 * 7);
+    // Use UTC to match GitHub API dates
+    const dayOfWeek = today.getUTCDay();
+    // Go to start of current week (Sunday) in UTC
+    const startOfWeek = new Date(Date.UTC(
+      today.getUTCFullYear(),
+      today.getUTCMonth(),
+      today.getUTCDate() - dayOfWeek - 52 * 7
+    ));
     return startOfWeek;
   }
 
   function formatDate(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+    // Format as UTC date to match GitHub API
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
     return year + '-' + month + '-' + day;
   }
 
@@ -114,8 +118,9 @@
     const contributionMap = buildContributionMap(data);
     const quartiles = calculateQuartiles(data);
     const currentDate = new Date(startDate);
-    const today = new Date();
-    today.setHours(23, 59, 59, 999);
+    // Use UTC for "today" to match GitHub API dates
+    const now = new Date();
+    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
 
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     const svgWidth = weeks * (CELL_SIZE + CELL_GAP) - CELL_GAP + (2 * STROKE_PADDING);
@@ -132,7 +137,7 @@
         const square = createSquare(week, day, dateStr, count, quartiles);
 
         svg.appendChild(square);
-        currentDate.setDate(currentDate.getDate() + 1);
+        currentDate.setUTCDate(currentDate.getUTCDate() + 1);
       }
     }
 
