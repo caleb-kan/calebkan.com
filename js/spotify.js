@@ -130,8 +130,6 @@
         albumArt.alt = data.album ? data.album + ' album art' : 'Album art';
         titleEl.textContent = data.title || 'Unknown';
         artistEl.textContent = data.artist || 'Unknown';
-
-        scheduleMarqueeUpdate();
       }
 
       updateSongLink(data.songUrl || '');
@@ -142,6 +140,11 @@
 
       if (spotifyCard.hidden) {
         spotifyCard.hidden = false;
+      }
+
+      // Schedule marquee update after card is visible so measurements work
+      if (isNewTrack) {
+        scheduleMarqueeUpdate();
       }
 
       if (data.isPlaying && duration > 0) {
