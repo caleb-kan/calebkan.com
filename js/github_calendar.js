@@ -1,8 +1,7 @@
-(function () {
+(function() {
   'use strict';
 
-  const GITHUB_USERNAME = 'caleb-kan';
-  const API_URL = 'https://github-contributions-api.jogruber.de/v4/';
+  const API_URL = '/api/github-contributions';
   const CELL_SIZE = 11;
   const CELL_GAP = 3;
   const STROKE_PADDING = 2; // Padding to prevent stroke clipping
@@ -151,7 +150,7 @@
 
     container.textContent = 'Loading contributions...';
 
-    fetch(API_URL + GITHUB_USERNAME + '?_=' + formatDate(new Date()))
+    fetch(API_URL)
       .then(function(response) {
         if (!response.ok) throw new Error('Failed to fetch');
         return response.json();
@@ -173,7 +172,7 @@
     }
   }
 
-  ready(function () {
+  ready(function() {
     loadCalendar();
 
     const observer = new MutationObserver(function(mutations) {

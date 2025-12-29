@@ -1,4 +1,4 @@
-(function () {
+(function() {
   'use strict';
 
   function ready(fn) {
@@ -9,7 +9,7 @@
     }
   }
 
-  ready(function () {
+  ready(function() {
     const toggle = document.querySelector('.theme-toggle');
     if (!toggle) return;
     const root = document.documentElement;
