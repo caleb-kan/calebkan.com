@@ -2,10 +2,22 @@
 
 ## Local Development
 
-Because particles.js loads `particles.json` via XHR, run a local web server:
+Install the Vercel CLI:
 
 ```sh
-python -m http.server 8080
+brew install vercel-cli
 ```
 
-Then open `http://localhost:8080` in a browser.
+Link the project and pull environment variables:
+
+```sh
+vercel login
+vercel link
+vercel env pull
+```
+
+Run the local dev server:
+
+```sh
+vercel dev
+```
