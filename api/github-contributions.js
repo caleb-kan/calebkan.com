@@ -1,8 +1,8 @@
 const GITHUB_USERNAME = 'caleb-kan';
 const API_URL = `https://github-contributions-api.jogruber.de/v4/${GITHUB_USERNAME}`;
 
-// Cache contributions for 10 minutes
-const CACHE_DURATION_SECONDS = 600;
+// Cache contributions for 1 minute
+const CACHE_DURATION_SECONDS = 60;
 
 let cachedData = null;
 let cacheExpiresAt = 0;
