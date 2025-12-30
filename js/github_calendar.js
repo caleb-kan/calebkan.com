@@ -2,6 +2,7 @@
   'use strict';
 
   const API_URL = '/api/github-contributions';
+  const POLL_INTERVAL = 60000; // 1 minute
   const CELL_SIZE = 11;
   const CELL_GAP = 3;
   const STROKE_PADDING = 2; // Padding to prevent stroke clipping
@@ -11,6 +12,9 @@
   const CONTRIBUTION_COLORS_LIGHT = ['#ebedf0', '#9be9a8', '#30c463', '#30a14e', '#216e39'];
 
   let cachedData = null;
+  let pollTimeoutId = null;
+  let inFlight = false;
+  let isActive = false;
 
   function ready(fn) {
     if (document.readyState === 'loading') {
@@ -144,24 +148,11 @@
     container.appendChild(svg);
   }
 
-  function loadCalendar() {
-    const container = document.getElementById('github-calendar');
-    if (!container) return;
-
-    container.textContent = 'Loading contributions...';
-
-    fetch(API_URL)
+  function fetchCalendar() {
+    return fetch(API_URL)
       .then(function(response) {
         if (!response.ok) throw new Error('Failed to fetch');
         return response.json();
-      })
-      .then(function(data) {
-        cachedData = data;
-        renderCalendar(container, data);
-      })
-      .catch(function(error) {
-        console.error('Error loading GitHub contributions:', error);
-        container.textContent = 'Unable to load contributions';
       });
   }
 
@@ -172,9 +163,61 @@
     }
   }
 
-  ready(function() {
-    loadCalendar();
+  function pollOnce() {
+    if (!isActive || inFlight) return;
 
+    const container = document.getElementById('github-calendar');
+    if (!container) return;
+
+    // Show loading text only on initial load
+    if (!cachedData) {
+      container.textContent = 'Loading contributions...';
+    }
+
+    const pollStartTime = Date.now();
+    inFlight = true;
+
+    fetchCalendar()
+      .then(function(data) {
+        cachedData = data;
+        renderCalendar(container, data);
+      })
+      .catch(function(error) {
+        console.error('Error loading GitHub contributions:', error);
+        if (!cachedData) {
+          container.textContent = 'Unable to load contributions';
+        }
+      })
+      .finally(function() {
+        inFlight = false;
+        if (!isActive) return;
+
+        // Schedule next poll relative to when this poll started
+        const elapsed = Date.now() - pollStartTime;
+        const delay = Math.max(0, POLL_INTERVAL - elapsed);
+        pollTimeoutId = setTimeout(function() {
+          pollTimeoutId = null;
+          pollOnce();
+        }, delay);
+      });
+  }
+
+  function startPolling() {
+    if (isActive) return;
+    isActive = true;
+    pollOnce();
+  }
+
+  function stopPolling() {
+    isActive = false;
+    if (pollTimeoutId) clearTimeout(pollTimeoutId);
+    pollTimeoutId = null;
+  }
+
+  ready(function() {
+    startPolling();
+
+    // Update colors when theme changes
     const observer = new MutationObserver(function(mutations) {
       mutations.forEach(function(mutation) {
         if (mutation.attributeName === 'class') {
@@ -186,6 +229,15 @@
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ['class']
+    });
+
+    // Pause polling when tab is hidden
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden) {
+        stopPolling();
+      } else {
+        startPolling();
+      }
     });
   });
 })();

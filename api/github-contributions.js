@@ -38,7 +38,7 @@ export default async function handler(req, res) {
   }
   res.setHeader('Access-Control-Allow-Methods', 'GET');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.setHeader('Cache-Control', `public, s-maxage=${CACHE_DURATION_SECONDS}, stale-while-revalidate=60`);
+  res.setHeader('Cache-Control', `public, max-age=0, s-maxage=${CACHE_DURATION_SECONDS}, stale-while-revalidate=60`);
   res.setHeader('Vary', 'Origin');
 
   try {
