@@ -150,7 +150,7 @@
       if (data.isPlaying && duration > 0) {
         // Calculate where progress will be at the next poll
         const progressAtNextPoll = Math.min(progress + POLL_INTERVAL, duration);
-        const targetPercentage = (progressAtNextPoll / duration) * 100;
+        const targetPercentage = Math.min((progressAtNextPoll / duration) * 100, 100);
 
         if (isNewTrack) {
           // New track: jump to current position instantly, then animate
