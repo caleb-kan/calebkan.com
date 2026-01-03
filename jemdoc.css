@@ -413,7 +413,6 @@ html:not(.dark) .spotify-progress-container {
 .spotify-progress {
     height: 100%;
     background: #1db954;
-    border-radius: 2px;
     width: 0%;
     transition: width 1s linear;
     will-change: width;
