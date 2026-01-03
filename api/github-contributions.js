@@ -81,20 +81,8 @@ async function fetchContributions() {
   return data;
 }
 
-const ALLOWED_ORIGINS = new Set([
-  'https://calebkan.com',
-  'https://www.calebkan.com',
-]);
-
 export default async function handler(req, res) {
-  const origin = req.headers.origin;
-  if (origin && ALLOWED_ORIGINS.has(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
-  res.setHeader('Access-Control-Allow-Methods', 'GET');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.setHeader('Cache-Control', `public, max-age=0, s-maxage=${CACHE_DURATION_SECONDS}, stale-while-revalidate=60`);
-  res.setHeader('Vary', 'Origin');
 
   try {
     const data = await fetchContributions();

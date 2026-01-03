@@ -16,14 +16,6 @@
   let inFlight = false;
   let isActive = false;
 
-  function ready(fn) {
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', fn);
-    } else {
-      fn();
-    }
-  }
-
   function calculateQuartiles(data) {
     if (!data || !data.contributions) return [0, 1, 3, 6];
 
@@ -214,30 +206,28 @@
     pollTimeoutId = null;
   }
 
-  ready(function() {
-    startPolling();
+  startPolling();
 
-    // Update colors when theme changes
-    const observer = new MutationObserver(function(mutations) {
-      mutations.forEach(function(mutation) {
-        if (mutation.attributeName === 'class') {
-          updateCalendarTheme();
-        }
-      });
-    });
-
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class']
-    });
-
-    // Pause polling when tab is hidden
-    document.addEventListener('visibilitychange', function() {
-      if (document.hidden) {
-        stopPolling();
-      } else {
-        startPolling();
+  // Update colors when theme changes
+  const observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+      if (mutation.attributeName === 'class') {
+        updateCalendarTheme();
       }
     });
+  });
+
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['class']
+  });
+
+  // Pause polling when tab is hidden
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+      stopPolling();
+    } else {
+      startPolling();
+    }
   });
 })();
