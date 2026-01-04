@@ -1,89 +1,171 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" class="dark">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="keywords" content="Caleb Kan">
-    <meta name="description" content="Caleb Kan">
-    <meta name="color-scheme" content="dark">
-    <meta name="theme-color" content="#0b0b0b">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; font-src https://cdnjs.cloudflare.com; img-src 'self' data: https://i.scdn.co; connect-src 'self'">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="keywords" content="Caleb Kan" />
+    <meta name="description" content="Caleb Kan" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0b0b0b" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; font-src https://cdnjs.cloudflare.com; img-src 'self' data: https://i.scdn.co; connect-src 'self'"
+    />
 
     <script src="./js/theme-boot.js"></script>
 
     <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
 
     <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet" integrity="sha384-PPIZEGYM1v8zp5Py7UjFb79S58UeqCL9pYVnVPURKEqvioPROaVAJKKLzvH2rDnI" crossorigin="anonymous">
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      rel="stylesheet"
+      integrity="sha384-PPIZEGYM1v8zp5Py7UjFb79S58UeqCL9pYVnVPURKEqvioPROaVAJKKLzvH2rDnI"
+      crossorigin="anonymous"
+    />
 
-    <link rel="stylesheet" href="jemdoc.css" type="text/css">
+    <link rel="stylesheet" href="jemdoc.css" type="text/css" />
 
-    <link rel="icon" href="./favicon/favicon.jpeg" type="image/jpeg">
+    <link rel="icon" href="./favicon/favicon.jpeg" type="image/jpeg" />
 
     <title>Caleb Kan</title>
+  </head>
 
-</head>
-
-<body>
-
+  <body>
     <div id="cards-wrapper">
-        <main class="card-main text-center" aria-labelledby="page-title">
+      <main class="card-main text-center" aria-labelledby="page-title">
+        <!-- Theme toggle button -->
+        <button
+          class="theme-toggle"
+          type="button"
+          aria-label="Switch to light mode"
+          aria-pressed="true"
+          title="Switch to light mode"
+        >
+          <i class="fa-solid fa-sun icon sun" aria-hidden="true"></i>
+          <i class="fa-solid fa-moon icon moon" aria-hidden="true"></i>
+          <span class="thumb" aria-hidden="true"></span>
+        </button>
 
-            <!-- Theme toggle button -->
-            <button class="theme-toggle" type="button" aria-label="Switch to light mode" aria-pressed="true" title="Switch to light mode">
-                <i class="fa-solid fa-sun icon sun" aria-hidden="true"></i>
-                <i class="fa-solid fa-moon icon moon" aria-hidden="true"></i>
-                <span class="thumb" aria-hidden="true"></span>
-            </button>
+        <div class="row justify-content-center">
+          <div class="col-md-8">
+            <h1 id="page-title">Caleb Kan</h1>
+            <p>
+              <strong>email</strong>
+              <a
+                href="mailto:hello@calebkan.com"
+                aria-label="Email hello@calebkan.com"
+                >hello@calebkan.com</a
+              >
+            </p>
+            <p>
+              <strong>phone</strong>
+              <a href="tel:+447828210751" aria-label="Call +44 7828210751"
+                >+44&nbsp;7828210751</a
+              >
+            </p>
+            <p>
+              <strong>here's my</strong>
+              <a
+                target="_blank"
+                rel="noopener noreferrer"
+                href="docs/Caleb_Kan_CV.pdf"
+                aria-label="Download résumé (opens in new tab)"
+                >résumé</a
+              >
+            </p>
+            <p class="d-flex align-items-center justify-content-center gap-2">
+              <a
+                href="https://github.com/caleb-kan"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="GitHub"
+                title="GitHub"
+              >
+                <img
+                  src="icons/github.png"
+                  alt="GitHub"
+                  height="40"
+                  class="shadow-sm rounded"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </a>
+              <a
+                href="https://www.linkedin.com/in/caleb-kan"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="LinkedIn"
+                title="LinkedIn"
+              >
+                <img
+                  src="icons/LinkedIn.png"
+                  alt="LinkedIn"
+                  height="40"
+                  class="shadow-sm rounded"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </a>
+            </p>
+            <div id="github-calendar">Loading contributions...</div>
+          </div>
+        </div>
+      </main>
 
-            <div class="row justify-content-center">
-                <div class="col-md-8">
-                    <h1 id="page-title">Caleb Kan</h1>
-                    <p><strong>email</strong> <a href="mailto:hello@calebkan.com" aria-label="Email hello@calebkan.com">hello@calebkan.com</a></p>
-                    <p><strong>phone</strong> <a href="tel:+447828210751" aria-label="Call +44 7828210751">+44&nbsp;7828210751</a></p>
-                    <p><strong>here's my</strong> <a target="_blank" rel="noopener noreferrer" href="docs/Caleb_Kan_CV.pdf" aria-label="Download résumé (opens in new tab)">résumé</a></p>
-                    <p class="d-flex align-items-center justify-content-center gap-2">
-                        <a href="https://github.com/caleb-kan" target="_blank" rel="noopener noreferrer" aria-label="GitHub" title="GitHub">
-                            <img src="icons/github.png" alt="GitHub" height="40" class="shadow-sm rounded" loading="lazy" decoding="async">
-                        </a>
-                        <a href="https://www.linkedin.com/in/caleb-kan" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" title="LinkedIn">
-                            <img src="icons/LinkedIn.png" alt="LinkedIn" height="40" class="shadow-sm rounded" loading="lazy" decoding="async">
-                        </a>
-                    </p>
-                    <div id="github-calendar">
-                        Loading contributions...
-                    </div>
-                </div>
-            </div>
-        </main>
-
-        <section id="spotify-card" class="card-spotify text-center" aria-label="Currently playing on Spotify" hidden>
-            <div class="spotify-header">
-                <i class="fa-brands fa-spotify" aria-hidden="true"></i>
-                <span>Now Playing</span>
-            </div>
-            <div class="spotify-content">
-                <img id="spotify-album-art" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Album art" class="spotify-album-art">
-                <div class="spotify-info">
-                    <a id="spotify-title" href="" target="_blank" rel="noopener noreferrer" class="spotify-title" aria-label="Open song on Spotify"></a>
-                    <p id="spotify-artist" class="spotify-artist"></p>
-                </div>
-            </div>
-            <div class="spotify-progress-container">
-                <div id="spotify-progress" class="spotify-progress"></div>
-            </div>
-        </section>
+      <section
+        id="spotify-card"
+        class="card-spotify text-center"
+        aria-label="Currently playing on Spotify"
+        hidden
+      >
+        <div class="spotify-header">
+          <i class="fa-brands fa-spotify" aria-hidden="true"></i>
+          <span>Now Playing</span>
+        </div>
+        <div class="spotify-content">
+          <img
+            id="spotify-album-art"
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            alt="Album art"
+            class="spotify-album-art"
+          />
+          <div class="spotify-info">
+            <a
+              id="spotify-title"
+              href=""
+              target="_blank"
+              rel="noopener noreferrer"
+              class="spotify-title"
+              aria-label="Open song on Spotify"
+            ></a>
+            <p id="spotify-artist" class="spotify-artist"></p>
+          </div>
+        </div>
+        <div class="spotify-progress-container">
+          <div id="spotify-progress" class="spotify-progress"></div>
+        </div>
+      </section>
     </div>
 
     <div id="particles-js"></div>
     <div id="custom-cursor"></div>
-    <script defer src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js" integrity="sha384-d+UOwmNNIC7V4izkTAKSXzWhjC2GxiS9PTykO1XdOPC3nc2z65UOS7SP6QdKPA70" crossorigin="anonymous"></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"
+      integrity="sha384-d+UOwmNNIC7V4izkTAKSXzWhjC2GxiS9PTykO1XdOPC3nc2z65UOS7SP6QdKPA70"
+      crossorigin="anonymous"
+    ></script>
     <script defer src="./js/init-particles.js"></script>
     <script defer src="./js/cursor.js"></script>
     <script defer src="./js/theme-toggle.js"></script>
     <script defer src="./js/github-calendar.js"></script>
     <script defer src="./js/spotify.js"></script>
-
-</body>
+  </body>
 </html>

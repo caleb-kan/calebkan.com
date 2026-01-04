@@ -1,6 +1,6 @@
-const GITHUB_USERNAME = 'caleb-kan';
+const GITHUB_USERNAME = "caleb-kan";
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-const GITHUB_GRAPHQL_API = 'https://api.github.com/graphql';
+const GITHUB_GRAPHQL_API = "https://api.github.com/graphql";
 
 // Cache contributions for 1 minute
 const CACHE_DURATION_SECONDS = 60;
@@ -33,14 +33,14 @@ async function fetchContributions() {
   }
 
   if (!GITHUB_TOKEN) {
-    throw new Error('Missing GITHUB_TOKEN environment variable');
+    throw new Error("Missing GITHUB_TOKEN environment variable");
   }
 
   const response = await fetch(GITHUB_GRAPHQL_API, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Authorization': `Bearer ${GITHUB_TOKEN}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${GITHUB_TOKEN}`,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       query: CONTRIBUTIONS_QUERY,
@@ -58,9 +58,10 @@ async function fetchContributions() {
     throw new Error(`GitHub API error: ${json.errors[0].message}`);
   }
 
-  const calendar = json.data?.user?.contributionsCollection?.contributionCalendar;
+  const calendar =
+    json.data?.user?.contributionsCollection?.contributionCalendar;
   if (!calendar) {
-    throw new Error('No contribution data found');
+    throw new Error("No contribution data found");
   }
 
   // Transform to expected format: { contributions: [{ date, count }] }
@@ -82,13 +83,16 @@ async function fetchContributions() {
 }
 
 export default async function handler(req, res) {
-  res.setHeader('Cache-Control', `public, max-age=0, s-maxage=${CACHE_DURATION_SECONDS}, stale-while-revalidate=60`);
+  res.setHeader(
+    "Cache-Control",
+    `public, max-age=0, s-maxage=${CACHE_DURATION_SECONDS}, stale-while-revalidate=60`,
+  );
 
   try {
     const data = await fetchContributions();
     return res.status(200).json(data);
   } catch (error) {
-    console.error('GitHub contributions API error:', error);
-    return res.status(500).json({ error: 'Failed to fetch contributions' });
+    console.error("GitHub contributions API error:", error);
+    return res.status(500).json({ error: "Failed to fetch contributions" });
   }
 }

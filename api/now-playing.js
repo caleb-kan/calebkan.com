@@ -2,15 +2,16 @@ const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
 const REFRESH_TOKEN = process.env.SPOTIFY_REFRESH_TOKEN;
 
-const TOKEN_ENDPOINT = 'https://accounts.spotify.com/api/token';
-const NOW_PLAYING_ENDPOINT = 'https://api.spotify.com/v1/me/player/currently-playing';
+const TOKEN_ENDPOINT = "https://accounts.spotify.com/api/token";
+const NOW_PLAYING_ENDPOINT =
+  "https://api.spotify.com/v1/me/player/currently-playing";
 
 let cachedToken = null;
 let tokenExpiresAt = 0;
 
 async function getAccessToken() {
   if (!CLIENT_ID || !CLIENT_SECRET || !REFRESH_TOKEN) {
-    throw new Error('Missing Spotify credentials');
+    throw new Error("Missing Spotify credentials");
   }
 
   const now = Date.now();
@@ -18,16 +19,16 @@ async function getAccessToken() {
     return cachedToken;
   }
 
-  const basic = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64');
+  const basic = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString("base64");
 
   const response = await fetch(TOKEN_ENDPOINT, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Authorization': `Basic ${basic}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
+      Authorization: `Basic ${basic}`,
+      "Content-Type": "application/x-www-form-urlencoded",
     },
     body: new URLSearchParams({
-      grant_type: 'refresh_token',
+      grant_type: "refresh_token",
       refresh_token: REFRESH_TOKEN,
     }),
   });
@@ -38,7 +39,7 @@ async function getAccessToken() {
 
   const data = await response.json();
   if (!data.access_token) {
-    throw new Error('Spotify token refresh returned no access token');
+    throw new Error("Spotify token refresh returned no access token");
   }
 
   cachedToken = data.access_token;
@@ -52,7 +53,7 @@ async function getNowPlaying() {
   let accessToken = await getAccessToken();
   let response = await fetch(NOW_PLAYING_ENDPOINT, {
     headers: {
-      'Authorization': `Bearer ${accessToken}`,
+      Authorization: `Bearer ${accessToken}`,
     },
   });
 
@@ -62,7 +63,7 @@ async function getNowPlaying() {
     accessToken = await getAccessToken();
     response = await fetch(NOW_PLAYING_ENDPOINT, {
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     });
   }
@@ -79,24 +80,25 @@ async function getNowPlaying() {
 
   return {
     isPlaying: data.is_playing,
-    title: data.item.name || 'Unknown',
-    artist: data.item.artists?.map((artist) => artist.name).join(', ') || 'Unknown',
-    album: data.item.album?.name || 'Unknown',
-    albumArt: data.item.album?.images?.[0]?.url || '',
-    songUrl: data.item.external_urls?.spotify || '',
+    title: data.item.name || "Unknown",
+    artist:
+      data.item.artists?.map((artist) => artist.name).join(", ") || "Unknown",
+    album: data.item.album?.name || "Unknown",
+    albumArt: data.item.album?.images?.[0]?.url || "",
+    songUrl: data.item.external_urls?.spotify || "",
     progress: data.progress_ms || 0,
     duration: data.item.duration_ms || 0,
   };
 }
 
 export default async function handler(req, res) {
-  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
 
   try {
     const nowPlaying = await getNowPlaying();
     return res.status(200).json(nowPlaying);
   } catch (error) {
-    console.error('Spotify API error:', error);
+    console.error("Spotify API error:", error);
     return res.status(200).json({ isPlaying: false });
   }
 }

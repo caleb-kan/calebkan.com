@@ -1,47 +1,48 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Spotify Authorization</title>
     <style>
-        body {
-            font-family: system-ui, sans-serif;
-            background: #0b0b0b;
-            color: #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-        }
-        .container {
-            text-align: center;
-            padding: 2rem;
-        }
-        code {
-            background: #1db954;
-            color: #000;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            word-break: break-all;
-            display: block;
-            margin: 1rem 0;
-        }
+      body {
+        font-family: system-ui, sans-serif;
+        background: #0b0b0b;
+        color: #fff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+      }
+      .container {
+        text-align: center;
+        padding: 2rem;
+      }
+      code {
+        background: #1db954;
+        color: #000;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        word-break: break-all;
+        display: block;
+        margin: 1rem 0;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <h1>Spotify Authorization</h1>
-        <p>Your authorization code:</p>
-        <code id="code">Checking...</code>
-        <p>Copy this code and paste it in your terminal.</p>
+      <h1>Spotify Authorization</h1>
+      <p>Your authorization code:</p>
+      <code id="code">Checking...</code>
+      <p>Copy this code and paste it in your terminal.</p>
     </div>
     <script>
-        const params = new URLSearchParams(window.location.search);
-        const code = params.get('code');
-        const error = params.get('error');
-        document.getElementById('code').textContent = code || error || 'No code found';
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get("code");
+      const error = params.get("error");
+      document.getElementById("code").textContent =
+        code || error || "No code found";
     </script>
-</body>
+  </body>
 </html>

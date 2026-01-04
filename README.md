@@ -21,3 +21,11 @@ Run the local dev server:
 ```sh
 vercel dev
 ```
+
+Prettier Formatting:
+
+```sh
+npm install -g prettier
+prettier --write .
+prettier --check .
+```
