@@ -22,7 +22,7 @@ Run the local dev server:
 vercel dev
 ```
 
-Prettier Formatting:
+Prettier formatting:
 
 ```sh
 npm install -g prettier
