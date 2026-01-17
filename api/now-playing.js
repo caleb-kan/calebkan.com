@@ -68,7 +68,12 @@ async function getNowPlaying() {
     });
   }
 
-  if (response.status === 204 || response.status >= 400) {
+  if (response.status === 204) {
+    return { isPlaying: false };
+  }
+
+  if (response.status >= 400) {
+    console.error(`Spotify API error: ${response.status}`);
     return { isPlaying: false };
   }
 

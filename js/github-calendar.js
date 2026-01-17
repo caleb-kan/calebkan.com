@@ -112,6 +112,7 @@
     rect.setAttribute("x", week * (CELL_SIZE + CELL_GAP));
     rect.setAttribute("y", day * (CELL_SIZE + CELL_GAP));
     rect.setAttribute("rx", "5.5");
+    rect.setAttribute("data-level", level);
 
     // Apply stroke to all squares for better definition
     rect.setAttribute("stroke", getStrokeColor());
@@ -191,11 +192,22 @@
     });
   }
 
-  function updateCalendarTheme() {
-    if (cachedData) {
-      const container = document.getElementById("github-calendar");
-      if (container) renderCalendar(container, cachedData);
-    }
+  function updateCalendarColors() {
+    const container = document.getElementById("github-calendar");
+    if (!container) return;
+
+    const svg = container.querySelector("svg");
+    if (!svg) return;
+
+    const colors = getContributionColors();
+    const stroke = getStrokeColor();
+    const rects = svg.querySelectorAll("rect[data-level]");
+
+    rects.forEach(function (rect) {
+      const level = parseInt(rect.getAttribute("data-level"), 10);
+      rect.setAttribute("fill", colors[level]);
+      rect.setAttribute("stroke", stroke);
+    });
   }
 
   function pollOnce() {
@@ -255,7 +267,7 @@
   const observer = new MutationObserver(function (mutations) {
     mutations.forEach(function (mutation) {
       if (mutation.attributeName === "class") {
-        updateCalendarTheme();
+        updateCalendarColors();
       }
     });
   });
