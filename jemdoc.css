@@ -1,5 +1,4 @@
 :root {
-  color-scheme: dark;
   /* Apple‑like system blue and neutrals */
   --primary-color: #0a84ff; /* macOS/iOS system blue */
 
@@ -36,6 +35,10 @@
 /* Ensure built-in UI (forms, scrollbars) matches theme */
 html:not(.dark) {
   color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
 }
 
 canvas.particles-js-canvas-el {
@@ -99,8 +102,6 @@ h1 {
 .card-spotify a {
   color: var(--link-color);
   text-decoration: none;
-  transform: translateZ(0);
-  will-change: opacity;
   transition: opacity 0.2s ease;
 }
 .card-main a:hover,
@@ -337,19 +338,30 @@ html.dark .theme-toggle .moon {
  */
 .card-main,
 .card-spotify {
-  background-color: var(--background-color);
   color: var(--text-color);
   border-radius: var(--radius-card);
   padding: var(--card-padding);
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-ambient);
   position: relative;
-  backdrop-filter: saturate(180%) blur(var(--blur-strength));
-  -webkit-backdrop-filter: saturate(180%) blur(var(--blur-strength));
+  isolation: isolate;
   transition:
-    background-color 0.35s ease,
     box-shadow 0.35s ease,
     border-color 0.35s ease;
+}
+
+/* Pseudo-element for backdrop-filter + background to avoid 1px shift on transition */
+.card-main::before,
+.card-spotify::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background-color: var(--background-color);
+  backdrop-filter: saturate(180%) blur(var(--blur-strength));
+  -webkit-backdrop-filter: saturate(180%) blur(var(--blur-strength));
+  transition: background-color 0.35s ease;
 }
 
 .card-main {
