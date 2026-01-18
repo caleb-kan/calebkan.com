@@ -115,11 +115,10 @@
     rect.setAttribute("data-level", level);
 
     // Apply stroke to all squares for better definition
-    rect.setAttribute("stroke", getStrokeColor());
+    // Use inline styles for fill/stroke so CSS transitions work reliably
     rect.setAttribute("stroke-width", "1");
-
-    // Set fill based on contribution level
-    rect.setAttribute("fill", colors[level]);
+    rect.style.fill = colors[level];
+    rect.style.stroke = getStrokeColor();
 
     const title = document.createElementNS(
       "http://www.w3.org/2000/svg",
@@ -205,8 +204,8 @@
 
     rects.forEach(function (rect) {
       const level = parseInt(rect.getAttribute("data-level"), 10);
-      rect.setAttribute("fill", colors[level]);
-      rect.setAttribute("stroke", stroke);
+      rect.style.fill = colors[level];
+      rect.style.stroke = stroke;
     });
   }
 

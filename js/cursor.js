@@ -12,6 +12,7 @@
   let cursorX = 0;
   let cursorY = 0;
   let animationId = null;
+  let hasMovedOnce = false;
 
   // Smooth cursor animation loop
   function updateCursor() {
@@ -38,7 +39,10 @@
   // Pause animation when tab is hidden to save CPU
   document.addEventListener("visibilitychange", function () {
     if (document.visibilityState === "visible") {
-      startAnimation();
+      // Only restart if cursor was already active (user has moved mouse)
+      if (hasMovedOnce) {
+        startAnimation();
+      }
     } else {
       stopAnimation();
     }
@@ -48,6 +52,17 @@
   document.addEventListener("mousemove", function (e) {
     mouseX = e.clientX;
     mouseY = e.clientY;
+
+    // Show cursor after first movement (prevents flash at origin on page load)
+    if (!hasMovedOnce) {
+      hasMovedOnce = true;
+      // Jump cursor to mouse position immediately on first move
+      cursorX = mouseX;
+      cursorY = mouseY;
+      document.body.classList.add("cursor-active");
+      // Start animation loop only after cursor becomes visible
+      startAnimation();
+    }
   });
 
   // Handle hover states using event delegation
@@ -83,6 +98,4 @@
     },
     true,
   );
-
-  startAnimation();
 })();
