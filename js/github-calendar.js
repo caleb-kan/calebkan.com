@@ -166,6 +166,8 @@
         " " +
         svgHeight,
     );
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", "GitHub contribution calendar");
 
     renderLoop: for (let week = 0; week < weeks; week++) {
       for (let day = 0; day < 7; day++) {

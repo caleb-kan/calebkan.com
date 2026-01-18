@@ -1,5 +1,5 @@
 :root {
-  /* Apple‑like system blue and neutrals */
+  /* Apple-like system blue and neutrals */
   --primary-color: #0a84ff; /* macOS/iOS system blue */
 
   /* Background animated gradient (kept, but softened via glass card) */
@@ -496,15 +496,15 @@ html.dark .card-spotify {
 .spotify-progress-container {
   width: 100%;
   height: 4px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.1);
   border-radius: 2px;
   margin-top: 24px;
   overflow: hidden;
   transition: background-color 0.35s ease;
 }
 
-html:not(.dark) .spotify-progress-container {
-  background: rgba(0, 0, 0, 0.1);
+html.dark .spotify-progress-container {
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .spotify-progress {
