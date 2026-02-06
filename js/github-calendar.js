@@ -23,7 +23,11 @@
     "#216e39",
   ];
 
+  const container = document.getElementById("github-calendar");
+  if (!container) return;
+
   let cachedData = null;
+  let cachedJson = null;
   let pollTimeoutId = null;
   let inFlight = false;
   let isActive = false;
@@ -102,10 +106,9 @@
     return map;
   }
 
-  function createSquare(week, day, date, count, quartiles) {
+  function createSquare(week, day, date, count, quartiles, colors, stroke) {
     const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
     const level = getContributionLevel(count, quartiles);
-    const colors = getContributionColors();
 
     rect.setAttribute("width", CELL_SIZE);
     rect.setAttribute("height", CELL_SIZE);
@@ -114,11 +117,9 @@
     rect.setAttribute("rx", "5.5");
     rect.setAttribute("data-level", level);
 
-    // Apply stroke to all squares for better definition
-    // Use inline styles for fill/stroke so CSS transitions work reliably
     rect.setAttribute("stroke-width", "1");
     rect.style.fill = colors[level];
-    rect.style.stroke = getStrokeColor();
+    rect.style.stroke = stroke;
 
     const title = document.createElementNS(
       "http://www.w3.org/2000/svg",
@@ -130,13 +131,14 @@
     return rect;
   }
 
-  function renderCalendar(container, data) {
+  function renderCalendar(data) {
     const startDate = getStartDate();
     const weeks = 53;
     const contributionMap = buildContributionMap(data);
     const quartiles = calculateQuartiles(data);
+    const colors = getContributionColors();
+    const stroke = getStrokeColor();
     const currentDate = new Date(startDate);
-    // Use UTC for "today" to match GitHub API dates
     const now = new Date();
     const today = new Date(
       Date.UTC(
@@ -175,15 +177,22 @@
 
         const dateStr = formatDate(currentDate);
         const count = contributionMap[dateStr] || 0;
-        const square = createSquare(week, day, dateStr, count, quartiles);
+        const square = createSquare(
+          week,
+          day,
+          dateStr,
+          count,
+          quartiles,
+          colors,
+          stroke,
+        );
 
         svg.appendChild(square);
         currentDate.setUTCDate(currentDate.getUTCDate() + 1);
       }
     }
 
-    container.innerHTML = "";
-    container.appendChild(svg);
+    container.replaceChildren(svg);
   }
 
   function fetchCalendar() {
@@ -194,9 +203,6 @@
   }
 
   function updateCalendarColors() {
-    const container = document.getElementById("github-calendar");
-    if (!container) return;
-
     const svg = container.querySelector("svg");
     if (!svg) return;
 
@@ -214,10 +220,6 @@
   function pollOnce() {
     if (!isActive || inFlight) return;
 
-    const container = document.getElementById("github-calendar");
-    if (!container) return;
-
-    // Show loading text only on initial load
     if (!cachedData) {
       container.textContent = "Loading contributions...";
     }
@@ -227,8 +229,12 @@
 
     fetchCalendar()
       .then(function (data) {
-        cachedData = data;
-        renderCalendar(container, data);
+        const json = JSON.stringify(data);
+        if (json !== cachedJson) {
+          cachedData = data;
+          cachedJson = json;
+          renderCalendar(data);
+        }
       })
       .catch(function (error) {
         console.error("Error loading GitHub contributions:", error);

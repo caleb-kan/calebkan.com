@@ -9,10 +9,13 @@
     <meta name="theme-color" content="#0b0b0b" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; font-src https://cdnjs.cloudflare.com; img-src 'self' data: https://i.scdn.co; connect-src 'self'"
+      content="default-src 'self'; script-src 'self'; style-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; font-src https://cdnjs.cloudflare.com; img-src 'self' data: https://i.scdn.co; connect-src 'self'"
     />
 
     <script src="./js/theme-boot.js"></script>
+
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
 
     <!-- Bootstrap 5 -->
     <link
@@ -84,7 +87,6 @@
                   width="40"
                   height="40"
                   class="shadow-sm rounded"
-                  loading="lazy"
                   decoding="async"
                 />
               </a>
@@ -101,7 +103,6 @@
                   width="40"
                   height="40"
                   class="shadow-sm rounded"
-                  loading="lazy"
                   decoding="async"
                 />
               </a>
@@ -149,15 +150,7 @@
       </section>
     </div>
 
-    <div id="particles-js"></div>
     <div id="custom-cursor"></div>
-    <script
-      defer
-      src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"
-      integrity="sha384-d+UOwmNNIC7V4izkTAKSXzWhjC2GxiS9PTykO1XdOPC3nc2z65UOS7SP6QdKPA70"
-      crossorigin="anonymous"
-    ></script>
-    <script defer src="./js/init-particles.js"></script>
     <script defer src="./js/cursor.js"></script>
     <script defer src="./js/theme-toggle.js"></script>
     <script defer src="./js/github-calendar.js"></script>

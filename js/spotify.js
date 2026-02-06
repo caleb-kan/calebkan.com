@@ -2,6 +2,7 @@
   "use strict";
 
   const POLL_INTERVAL = 1000;
+  const RESIZE_DEBOUNCE = 150;
 
   // 1x1 transparent placeholder to avoid broken image icon
   const PLACEHOLDER_IMAGE =
@@ -37,15 +38,14 @@
   // Disable CSS transition temporarily for instant jumps
   function setProgressInstant(percentage) {
     progressEl.style.transition = "none";
-    progressEl.style.width = percentage + "%";
-    // Force reflow to apply instant change
+    progressEl.style.transform = "scaleX(" + percentage / 100 + ")";
     void progressEl.offsetWidth;
     progressEl.style.transition = "";
   }
 
-  // Set progress with smooth CSS transition
+  // Set progress with smooth CSS transition (compositor-only, no layout)
   function setProgressSmooth(percentage) {
-    progressEl.style.width = percentage + "%";
+    progressEl.style.transform = "scaleX(" + percentage / 100 + ")";
   }
 
   function getOverflowPx(el) {
@@ -125,9 +125,8 @@
       albumArt.alt = data.album ? data.album + " album art" : "Album art";
       titleEl.textContent = data.title || "Unknown";
       artistEl.textContent = data.artist || "Unknown";
+      updateSongLink(data.songUrl || null);
     }
-
-    updateSongLink(data.songUrl || "");
 
     const duration = data.duration || 0;
     const progress = data.progress || 0;
@@ -217,7 +216,11 @@
 
   startPolling();
 
-  window.addEventListener("resize", scheduleMarqueeUpdate);
+  let resizeTimer = null;
+  window.addEventListener("resize", function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(scheduleMarqueeUpdate, RESIZE_DEBOUNCE);
+  });
   window.addEventListener("load", scheduleMarqueeUpdate);
 
   document.addEventListener("visibilitychange", function () {

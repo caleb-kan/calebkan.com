@@ -14,10 +14,25 @@
   let animationId = null;
   let hasMovedOnce = false;
 
+  const EASING = 0.15;
+  const SNAP_THRESHOLD = 0.5;
+
   // Smooth cursor animation loop
   function updateCursor() {
-    cursorX += (mouseX - cursorX) * 0.15;
-    cursorY += (mouseY - cursorY) * 0.15;
+    const dx = mouseX - cursorX;
+    const dy = mouseY - cursorY;
+
+    if (Math.abs(dx) < SNAP_THRESHOLD && Math.abs(dy) < SNAP_THRESHOLD) {
+      cursorX = mouseX;
+      cursorY = mouseY;
+      cursor.style.transform =
+        "translate(" + cursorX + "px, " + cursorY + "px) translate(-50%, -50%)";
+      animationId = null;
+      return;
+    }
+
+    cursorX += dx * EASING;
+    cursorY += dy * EASING;
     cursor.style.transform =
       "translate(" + cursorX + "px, " + cursorY + "px) translate(-50%, -50%)";
     animationId = requestAnimationFrame(updateCursor);
@@ -49,21 +64,23 @@
   });
 
   // Track mouse position
-  document.addEventListener("mousemove", function (e) {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
+  document.addEventListener(
+    "mousemove",
+    function (e) {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
 
-    // Show cursor after first movement (prevents flash at origin on page load)
-    if (!hasMovedOnce) {
-      hasMovedOnce = true;
-      // Jump cursor to mouse position immediately on first move
-      cursorX = mouseX;
-      cursorY = mouseY;
-      document.body.classList.add("cursor-active");
-      // Start animation loop only after cursor becomes visible
+      if (!hasMovedOnce) {
+        hasMovedOnce = true;
+        cursorX = mouseX;
+        cursorY = mouseY;
+        document.body.classList.add("cursor-active");
+      }
+
       startAnimation();
-    }
-  });
+    },
+    { passive: true },
+  );
 
   // Handle hover states using event delegation
   function getClickableAncestor(el) {

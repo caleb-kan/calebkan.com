@@ -97,6 +97,11 @@ async function getNowPlaying() {
 }
 
 export default async function handler(req, res) {
+  if (req.method !== "GET") {
+    res.setHeader("Allow", "GET");
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
   res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
 
   try {
@@ -104,6 +109,6 @@ export default async function handler(req, res) {
     return res.status(200).json(nowPlaying);
   } catch (error) {
     console.error("Spotify API error:", error);
-    return res.status(200).json({ isPlaying: false });
+    return res.status(500).json({ isPlaying: false });
   }
 }

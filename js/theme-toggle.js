@@ -6,6 +6,16 @@
   const root = document.documentElement;
 
   const STORAGE_KEY = "card-theme";
+  const DARK_COLOR = "#0b0b0b";
+  const LIGHT_COLOR = "#ffffff";
+
+  const csMeta = document.querySelector('meta[name="color-scheme"]');
+  let tcMeta = document.querySelector('meta[name="theme-color"]');
+  if (!tcMeta) {
+    tcMeta = document.createElement("meta");
+    tcMeta.setAttribute("name", "theme-color");
+    document.head.appendChild(tcMeta);
+  }
 
   function safeGet(key) {
     try {
@@ -28,16 +38,8 @@
     toggle.setAttribute("aria-label", label);
     toggle.title = label;
 
-    // Keep browser chrome consistent with the chosen theme
-    const cs = document.querySelector('meta[name="color-scheme"]');
-    if (cs) cs.setAttribute("content", isDark ? "dark" : "light");
-    let tc = document.querySelector('meta[name="theme-color"]');
-    if (!tc) {
-      tc = document.createElement("meta");
-      tc.setAttribute("name", "theme-color");
-      document.head.appendChild(tc);
-    }
-    tc.setAttribute("content", isDark ? "#0b0b0b" : "#ffffff");
+    if (csMeta) csMeta.setAttribute("content", isDark ? "dark" : "light");
+    tcMeta.setAttribute("content", isDark ? DARK_COLOR : LIGHT_COLOR);
   }
 
   // Use saved preference if present; otherwise keep whatever the HTML set pre-paint.
