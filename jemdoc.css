@@ -517,6 +517,26 @@ html.dark .spotify-progress-container {
   }
 }
 
+/* Accessibility: reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  body {
+    animation: none;
+    background-size: 100% 100%;
+  }
+
+  #custom-cursor,
+  #custom-cursor::before {
+    animation: none;
+  }
+
+  .spotify-title.marquee,
+  .spotify-artist.marquee {
+    animation: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
 /* Responsive: smaller screens */
 @media (max-width: 600px) {
   body {

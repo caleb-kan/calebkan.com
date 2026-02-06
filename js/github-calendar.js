@@ -125,7 +125,8 @@
       "http://www.w3.org/2000/svg",
       "title",
     );
-    title.textContent = count + " contributions on " + date;
+    title.textContent =
+      count + (count === 1 ? " contribution on " : " contributions on ") + date;
     rect.appendChild(title);
 
     return rect;
@@ -219,10 +220,6 @@
 
   function pollOnce() {
     if (!isActive || inFlight) return;
-
-    if (!cachedData) {
-      container.textContent = "Loading contributions...";
-    }
 
     const pollStartTime = Date.now();
     inFlight = true;

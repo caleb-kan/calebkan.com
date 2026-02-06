@@ -1,8 +1,10 @@
 (function () {
   "use strict";
 
-  const POLL_INTERVAL = 1000;
+  const POLL_INTERVAL_ACTIVE = 1000;
+  const POLL_INTERVAL_IDLE = 5000;
   const RESIZE_DEBOUNCE = 150;
+  const MAX_CONSECUTIVE_ERRORS = 3;
 
   // 1x1 transparent placeholder to avoid broken image icon
   const PLACEHOLDER_IMAGE =
@@ -16,10 +18,17 @@
 
   if (!spotifyCard || !albumArt || !titleEl || !artistEl || !progressEl) return;
 
+  albumArt.addEventListener("error", function () {
+    if (albumArt.src !== PLACEHOLDER_IMAGE) {
+      albumArt.src = PLACEHOLDER_IMAGE;
+    }
+  });
+
   let currentTrackId = null;
   let pollTimeoutId = null;
   let inFlight = false;
   let isActive = false;
+  let consecutiveErrors = 0;
 
   function fetchNowPlaying() {
     return fetch("/api/now-playing")
@@ -27,11 +36,16 @@
         if (!response.ok) {
           throw new Error("Failed to fetch");
         }
+        consecutiveErrors = 0;
         return response.json();
       })
       .catch(function (error) {
+        consecutiveErrors++;
         console.warn("Spotify API error:", error);
-        return { isPlaying: false };
+        if (consecutiveErrors > MAX_CONSECUTIVE_ERRORS) {
+          return { isPlaying: false };
+        }
+        return null;
       });
   }
 
@@ -39,6 +53,7 @@
   function setProgressInstant(percentage) {
     progressEl.style.transition = "none";
     progressEl.style.transform = "scaleX(" + percentage / 100 + ")";
+    progressEl.setAttribute("aria-valuenow", Math.round(percentage));
     void progressEl.offsetWidth;
     progressEl.style.transition = "";
   }
@@ -46,6 +61,7 @@
   // Set progress with smooth CSS transition (compositor-only, no layout)
   function setProgressSmooth(percentage) {
     progressEl.style.transform = "scaleX(" + percentage / 100 + ")";
+    progressEl.setAttribute("aria-valuenow", Math.round(percentage));
   }
 
   function getOverflowPx(el) {
@@ -144,7 +160,10 @@
 
     if (data.isPlaying && duration > 0) {
       // Calculate where progress will be at the next poll
-      const progressAtNextPoll = Math.min(progress + POLL_INTERVAL, duration);
+      const progressAtNextPoll = Math.min(
+        progress + POLL_INTERVAL_ACTIVE,
+        duration,
+      );
       const targetPercentage = Math.min(
         (progressAtNextPoll / duration) * 100,
         100,
@@ -181,6 +200,7 @@
 
     fetchNowPlaying()
       .then(function (data) {
+        if (data === null) return; // Transient error, keep last state
         if (data.isPlaying) {
           showSpotifyCard(data);
         } else {
@@ -191,10 +211,12 @@
         inFlight = false;
         if (!isActive) return;
 
-        // Schedule next poll relative to when this poll started
-        // to prevent latency from causing drift
+        // Poll faster when playing, slower when idle
+        const interval = spotifyCard.hidden
+          ? POLL_INTERVAL_IDLE
+          : POLL_INTERVAL_ACTIVE;
         const elapsed = Date.now() - pollStartTime;
-        const delay = Math.max(0, POLL_INTERVAL - elapsed);
+        const delay = Math.max(0, interval - elapsed);
         pollTimeoutId = setTimeout(function () {
           pollTimeoutId = null;
           pollOnce();

@@ -5,6 +5,7 @@ const REFRESH_TOKEN = process.env.SPOTIFY_REFRESH_TOKEN;
 const TOKEN_ENDPOINT = "https://accounts.spotify.com/api/token";
 const NOW_PLAYING_ENDPOINT =
   "https://api.spotify.com/v1/me/player/currently-playing";
+const FETCH_TIMEOUT_MS = 5000;
 
 let cachedToken = null;
 let tokenExpiresAt = 0;
@@ -21,17 +22,25 @@ async function getAccessToken() {
 
   const basic = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString("base64");
 
-  const response = await fetch(TOKEN_ENDPOINT, {
-    method: "POST",
-    headers: {
-      Authorization: `Basic ${basic}`,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: new URLSearchParams({
-      grant_type: "refresh_token",
-      refresh_token: REFRESH_TOKEN,
-    }),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  let response;
+  try {
+    response = await fetch(TOKEN_ENDPOINT, {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${basic}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        grant_type: "refresh_token",
+        refresh_token: REFRESH_TOKEN,
+      }),
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (!response.ok) {
     throw new Error(`Spotify token refresh failed: ${response.status}`);
@@ -49,9 +58,19 @@ async function getAccessToken() {
   return cachedToken;
 }
 
+async function fetchWithTimeout(url, options) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 async function getNowPlaying() {
   let accessToken = await getAccessToken();
-  let response = await fetch(NOW_PLAYING_ENDPOINT, {
+  let response = await fetchWithTimeout(NOW_PLAYING_ENDPOINT, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
@@ -61,7 +80,7 @@ async function getNowPlaying() {
     cachedToken = null;
     tokenExpiresAt = 0;
     accessToken = await getAccessToken();
-    response = await fetch(NOW_PLAYING_ENDPOINT, {
+    response = await fetchWithTimeout(NOW_PLAYING_ENDPOINT, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
