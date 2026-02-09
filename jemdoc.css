@@ -218,12 +218,6 @@ html.dark .theme-toggle .moon {
   margin: 0 auto;
 }
 
-#github-calendar svg rect {
-  transition:
-    fill 0.35s ease,
-    stroke 0.35s ease;
-}
-
 /*
  * Cards wrapper
  */
