@@ -3,10 +3,10 @@
   --primary-color: #0a84ff; /* macOS/iOS system blue */
 
   /* Background animated gradient (kept, but softened via glass card) */
-  --gradient-color-1: #6452ee;
-  --gradient-color-2: #b73ce7;
-  --gradient-color-3: #1e91bb;
-  --gradient-color-4: #32b395;
+  --gradient-color-1: #f72585;
+  --gradient-color-2: #ff7b00;
+  --gradient-color-3: #ffd600;
+  --gradient-color-4: #ff477e;
 
   /* Card surface defaults (light) */
   --background-color: rgba(255, 255, 255, 0.66);
