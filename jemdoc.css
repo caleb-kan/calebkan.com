@@ -28,6 +28,7 @@
   --radius-card: 24px;
   --blur-strength: 16px;
   --card-padding: 40px 32px 48px;
+  --card-max-width: 760px;
 
   /* Links */
   --link-color: #005bb5;
@@ -37,9 +38,25 @@
   --toggle-height: 32px;
   --toggle-gap: 6px;
   --toggle-thumb-size: 26px;
+  --toggle-thumb-offset: 3px;
+  --toggle-travel: calc(
+    var(--toggle-width) - var(--toggle-thumb-size) - 2 *
+      var(--toggle-thumb-offset)
+  );
   --toggle-sun-color: #f6c453;
   /* Dark blue-gray, similar to iOS moon */
   --toggle-moon-color: #2e3440;
+
+  /* Shared opacities */
+  --opacity-muted: 0.7;
+  --toggle-inactive-opacity: 0.35;
+
+  /* Brand colors */
+  --spotify-green: #1db954;
+
+  /* Transitions */
+  --transition-theme-duration: 0.35s;
+  --transition-theme: var(--transition-theme-duration) ease;
 }
 
 /* Ensure built-in UI (forms, scrollbars) matches theme */
@@ -107,12 +124,12 @@ h1 {
   color: var(--link-color);
   text-decoration: none;
   transition:
-    color 0.35s ease,
+    color var(--transition-theme),
     opacity 0.2s ease;
 }
 .card-main a:hover,
 .card-spotify a:hover {
-  opacity: 0.7;
+  opacity: var(--opacity-muted);
 }
 .card-main a:focus-visible,
 .card-spotify a:focus-visible {
@@ -164,8 +181,8 @@ h1 {
     0 0 0 1px rgba(0, 0, 0, 0.06) inset,
     0 2px 10px rgba(0, 0, 0, 0.12);
   transition:
-    background-color 0.35s ease,
-    box-shadow 0.35s ease;
+    background-color var(--transition-theme),
+    box-shadow var(--transition-theme);
   z-index: 3;
 }
 
@@ -178,12 +195,12 @@ h1 {
   pointer-events: none;
   font-size: 16px;
   line-height: 1;
-  transition: opacity 0.35s ease;
+  transition: opacity var(--transition-theme);
 }
 
 .theme-toggle .sun {
   color: var(--toggle-sun-color);
-  opacity: 0.35;
+  opacity: var(--toggle-inactive-opacity);
 }
 .theme-toggle .moon {
   color: var(--toggle-moon-color);
@@ -192,8 +209,8 @@ h1 {
 
 .theme-toggle .thumb {
   position: absolute;
-  top: 3px;
-  left: 3px;
+  top: var(--toggle-thumb-offset);
+  left: var(--toggle-thumb-offset);
   width: var(--toggle-thumb-size);
   height: var(--toggle-thumb-size);
   border-radius: 50%;
@@ -202,8 +219,8 @@ h1 {
     0 2px 8px rgba(0, 0, 0, 0.25),
     0 0 0 1px rgba(0, 0, 0, 0.05) inset;
   transition:
-    transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-    background-color 0.35s ease;
+    transform var(--transition-theme-duration) cubic-bezier(0.4, 0, 0.2, 1),
+    background-color var(--transition-theme);
 }
 
 html.dark .theme-toggle {
@@ -214,7 +231,7 @@ html.dark .theme-toggle {
 }
 
 html.dark .theme-toggle .thumb {
-  transform: translateX(26px);
+  transform: translateX(var(--toggle-travel));
   background: #0b0b0b;
 }
 
@@ -222,7 +239,7 @@ html.dark .theme-toggle .sun {
   opacity: 1;
 }
 html.dark .theme-toggle .moon {
-  opacity: 0.35;
+  opacity: var(--toggle-inactive-opacity);
 }
 
 /*
@@ -266,9 +283,9 @@ html.dark .theme-toggle .moon {
   isolation: isolate;
   animation: fadeUp 0.6s ease-out both;
   transition:
-    color 0.35s ease,
-    box-shadow 0.35s ease,
-    border-color 0.35s ease;
+    color var(--transition-theme),
+    box-shadow var(--transition-theme),
+    border-color var(--transition-theme);
 }
 
 /* Pseudo-element for backdrop-filter + background to avoid 1px shift on transition */
@@ -282,11 +299,11 @@ html.dark .theme-toggle .moon {
   background-color: var(--background-color);
   backdrop-filter: saturate(180%) blur(var(--blur-strength));
   -webkit-backdrop-filter: saturate(180%) blur(var(--blur-strength));
-  transition: background-color 0.35s ease;
+  transition: background-color var(--transition-theme);
 }
 
 .card-main {
-  width: 760px;
+  width: var(--card-max-width);
   max-width: 100%;
   text-align: center;
 }
@@ -331,11 +348,11 @@ html.dark .theme-toggle .moon {
   border-radius: 50%;
   font-size: 28px;
   color: var(--text-color);
-  opacity: 0.7;
+  opacity: var(--opacity-muted);
   transition:
     transform 0.25s ease,
     opacity 0.25s ease,
-    color 0.35s ease;
+    color var(--transition-theme);
 }
 
 .social-links a:hover {
@@ -370,12 +387,12 @@ html.dark .card-spotify {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  opacity: 0.7;
+  opacity: var(--opacity-muted);
 }
 
 .spotify-header .fa-spotify {
   font-size: 18px;
-  color: #1db954;
+  color: var(--spotify-green);
 }
 
 .spotify-content {
@@ -413,14 +430,14 @@ html.dark .card-spotify {
 
 .spotify-artist {
   font-size: 14px;
-  opacity: 0.7;
+  opacity: var(--opacity-muted);
   margin: 0;
 }
 
 .spotify-title.is-disabled {
   pointer-events: none;
   text-decoration: none;
-  opacity: 0.7;
+  opacity: var(--opacity-muted);
 }
 
 /* Marquee animation for overflowing text */
@@ -455,7 +472,7 @@ html.dark .card-spotify {
   border-radius: 2px;
   margin-top: 24px;
   overflow: hidden;
-  transition: background-color 0.35s ease;
+  transition: background-color var(--transition-theme);
 }
 
 html.dark .spotify-progress-container {
@@ -464,7 +481,7 @@ html.dark .spotify-progress-container {
 
 .spotify-progress {
   height: 100%;
-  background: #1db954;
+  background: var(--spotify-green);
   width: 100%;
   transform: scaleX(0);
   transform-origin: left;
@@ -482,7 +499,7 @@ html.dark .spotify-progress-container {
   .card-main,
   .card-spotify {
     width: 100%;
-    max-width: 760px;
+    max-width: var(--card-max-width);
   }
 }
 

@@ -241,6 +241,10 @@
           hideSpotifyCard();
         }
       })
+      .catch(function (error) {
+        console.error("Spotify render error:", error);
+        hideSpotifyCard();
+      })
       .finally(function () {
         inFlight = false;
         if (!isActive) return;

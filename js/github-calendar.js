@@ -6,7 +6,7 @@
   const CELL_SIZE = 11;
   const CELL_GAP = 3;
   const STROKE_PADDING = 2; // Padding to prevent stroke clipping
-  const CELL_RADIUS = 5.5;
+  const CELL_RADIUS = CELL_SIZE / 2;
   const STROKE_WIDTH = 1;
   const DAYS_PER_WEEK = 7;
   const WEEKS_BACK = 52;
@@ -222,7 +222,7 @@
 
     for (const rect of rects) {
       const level = parseInt(rect.getAttribute("data-level"), 10);
-      if (isNaN(level) || level < 0 || level > 4) continue;
+      if (isNaN(level) || level < 0 || level >= colors.length) continue;
       rect.style.fill = colors[level];
       rect.style.stroke = stroke;
     }
@@ -268,7 +268,6 @@
           );
           permanentlyFailed = true;
           isActive = false;
-          observer.disconnect();
         }
       })
       .finally(function () {
