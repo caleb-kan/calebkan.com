@@ -44,7 +44,6 @@
 
     return fetch("/api/now-playing", { signal: controller.signal })
       .then(function (response) {
-        clearTimeout(timeout);
         if (!response.ok) {
           throw new Error("Spotify returned HTTP " + response.status);
         }
@@ -55,13 +54,12 @@
         return data;
       })
       .catch(function (error) {
-        clearTimeout(timeout);
         consecutiveErrors++;
         console.warn("Spotify API error:", error);
-        if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
-          return { isPlaying: false };
-        }
         return null;
+      })
+      .finally(function () {
+        clearTimeout(timeout);
       });
   }
 
@@ -136,10 +134,14 @@
   function updateSongLink(songUrl) {
     if (songUrl) {
       titleEl.href = songUrl;
+      titleEl.target = "_blank";
+      titleEl.rel = "noopener noreferrer";
       titleEl.removeAttribute("aria-disabled");
       titleEl.classList.remove("is-disabled");
     } else {
       titleEl.removeAttribute("href");
+      titleEl.removeAttribute("target");
+      titleEl.removeAttribute("rel");
       titleEl.setAttribute("aria-disabled", "true");
       titleEl.classList.add("is-disabled");
     }
@@ -157,7 +159,7 @@
       titleEl.textContent = title;
       titleEl.setAttribute("aria-label", title + " on Spotify");
       artistEl.textContent = data.artist || "Unknown";
-      updateSongLink(data.songUrl || null);
+      updateSongLink(data.songUrl);
     }
 
     const duration = data.duration || 0;
@@ -199,10 +201,8 @@
         setProgressSmooth(targetPercentage);
       }
     } else {
-      // Paused: show current position without animation, keep transition off
-      progressEl.style.transition = "none";
-      progressEl.style.transform = "scaleX(" + currentPercentage / 100 + ")";
-      progressEl.setAttribute("aria-valuenow", Math.round(currentPercentage));
+      // Paused: show current position without animation
+      setProgressInstant(currentPercentage);
     }
   }
 

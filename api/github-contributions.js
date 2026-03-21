@@ -53,11 +53,9 @@ async function fetchContributions() {
       }),
       signal: controller.signal,
     });
-  } catch (err) {
+  } finally {
     clearTimeout(timeout);
-    throw err;
   }
-  clearTimeout(timeout);
 
   if (!response.ok) {
     throw new Error(`GitHub API failed: ${response.status}`);
@@ -65,8 +63,9 @@ async function fetchContributions() {
 
   const json = await response.json();
 
-  if (json.errors) {
-    throw new Error(`GitHub API error: ${json.errors[0].message}`);
+  if (json.errors && json.errors.length > 0) {
+    const msg = json.errors[0].message || JSON.stringify(json.errors[0]);
+    throw new Error(`GitHub API error: ${msg}`);
   }
 
   const calendar =

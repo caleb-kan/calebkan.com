@@ -299,12 +299,8 @@
   startPolling();
 
   // Update colors when theme changes
-  const observer = new MutationObserver(function (mutations) {
-    mutations.forEach(function (mutation) {
-      if (mutation.attributeName === "class") {
-        updateCalendarColors();
-      }
-    });
+  const observer = new MutationObserver(function () {
+    updateCalendarColors();
   });
 
   observer.observe(document.documentElement, {

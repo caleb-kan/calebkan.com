@@ -12,16 +12,14 @@
     document.head.appendChild(tc);
   }
 
+  var saved;
   try {
-    var saved = localStorage.getItem("card-theme");
-    var isDark = saved !== "light";
-    root.classList.toggle("dark", isDark);
-    if (cs) cs.setAttribute("content", isDark ? "dark" : "light");
-    tc.setAttribute("content", isDark ? DARK_COLOR : LIGHT_COLOR);
+    saved = localStorage.getItem("card-theme");
   } catch (e) {
     console.warn("theme-boot: localStorage unavailable:", e);
-    root.classList.add("dark");
-    if (cs) cs.setAttribute("content", "dark");
-    tc.setAttribute("content", DARK_COLOR);
   }
+  var isDark = saved !== "light";
+  root.classList.toggle("dark", isDark);
+  if (cs) cs.setAttribute("content", isDark ? "dark" : "light");
+  tc.setAttribute("content", isDark ? DARK_COLOR : LIGHT_COLOR);
 })();

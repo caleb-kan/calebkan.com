@@ -95,13 +95,11 @@ body {
 }
 
 h1 {
-  color: var(--text-color);
   margin: 0.6em 0 0.4em;
   line-height: 1.18;
   font-weight: 700;
   font-size: clamp(28px, 4vw, 36px);
   letter-spacing: -0.01em;
-  transition: color 0.35s ease;
 }
 
 /* Links */
@@ -297,7 +295,7 @@ html.dark .theme-toggle .moon {
 }
 
 /*
- * Card content wrapper (matches original col-md-8 proportions)
+ * Card content wrapper (~2/3 width for readability, full-width below 768px)
  */
 .card-inner {
   max-width: 66.67%;
@@ -506,7 +504,6 @@ html.dark .spotify-progress-container {
 
   .spotify-title.marquee,
   .spotify-artist.marquee {
-    animation: none !important;
     overflow: hidden;
     text-overflow: ellipsis;
   }

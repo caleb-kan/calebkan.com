@@ -12,6 +12,16 @@ const DEFAULT_TOKEN_EXPIRY_S = 3600;
 let cachedToken = null;
 let tokenExpiresAt = 0;
 
+async function fetchWithTimeout(url, options) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 async function getAccessToken() {
   if (!CLIENT_ID || !CLIENT_SECRET || !REFRESH_TOKEN) {
     throw new Error("Missing Spotify credentials");
@@ -24,27 +34,17 @@ async function getAccessToken() {
 
   const basic = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString("base64");
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-  let response;
-  try {
-    response = await fetch(TOKEN_ENDPOINT, {
-      method: "POST",
-      headers: {
-        Authorization: `Basic ${basic}`,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({
-        grant_type: "refresh_token",
-        refresh_token: REFRESH_TOKEN,
-      }),
-      signal: controller.signal,
-    });
-  } catch (err) {
-    clearTimeout(timeout);
-    throw err;
-  }
-  clearTimeout(timeout);
+  const response = await fetchWithTimeout(TOKEN_ENDPOINT, {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${basic}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      grant_type: "refresh_token",
+      refresh_token: REFRESH_TOKEN,
+    }),
+  });
 
   if (!response.ok) {
     throw new Error(`Spotify token refresh failed: ${response.status}`);
@@ -60,16 +60,6 @@ async function getAccessToken() {
   tokenExpiresAt = now + expiresInSeconds * 1000 - TOKEN_REFRESH_MARGIN_MS;
 
   return cachedToken;
-}
-
-async function fetchWithTimeout(url, options) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-  try {
-    return await fetch(url, { ...options, signal: controller.signal });
-  } finally {
-    clearTimeout(timeout);
-  }
 }
 
 async function getNowPlaying() {
@@ -111,7 +101,7 @@ async function getNowPlaying() {
   }
 
   return {
-    isPlaying: data.is_playing,
+    isPlaying: data.is_playing === true,
     title: data.item.name || "Unknown",
     artist:
       data.item.artists?.map((artist) => artist.name).join(", ") || "Unknown",
