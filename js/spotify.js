@@ -135,8 +135,17 @@
     requestAnimationFrame(updateMarquee);
   }
 
+  function isSafeUrl(url) {
+    try {
+      const parsed = new URL(url);
+      return parsed.protocol === "https:" || parsed.protocol === "http:";
+    } catch (e) {
+      return false;
+    }
+  }
+
   function updateSongLink(songUrl) {
-    if (songUrl) {
+    if (songUrl && isSafeUrl(songUrl)) {
       titleEl.href = songUrl;
       titleEl.target = "_blank";
       titleEl.rel = "noopener noreferrer";
@@ -284,6 +293,7 @@
       stopPolling();
     } else {
       startPolling();
+      scheduleMarqueeUpdate();
     }
   });
 })();

@@ -175,7 +175,15 @@
         svgHeight,
     );
     svg.setAttribute("role", "img");
-    svg.setAttribute("aria-label", "GitHub contribution calendar");
+    svg.setAttribute("aria-labelledby", "gh-cal-title");
+
+    const svgTitle = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "title",
+    );
+    svgTitle.id = "gh-cal-title";
+    svgTitle.textContent = "GitHub contribution calendar";
+    svg.appendChild(svgTitle);
 
     renderLoop: for (let week = 0; week < WEEKS; week++) {
       for (let day = 0; day < DAYS_PER_WEEK; day++) {
@@ -265,6 +273,7 @@
           );
           permanentlyFailed = true;
           isActive = false;
+          observer.disconnect();
         }
       })
       .finally(function () {
@@ -293,8 +302,6 @@
     pollTimeoutId = null;
   }
 
-  startPolling();
-
   // Update colors when theme changes
   const observer = new MutationObserver(updateCalendarColors);
 
@@ -302,6 +309,8 @@
     attributes: true,
     attributeFilter: ["class"],
   });
+
+  startPolling();
 
   // Pause polling when tab is hidden
   document.addEventListener("visibilitychange", function () {
