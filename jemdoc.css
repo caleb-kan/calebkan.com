@@ -9,7 +9,7 @@
 }
 
 :root {
-  --primary-color: #0a84ff; /* Apple system blue (dark variant), used as accent for both themes */
+  --primary-color: #0a84ff; /* Apple system blue (dark-mode variant); used as accent in both site themes */
 
   /* Background animated gradient */
   --gradient-color-1: #ff6d00;

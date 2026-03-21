@@ -30,6 +30,7 @@
   let placeholderActive = false;
   albumArt.addEventListener("error", function () {
     if (!placeholderActive) {
+      console.warn("spotify: album art failed to load:", albumArt.src);
       placeholderActive = true;
       albumArt.src = PLACEHOLDER_IMAGE;
     }
@@ -52,7 +53,9 @@
         if (!response.ok) {
           throw new Error(`Spotify returned HTTP ${response.status}`);
         }
-        return response.json();
+        return response.json().catch(function () {
+          throw new Error("Spotify API returned non-JSON response");
+        });
       })
       .then(function (data) {
         consecutiveErrors = 0;

@@ -6,9 +6,9 @@ const TOKEN_ENDPOINT = "https://accounts.spotify.com/api/token";
 const NOW_PLAYING_ENDPOINT =
   "https://api.spotify.com/v1/me/player/currently-playing";
 const FETCH_TIMEOUT_MS = 5000;
-const TOKEN_REFRESH_MARGIN_MS = 60 * 1000; // Refresh token 60s before expiry to avoid clock skew
+const TOKEN_REFRESH_MARGIN_MS = 60 * 1000; // Re-fetch access token 60s before expiry to avoid clock-skew failures
 const DEFAULT_TOKEN_EXPIRY_S = 3600;
-const ALBUM_ART_TARGET_PX = 300; // ~2x the default 160px display size for retina (shrinks to 120px on small screens)
+const ALBUM_ART_TARGET_PX = 300; // ~2x the CSS display size for retina screens
 
 let cachedToken = null;
 let tokenExpiresAt = 0;

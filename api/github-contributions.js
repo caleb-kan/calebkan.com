@@ -3,7 +3,7 @@ const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const GITHUB_GRAPHQL_API = "https://api.github.com/graphql";
 const FETCH_TIMEOUT_MS = 5000;
 
-// Cache contributions for 1 minute
+// 1 minute: balances freshness against GitHub API rate limits (5000 req/hr)
 const CACHE_DURATION_SECONDS = 60;
 
 let cachedData = null;

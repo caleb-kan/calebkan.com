@@ -2,7 +2,7 @@
   "use strict";
 
   const API_URL = "/api/github-contributions";
-  const POLL_INTERVAL = 60000; // 1 minute (matches server-side s-maxage)
+  const POLL_INTERVAL = 60000; // 1 minute (matches s-maxage in api/github-contributions.js)
   const FETCH_TIMEOUT_MS = 5000;
   const CELL_SIZE = 11;
   const CELL_GAP = 3;
@@ -38,7 +38,7 @@
   }
 
   const MAX_CONSECUTIVE_ERRORS = 5;
-  // Fallback quartile thresholds (Q1 / Q2 / Q3) for the four non-zero contribution levels
+  // Fallback quartile boundaries [zero-floor, Q1, Q2, Q3] mapping counts to levels 0-4
   const DEFAULT_QUARTILES = [0, 1, 3, 6];
 
   let cachedJson = null;
@@ -209,7 +209,9 @@
       .then(function (response) {
         if (!response.ok)
           throw new Error(`GitHub API returned HTTP ${response.status}`);
-        return response.json();
+        return response.json().catch(function () {
+          throw new Error("GitHub API returned non-JSON response");
+        });
       })
       .finally(() => clearTimeout(timeout));
   }
@@ -254,7 +256,8 @@
             hasRendered = true;
           } catch (renderError) {
             console.error("Error rendering GitHub calendar:", renderError);
-            cachedJson = json; // Prevent re-attempting render with same broken data
+            // Do not cache json here: allow the next poll to re-attempt the render
+            // in case the failure was transient (e.g. DOM in a bad state during tab restore)
             if (!hasRendered) {
               container.textContent = "Unable to load contributions";
             }
