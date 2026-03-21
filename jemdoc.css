@@ -484,10 +484,11 @@ html.dark .spotify-progress-container {
 
 /* Accessibility: reduce motion for users who prefer it */
 @media (prefers-reduced-motion: reduce) {
-  body,
-  .card-main,
-  .card-spotify {
-    animation: none;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 
   body {
@@ -496,7 +497,6 @@ html.dark .spotify-progress-container {
 
   .spotify-title.marquee,
   .spotify-artist.marquee {
-    animation: none;
     overflow: hidden;
     text-overflow: ellipsis;
   }

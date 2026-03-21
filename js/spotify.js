@@ -48,8 +48,11 @@
         if (!response.ok) {
           throw new Error("Spotify returned HTTP " + response.status);
         }
-        consecutiveErrors = 0;
         return response.json();
+      })
+      .then(function (data) {
+        consecutiveErrors = 0;
+        return data;
       })
       .catch(function (error) {
         clearTimeout(timeout);
@@ -73,6 +76,7 @@
 
   // Set progress with smooth CSS transition (compositor-only, no layout)
   function setProgressSmooth(percentage) {
+    progressEl.style.transition = "";
     progressEl.style.transform = "scaleX(" + percentage / 100 + ")";
     progressEl.setAttribute("aria-valuenow", Math.round(percentage));
   }
@@ -161,6 +165,9 @@
 
     if (spotifyCard.hidden) {
       spotifyCard.hidden = false;
+      spotifyCard.style.animation = "none";
+      void spotifyCard.offsetWidth;
+      spotifyCard.style.animation = "";
     }
 
     // Schedule marquee update after card is visible so measurements work
@@ -190,8 +197,10 @@
         setProgressSmooth(targetPercentage);
       }
     } else {
-      // Paused: show current position without animation
-      setProgressInstant(currentPercentage);
+      // Paused: show current position without animation, keep transition off
+      progressEl.style.transition = "none";
+      progressEl.style.transform = "scaleX(" + currentPercentage / 100 + ")";
+      progressEl.setAttribute("aria-valuenow", Math.round(currentPercentage));
     }
   }
 
