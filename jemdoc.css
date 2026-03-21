@@ -1,3 +1,13 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
 :root {
   /* Apple-like system blue and neutrals */
   --primary-color: #0a84ff; /* macOS/iOS system blue */
@@ -49,6 +59,7 @@ html {
 body {
   min-height: 100%;
   margin: 0;
+  line-height: 1.5;
   background: linear-gradient(
     -45deg,
     var(--gradient-color-1),
@@ -103,16 +114,6 @@ h1 {
   opacity: 0.6;
 }
 
-.card-main a img {
-  transition:
-    transform 0.25s ease,
-    opacity 0.25s ease;
-}
-.card-main a img:hover {
-  transform: scale(1.08);
-  opacity: 0.95;
-}
-
 @keyframes gradient {
   0%,
   100% {
@@ -120,6 +121,17 @@ h1 {
   }
   50% {
     background-position: 100% 50%;
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -268,12 +280,60 @@ html.dark .theme-toggle .moon {
 .card-main {
   width: 760px;
   max-width: 100%;
+  text-align: center;
+  animation: fadeUp 0.6s ease-out both;
 }
 
 .card-spotify {
   width: 280px;
   display: flex;
   flex-direction: column;
+  text-align: center;
+}
+
+/*
+ * Card content wrapper (matches original col-md-8 proportions)
+ */
+.card-inner {
+  max-width: 66.67%;
+  margin: 0 auto;
+}
+
+.card-main p {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+/*
+ * Social links
+ */
+.social-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 1.2rem;
+}
+
+.social-links a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  font-size: 28px;
+  color: var(--text-color);
+  opacity: 0.7;
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s ease,
+    color 0.35s ease;
+}
+
+.social-links a:hover {
+  transform: scale(1.1);
+  opacity: 1;
 }
 
 html.dark .card-main,
@@ -414,10 +474,21 @@ html.dark .spotify-progress-container {
   }
 }
 
+/* Responsive: full-width content on smaller screens */
+@media (max-width: 768px) {
+  .card-inner {
+    max-width: 100%;
+  }
+}
+
 /* Accessibility: reduce motion for users who prefer it */
 @media (prefers-reduced-motion: reduce) {
-  body {
+  body,
+  .card-main {
     animation: none;
+  }
+
+  body {
     background-size: 100% 100%;
   }
 

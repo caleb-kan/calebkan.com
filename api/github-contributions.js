@@ -53,9 +53,11 @@ async function fetchContributions() {
       }),
       signal: controller.signal,
     });
-  } finally {
+  } catch (err) {
     clearTimeout(timeout);
+    throw err;
   }
+  clearTimeout(timeout);
 
   if (!response.ok) {
     throw new Error(`GitHub API failed: ${response.status}`);

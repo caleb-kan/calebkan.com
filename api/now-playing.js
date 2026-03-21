@@ -6,6 +6,8 @@ const TOKEN_ENDPOINT = "https://accounts.spotify.com/api/token";
 const NOW_PLAYING_ENDPOINT =
   "https://api.spotify.com/v1/me/player/currently-playing";
 const FETCH_TIMEOUT_MS = 5000;
+const TOKEN_REFRESH_MARGIN_MS = 60 * 1000;
+const DEFAULT_TOKEN_EXPIRY_S = 3600;
 
 let cachedToken = null;
 let tokenExpiresAt = 0;
@@ -38,9 +40,11 @@ async function getAccessToken() {
       }),
       signal: controller.signal,
     });
-  } finally {
+  } catch (err) {
     clearTimeout(timeout);
+    throw err;
   }
+  clearTimeout(timeout);
 
   if (!response.ok) {
     throw new Error(`Spotify token refresh failed: ${response.status}`);
@@ -52,8 +56,8 @@ async function getAccessToken() {
   }
 
   cachedToken = data.access_token;
-  const expiresInSeconds = Number(data.expires_in) || 3600;
-  tokenExpiresAt = now + expiresInSeconds * 1000 - 60 * 1000;
+  const expiresInSeconds = Number(data.expires_in) || DEFAULT_TOKEN_EXPIRY_S;
+  tokenExpiresAt = now + expiresInSeconds * 1000 - TOKEN_REFRESH_MARGIN_MS;
 
   return cachedToken;
 }

@@ -5,6 +5,9 @@
   const POLL_INTERVAL_IDLE = 5000;
   const RESIZE_DEBOUNCE = 150;
   const MAX_CONSECUTIVE_ERRORS = 3;
+  const MARQUEE_SPEED_PX_PER_SEC = 15;
+  const MARQUEE_MOVE_FRACTION = 0.35;
+  const MARQUEE_MIN_DURATION_SEC = 6;
 
   // 1x1 transparent placeholder to avoid broken image icon
   const PLACEHOLDER_IMAGE =
@@ -30,9 +33,17 @@
   let isActive = false;
   let consecutiveErrors = 0;
 
+  const FETCH_TIMEOUT_MS = 5000;
+
   function fetchNowPlaying() {
-    return fetch("/api/now-playing")
+    var controller = new AbortController();
+    var timeout = setTimeout(function () {
+      controller.abort();
+    }, FETCH_TIMEOUT_MS);
+
+    return fetch("/api/now-playing", { signal: controller.signal })
       .then(function (response) {
+        clearTimeout(timeout);
         if (!response.ok) {
           throw new Error("Failed to fetch");
         }
@@ -40,9 +51,10 @@
         return response.json();
       })
       .catch(function (error) {
+        clearTimeout(timeout);
         consecutiveErrors++;
         console.warn("Spotify API error:", error);
-        if (consecutiveErrors > MAX_CONSECUTIVE_ERRORS) {
+        if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
           return { isPlaying: false };
         }
         return null;
@@ -85,12 +97,9 @@
     if (maxOverflow === 0) return;
 
     // Calculate animation duration based on scroll distance
-    const speedPxPerSec = 15;
-    const moveFraction = 0.35;
-    const minDurationSec = 6;
-
-    let totalDurationSec = maxOverflow / speedPxPerSec / moveFraction;
-    totalDurationSec = Math.max(totalDurationSec, minDurationSec);
+    let totalDurationSec =
+      maxOverflow / MARQUEE_SPEED_PX_PER_SEC / MARQUEE_MOVE_FRACTION;
+    totalDurationSec = Math.max(totalDurationSec, MARQUEE_MIN_DURATION_SEC);
     const duration = totalDurationSec + "s";
 
     // Apply offsets and shared duration

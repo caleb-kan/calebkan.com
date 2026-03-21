@@ -6,6 +6,11 @@
   const CELL_SIZE = 11;
   const CELL_GAP = 3;
   const STROKE_PADDING = 2; // Padding to prevent stroke clipping
+  const CELL_RADIUS = 5.5;
+  const STROKE_WIDTH = 1;
+  const WEEKS = 53;
+  const DAYS_PER_WEEK = 7;
+  const WEEKS_BACK = 52;
 
   // GitHub's official contribution colors
   const CONTRIBUTION_COLORS_DARK = [
@@ -82,7 +87,7 @@
       Date.UTC(
         today.getUTCFullYear(),
         today.getUTCMonth(),
-        today.getUTCDate() - dayOfWeek - 52 * 7,
+        today.getUTCDate() - dayOfWeek - WEEKS_BACK * DAYS_PER_WEEK,
       ),
     );
     return startOfWeek;
@@ -114,10 +119,10 @@
     rect.setAttribute("height", CELL_SIZE);
     rect.setAttribute("x", week * (CELL_SIZE + CELL_GAP));
     rect.setAttribute("y", day * (CELL_SIZE + CELL_GAP));
-    rect.setAttribute("rx", "5.5");
+    rect.setAttribute("rx", CELL_RADIUS);
     rect.setAttribute("data-level", level);
 
-    rect.setAttribute("stroke-width", "1");
+    rect.setAttribute("stroke-width", STROKE_WIDTH);
     rect.style.fill = colors[level];
     rect.style.stroke = stroke;
 
@@ -134,7 +139,6 @@
 
   function renderCalendar(data) {
     const startDate = getStartDate();
-    const weeks = 53;
     const contributionMap = buildContributionMap(data);
     const quartiles = calculateQuartiles(data);
     const colors = getContributionColors();
@@ -155,9 +159,9 @@
 
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     const svgWidth =
-      weeks * (CELL_SIZE + CELL_GAP) - CELL_GAP + 2 * STROKE_PADDING;
+      WEEKS * (CELL_SIZE + CELL_GAP) - CELL_GAP + 2 * STROKE_PADDING;
     const svgHeight =
-      7 * (CELL_SIZE + CELL_GAP) - CELL_GAP + 2 * STROKE_PADDING;
+      DAYS_PER_WEEK * (CELL_SIZE + CELL_GAP) - CELL_GAP + 2 * STROKE_PADDING;
 
     svg.setAttribute(
       "viewBox",
@@ -172,8 +176,8 @@
     svg.setAttribute("role", "img");
     svg.setAttribute("aria-label", "GitHub contribution calendar");
 
-    renderLoop: for (let week = 0; week < weeks; week++) {
-      for (let day = 0; day < 7; day++) {
+    renderLoop: for (let week = 0; week < WEEKS; week++) {
+      for (let day = 0; day < DAYS_PER_WEEK; day++) {
         if (currentDate > today) break renderLoop;
 
         const dateStr = formatDate(currentDate);
@@ -196,11 +200,21 @@
     container.replaceChildren(svg);
   }
 
+  const FETCH_TIMEOUT_MS = 5000;
+
   function fetchCalendar() {
-    return fetch(API_URL).then(function (response) {
-      if (!response.ok) throw new Error("Failed to fetch");
-      return response.json();
-    });
+    var controller = new AbortController();
+    var timeout = setTimeout(function () {
+      controller.abort();
+    }, FETCH_TIMEOUT_MS);
+
+    return fetch(API_URL, { signal: controller.signal }).then(
+      function (response) {
+        clearTimeout(timeout);
+        if (!response.ok) throw new Error("Failed to fetch");
+        return response.json();
+      },
+    );
   }
 
   function updateCalendarColors() {
