@@ -8,6 +8,7 @@
   const MARQUEE_SPEED_PX_PER_SEC = 15;
   const MARQUEE_MOVE_FRACTION = 0.35;
   const MARQUEE_MIN_DURATION_SEC = 6;
+  const POLL_INTERVAL_BACKOFF = 30000;
 
   // 1x1 transparent placeholder to avoid broken image icon
   const PLACEHOLDER_IMAGE =
@@ -45,7 +46,7 @@
       .then(function (response) {
         clearTimeout(timeout);
         if (!response.ok) {
-          throw new Error("Failed to fetch");
+          throw new Error("Spotify returned HTTP " + response.status);
         }
         consecutiveErrors = 0;
         return response.json();
@@ -220,10 +221,13 @@
         inFlight = false;
         if (!isActive) return;
 
-        // Poll faster when playing, slower when idle
-        const interval = spotifyCard.hidden
-          ? POLL_INTERVAL_IDLE
-          : POLL_INTERVAL_ACTIVE;
+        // Back off after persistent errors, otherwise poll based on state
+        const interval =
+          consecutiveErrors >= MAX_CONSECUTIVE_ERRORS
+            ? POLL_INTERVAL_BACKOFF
+            : spotifyCard.hidden
+              ? POLL_INTERVAL_IDLE
+              : POLL_INTERVAL_ACTIVE;
         const elapsed = Date.now() - pollStartTime;
         const delay = Math.max(0, interval - elapsed);
         pollTimeoutId = setTimeout(function () {

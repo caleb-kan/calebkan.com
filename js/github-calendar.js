@@ -12,7 +12,7 @@
   const DAYS_PER_WEEK = 7;
   const WEEKS_BACK = 52;
 
-  // GitHub's official contribution colors
+  // Contribution colors matching GitHub's palette
   const CONTRIBUTION_COLORS_DARK = [
     "#161b22",
     "#0e4429",
@@ -31,11 +31,14 @@
   const container = document.getElementById("github-calendar");
   if (!container) return;
 
+  const MAX_CONSECUTIVE_ERRORS = 5;
+
   let cachedData = null;
   let cachedJson = null;
   let pollTimeoutId = null;
   let inFlight = false;
   let isActive = false;
+  let consecutiveErrors = 0;
 
   function calculateQuartiles(data) {
     if (!data || !data.contributions) return [0, 1, 3, 6];
@@ -208,13 +211,15 @@
       controller.abort();
     }, FETCH_TIMEOUT_MS);
 
-    return fetch(API_URL, { signal: controller.signal }).then(
-      function (response) {
-        clearTimeout(timeout);
-        if (!response.ok) throw new Error("Failed to fetch");
+    return fetch(API_URL, { signal: controller.signal })
+      .then(function (response) {
+        if (!response.ok)
+          throw new Error("GitHub API returned HTTP " + response.status);
         return response.json();
-      },
-    );
+      })
+      .finally(function () {
+        clearTimeout(timeout);
+      });
   }
 
   function updateCalendarColors() {
@@ -240,6 +245,7 @@
 
     fetchCalendar()
       .then(function (data) {
+        consecutiveErrors = 0;
         const json = JSON.stringify(data);
         if (json !== cachedJson) {
           cachedData = data;
@@ -248,9 +254,18 @@
         }
       })
       .catch(function (error) {
+        consecutiveErrors++;
         console.error("Error loading GitHub contributions:", error);
         if (!cachedData) {
           container.textContent = "Unable to load contributions";
+        }
+        if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+          console.error(
+            "GitHub calendar: stopping polling after " +
+              MAX_CONSECUTIVE_ERRORS +
+              " consecutive failures",
+          );
+          isActive = false;
         }
       })
       .finally(function () {

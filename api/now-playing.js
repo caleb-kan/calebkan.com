@@ -89,6 +89,11 @@ async function getNowPlaying() {
         Authorization: `Bearer ${accessToken}`,
       },
     });
+    if (response.status === 401) {
+      throw new Error(
+        "Spotify token refresh failed: still getting 401. Check SPOTIFY_REFRESH_TOKEN.",
+      );
+    }
   }
 
   if (response.status === 204) {
@@ -96,8 +101,7 @@ async function getNowPlaying() {
   }
 
   if (response.status >= 400) {
-    console.error(`Spotify API error: ${response.status}`);
-    return { isPlaying: false };
+    throw new Error(`Spotify API error: ${response.status}`);
   }
 
   const data = await response.json();
@@ -132,6 +136,6 @@ export default async function handler(req, res) {
     return res.status(200).json(nowPlaying);
   } catch (error) {
     console.error("Spotify API error:", error);
-    return res.status(500).json({ isPlaying: false });
+    return res.status(500).json({ error: "Failed to fetch now playing data" });
   }
 }

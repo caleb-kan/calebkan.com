@@ -18,7 +18,7 @@
     root.classList.toggle("dark", isDark);
     if (cs) cs.setAttribute("content", isDark ? "dark" : "light");
     tc.setAttribute("content", isDark ? DARK_COLOR : LIGHT_COLOR);
-  } catch (_) {
+  } catch (e) {
     root.classList.add("dark");
     if (cs) cs.setAttribute("content", "dark");
     tc.setAttribute("content", DARK_COLOR);

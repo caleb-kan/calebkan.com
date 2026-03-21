@@ -21,13 +21,16 @@
     try {
       return localStorage.getItem(key);
     } catch (e) {
+      console.warn("theme-toggle: could not read localStorage:", e);
       return null;
     }
   }
   function safeSet(key, value) {
     try {
       localStorage.setItem(key, value);
-    } catch (e) {}
+    } catch (e) {
+      console.warn("theme-toggle: could not save preference:", e);
+    }
   }
 
   function applyTheme(isDark) {
