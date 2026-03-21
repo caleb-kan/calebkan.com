@@ -23,7 +23,7 @@
   const CONTRIBUTION_COLORS_LIGHT = [
     "#ebedf0",
     "#9be9a8",
-    "#30c463",
+    "#40c463",
     "#30a14e",
     "#216e39",
   ];
@@ -45,15 +45,9 @@
     if (!data || !data.contributions) return [0, 1, 3, 6];
 
     const counts = data.contributions
-      .map(function (d) {
-        return d.count;
-      })
-      .filter(function (c) {
-        return c > 0;
-      })
-      .sort(function (a, b) {
-        return a - b;
-      });
+      .map((d) => d.count)
+      .filter((c) => c > 0)
+      .sort((a, b) => a - b);
 
     if (counts.length === 0) return [0, 1, 3, 6];
 
@@ -95,19 +89,18 @@
   }
 
   function formatDate(date) {
-    // Format as UTC date to match GitHub API
     const year = date.getUTCFullYear();
     const month = String(date.getUTCMonth() + 1).padStart(2, "0");
     const day = String(date.getUTCDate()).padStart(2, "0");
-    return year + "-" + month + "-" + day;
+    return `${year}-${month}-${day}`;
   }
 
   function buildContributionMap(data) {
     const map = {};
     if (data && data.contributions) {
-      data.contributions.forEach(function (day) {
+      for (const day of data.contributions) {
         map[day.date] = day.count;
-      });
+      }
     }
     return map;
   }
@@ -131,8 +124,8 @@
       "http://www.w3.org/2000/svg",
       "title",
     );
-    title.textContent =
-      count + (count === 1 ? " contribution on " : " contributions on ") + date;
+    const noun = count === 1 ? "contribution" : "contributions";
+    title.textContent = `${count} ${noun} on ${date}`;
     rect.appendChild(title);
 
     return rect;
@@ -166,13 +159,7 @@
 
     svg.setAttribute(
       "viewBox",
-      -STROKE_PADDING +
-        " " +
-        -STROKE_PADDING +
-        " " +
-        svgWidth +
-        " " +
-        svgHeight,
+      `${-STROKE_PADDING} ${-STROKE_PADDING} ${svgWidth} ${svgHeight}`,
     );
     svg.setAttribute("role", "img");
     svg.setAttribute("aria-labelledby", "gh-cal-title");
@@ -213,19 +200,15 @@
 
   function fetchCalendar() {
     const controller = new AbortController();
-    const timeout = setTimeout(function () {
-      controller.abort();
-    }, FETCH_TIMEOUT_MS);
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
     return fetch(API_URL, { signal: controller.signal })
       .then(function (response) {
         if (!response.ok)
-          throw new Error("GitHub API returned HTTP " + response.status);
+          throw new Error(`GitHub API returned HTTP ${response.status}`);
         return response.json();
       })
-      .finally(function () {
-        clearTimeout(timeout);
-      });
+      .finally(() => clearTimeout(timeout));
   }
 
   function updateCalendarColors() {
@@ -236,11 +219,11 @@
     const stroke = getStrokeColor();
     const rects = svg.querySelectorAll("rect[data-level]");
 
-    rects.forEach(function (rect) {
+    for (const rect of rects) {
       const level = parseInt(rect.getAttribute("data-level"), 10);
       rect.style.fill = colors[level];
       rect.style.stroke = stroke;
-    });
+    }
   }
 
   function pollOnce() {
@@ -256,7 +239,11 @@
         if (json !== cachedJson) {
           cachedData = data;
           cachedJson = json;
-          renderCalendar(data);
+          try {
+            renderCalendar(data);
+          } catch (renderError) {
+            console.error("Error rendering GitHub calendar:", renderError);
+          }
         }
       })
       .catch(function (error) {
@@ -267,9 +254,7 @@
         }
         if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
           console.error(
-            "GitHub calendar: stopping polling after " +
-              MAX_CONSECUTIVE_ERRORS +
-              " consecutive failures",
+            `GitHub calendar: stopping polling after ${MAX_CONSECUTIVE_ERRORS} consecutive failures`,
           );
           permanentlyFailed = true;
           isActive = false;

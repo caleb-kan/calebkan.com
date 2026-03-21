@@ -22,8 +22,10 @@
 
   if (!spotifyCard || !albumArt || !titleEl || !artistEl || !progressEl) return;
 
+  let placeholderActive = false;
   albumArt.addEventListener("error", function () {
-    if (albumArt.src !== PLACEHOLDER_IMAGE) {
+    if (!placeholderActive) {
+      placeholderActive = true;
       albumArt.src = PLACEHOLDER_IMAGE;
     }
   });
@@ -38,14 +40,12 @@
 
   function fetchNowPlaying() {
     const controller = new AbortController();
-    const timeout = setTimeout(function () {
-      controller.abort();
-    }, FETCH_TIMEOUT_MS);
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
     return fetch("/api/now-playing", { signal: controller.signal })
       .then(function (response) {
         if (!response.ok) {
-          throw new Error("Spotify returned HTTP " + response.status);
+          throw new Error(`Spotify returned HTTP ${response.status}`);
         }
         return response.json();
       })
@@ -58,70 +58,58 @@
         console.warn("Spotify API error:", error);
         return null;
       })
-      .finally(function () {
-        clearTimeout(timeout);
-      });
+      .finally(() => clearTimeout(timeout));
   }
 
-  // Disable CSS transition temporarily for instant jumps
-  function setProgressInstant(percentage) {
-    progressEl.style.transition = "none";
-    progressEl.style.transform = "scaleX(" + percentage / 100 + ")";
+  function setProgress(percentage, instant) {
+    if (instant) progressEl.style.transition = "none";
+    progressEl.style.transform = `scaleX(${percentage / 100})`;
     progressEl.setAttribute("aria-valuenow", Math.round(percentage));
-    void progressEl.offsetWidth;
-    progressEl.style.transition = "";
-  }
-
-  // Set progress with smooth CSS transition (compositor-only, no layout)
-  function setProgressSmooth(percentage) {
-    progressEl.style.transition = "";
-    progressEl.style.transform = "scaleX(" + percentage / 100 + ")";
-    progressEl.setAttribute("aria-valuenow", Math.round(percentage));
+    if (instant) {
+      void progressEl.offsetWidth; // force reflow before re-enabling transition
+      progressEl.style.transition = "";
+    }
   }
 
   function getOverflowPx(el) {
     return Math.max(0, Math.ceil(el.scrollWidth - el.clientWidth));
   }
 
+  function resetMarquee(el) {
+    el.classList.remove("marquee");
+    el.style.removeProperty("--marquee-offset");
+    el.style.removeProperty("--marquee-duration");
+  }
+
   function updateMarquee() {
-    // Reset both elements
-    titleEl.classList.remove("marquee");
-    artistEl.classList.remove("marquee");
-    titleEl.style.removeProperty("--marquee-offset");
-    titleEl.style.removeProperty("--marquee-duration");
-    artistEl.style.removeProperty("--marquee-offset");
-    artistEl.style.removeProperty("--marquee-duration");
+    resetMarquee(titleEl);
+    resetMarquee(artistEl);
 
     // Skip animation for users who prefer reduced motion;
     // CSS handles the text-overflow: ellipsis fallback
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    // Measure overflow
     const titleOverflow = getOverflowPx(titleEl);
     const artistOverflow = getOverflowPx(artistEl);
     const maxOverflow = Math.max(titleOverflow, artistOverflow);
 
     if (maxOverflow === 0) return;
 
-    // Calculate animation duration based on scroll distance
-    let totalDurationSec =
+    // Calculate shared animation duration based on the longest scroll distance
+    const rawDuration =
       maxOverflow / MARQUEE_SPEED_PX_PER_SEC / MARQUEE_MOVE_FRACTION;
-    totalDurationSec = Math.max(totalDurationSec, MARQUEE_MIN_DURATION_SEC);
-    const duration = totalDurationSec + "s";
+    const duration = `${Math.max(rawDuration, MARQUEE_MIN_DURATION_SEC)}s`;
 
-    // Apply offsets and shared duration
-    if (titleOverflow > 0) {
-      titleEl.style.setProperty("--marquee-offset", "-" + titleOverflow + "px");
+    // Apply offsets and shared duration, then activate
+    for (const [el, overflow] of [
+      [titleEl, titleOverflow],
+      [artistEl, artistOverflow],
+    ]) {
+      if (overflow > 0) {
+        el.style.setProperty("--marquee-offset", `-${overflow}px`);
+        el.style.setProperty("--marquee-duration", duration);
+      }
     }
-    if (artistOverflow > 0) {
-      artistEl.style.setProperty(
-        "--marquee-offset",
-        "-" + artistOverflow + "px",
-      );
-    }
-
-    titleEl.style.setProperty("--marquee-duration", duration);
-    artistEl.style.setProperty("--marquee-duration", duration);
 
     // Force reflow so animations restart in sync
     void titleEl.offsetWidth;
@@ -138,7 +126,7 @@
   function isSafeUrl(url) {
     try {
       const parsed = new URL(url);
-      return parsed.protocol === "https:" || parsed.protocol === "http:";
+      return parsed.protocol === "https:";
     } catch (e) {
       return false;
     }
@@ -161,16 +149,17 @@
   }
 
   function showSpotifyCard(data) {
-    const trackId = data.songUrl || data.title + "-" + data.artist;
+    const trackId = data.songUrl || `${data.title}-${data.artist}`;
     const isNewTrack = trackId !== currentTrackId;
 
     if (isNewTrack) {
       currentTrackId = trackId;
+      placeholderActive = !data.albumArt;
       albumArt.src = data.albumArt || PLACEHOLDER_IMAGE;
-      albumArt.alt = data.album ? data.album + " album art" : "Album art";
+      albumArt.alt = data.album ? `${data.album} album art` : "Album art";
       const title = data.title || "Unknown";
       titleEl.textContent = title;
-      titleEl.setAttribute("aria-label", title + " on Spotify");
+      titleEl.setAttribute("aria-label", `${title} on Spotify`);
       artistEl.textContent = data.artist || "Unknown";
       updateSongLink(data.songUrl);
     }
@@ -205,17 +194,17 @@
 
       if (isNewTrack) {
         // New track: jump to current position instantly, then animate
-        setProgressInstant(currentPercentage);
+        setProgress(currentPercentage, true);
         requestAnimationFrame(function () {
-          setProgressSmooth(targetPercentage);
+          setProgress(targetPercentage, false);
         });
       } else {
         // Same track: smoothly animate to target
-        setProgressSmooth(targetPercentage);
+        setProgress(targetPercentage, false);
       }
     } else {
       // Paused: show current position without animation
-      setProgressInstant(currentPercentage);
+      setProgress(currentPercentage, true);
     }
   }
 

@@ -9,8 +9,7 @@
 }
 
 :root {
-  /* Apple-like system blue */
-  --primary-color: #0a84ff; /* macOS/iOS system blue */
+  --primary-color: #0a84ff; /* macOS/iOS dark-mode system blue */
 
   /* Background animated gradient */
   --gradient-color-1: #ff6d00;
@@ -113,7 +112,13 @@ h1 {
 }
 .card-main a:hover,
 .card-spotify a:hover {
-  opacity: 0.6;
+  opacity: 0.7;
+}
+.card-main a:focus-visible,
+.card-spotify a:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
 @keyframes gradient {
