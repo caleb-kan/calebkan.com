@@ -27,6 +27,16 @@ query($username: String!) {
 }
 `;
 
+async function fetchWithTimeout(url, options) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 async function fetchContributions() {
   const now = Date.now();
   if (cachedData && now < cacheExpiresAt) {
@@ -37,25 +47,17 @@ async function fetchContributions() {
     throw new Error("Missing GITHUB_TOKEN environment variable");
   }
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-  let response;
-  try {
-    response = await fetch(GITHUB_GRAPHQL_API, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${GITHUB_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        query: CONTRIBUTIONS_QUERY,
-        variables: { username: GITHUB_USERNAME },
-      }),
-      signal: controller.signal,
-    });
-  } finally {
-    clearTimeout(timeout);
-  }
+  const response = await fetchWithTimeout(GITHUB_GRAPHQL_API, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${GITHUB_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      query: CONTRIBUTIONS_QUERY,
+      variables: { username: GITHUB_USERNAME },
+    }),
+  });
 
   if (!response.ok) {
     throw new Error(`GitHub API failed: ${response.status}`);

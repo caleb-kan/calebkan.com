@@ -92,6 +92,10 @@
     artistEl.style.removeProperty("--marquee-offset");
     artistEl.style.removeProperty("--marquee-duration");
 
+    // Skip animation for users who prefer reduced motion;
+    // CSS handles the text-overflow: ellipsis fallback
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
     // Measure overflow
     const titleOverflow = getOverflowPx(titleEl);
     const artistOverflow = getOverflowPx(artistEl);
