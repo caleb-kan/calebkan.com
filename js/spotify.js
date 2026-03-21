@@ -5,9 +5,9 @@
   const POLL_INTERVAL_IDLE = 5000;
   const RESIZE_DEBOUNCE = 150;
   const MAX_CONSECUTIVE_ERRORS = 3;
-  const MARQUEE_SPEED_PX_PER_SEC = 15;
+  const MARQUEE_SPEED_PX_PER_SEC = 30;
   const MARQUEE_MOVE_FRACTION = 0.35; // Must match CSS @keyframes marquee phase (10%-45%)
-  const MARQUEE_MIN_DURATION_SEC = 6;
+  const MARQUEE_MIN_DURATION_SEC = 4;
   const POLL_INTERVAL_BACKOFF = 30000;
   const API_URL = "/api/now-playing";
 
@@ -89,6 +89,19 @@
     el.classList.remove("marquee");
     el.style.removeProperty("--marquee-offset");
     el.style.removeProperty("--marquee-duration");
+    const inner = el.querySelector(".marquee-inner");
+    if (inner) {
+      el.textContent = inner.textContent;
+    }
+  }
+
+  function wrapInMarquee(el) {
+    const span = document.createElement("span");
+    span.className = "marquee-inner";
+    while (el.firstChild) {
+      span.appendChild(el.firstChild);
+    }
+    el.appendChild(span);
   }
 
   function updateMarquee() {
@@ -110,7 +123,7 @@
       maxOverflow / MARQUEE_SPEED_PX_PER_SEC / MARQUEE_MOVE_FRACTION;
     const duration = `${Math.max(rawDuration, MARQUEE_MIN_DURATION_SEC)}s`;
 
-    // Apply offsets and shared duration, then activate
+    // Apply offsets and shared duration, then wrap text in inner span for animation
     for (const [el, overflow] of [
       [titleEl, titleOverflow],
       [artistEl, artistOverflow],
@@ -118,10 +131,11 @@
       if (overflow > 0) {
         el.style.setProperty("--marquee-offset", `-${overflow}px`);
         el.style.setProperty("--marquee-duration", duration);
+        wrapInMarquee(el);
       }
     }
 
-    // Force reflow so animations restart in sync
+    // Force reflow, then activate .marquee on both so animations start in sync
     void titleEl.offsetWidth;
 
     if (titleOverflow > 0) titleEl.classList.add("marquee");

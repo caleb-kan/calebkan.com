@@ -427,6 +427,7 @@ html.dark .card-spotify {
   display: block;
   white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .spotify-title {
@@ -448,10 +449,17 @@ html.dark .card-spotify {
 
 /* Marquee animation for overflowing text.
    --marquee-offset and --marquee-duration are set by spotify.js.
-   The 35% movement phase (10%-45%, 55%-90%) must match MARQUEE_MOVE_FRACTION in spotify.js. */
+   The 35% movement phase (10%-45%, 55%-90%) must match MARQUEE_MOVE_FRACTION in spotify.js.
+   Text is wrapped in a .marquee-inner span so the outer element's overflow: hidden
+   clips the scrolling content (animating the outer element moves its clip rect too). */
 .spotify-title.marquee,
 .spotify-artist.marquee {
   text-align: left;
+  text-overflow: clip;
+}
+
+.marquee > .marquee-inner {
+  display: inline-block;
   animation-name: marquee;
   animation-duration: var(--marquee-duration);
   animation-timing-function: ease-in-out;
@@ -531,13 +539,7 @@ html.dark .spotify-progress-container {
     background-size: 100% 100%;
   }
 
-  .spotify-title,
-  .spotify-artist {
-    text-overflow: ellipsis;
-  }
-
-  .spotify-title.marquee,
-  .spotify-artist.marquee {
+  .marquee > .marquee-inner {
     animation-name: none;
   }
 
