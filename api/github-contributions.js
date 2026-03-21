@@ -102,8 +102,10 @@ export default async function handler(req, res) {
 
   res.setHeader(
     "Cache-Control",
-    `public, max-age=0, s-maxage=${CACHE_DURATION_SECONDS}, stale-while-revalidate=60`,
+    `public, max-age=0, s-maxage=${CACHE_DURATION_SECONDS}, stale-while-revalidate=${CACHE_DURATION_SECONDS}`,
   );
+  res.setHeader("Access-Control-Allow-Origin", "https://www.calebkan.com");
+  res.setHeader("Vary", "Origin");
 
   try {
     const data = await fetchContributions();

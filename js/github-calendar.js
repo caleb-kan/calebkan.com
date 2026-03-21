@@ -32,6 +32,7 @@
   if (!container) return;
 
   const MAX_CONSECUTIVE_ERRORS = 5;
+  const DEFAULT_QUARTILES = [0, 1, 3, 6];
 
   let cachedData = null;
   let cachedJson = null;
@@ -42,14 +43,14 @@
   let permanentlyFailed = false;
 
   function calculateQuartiles(data) {
-    if (!data || !data.contributions) return [0, 1, 3, 6];
+    if (!data || !data.contributions) return DEFAULT_QUARTILES;
 
     const counts = data.contributions
       .map((d) => d.count)
       .filter((c) => c > 0)
       .sort((a, b) => a - b);
 
-    if (counts.length === 0) return [0, 1, 3, 6];
+    if (counts.length === 0) return DEFAULT_QUARTILES;
 
     const q1 = counts[Math.floor(counts.length * 0.25)] || 1;
     const q2 = counts[Math.floor(counts.length * 0.5)] || 3;
@@ -221,10 +222,19 @@
 
     for (const rect of rects) {
       const level = parseInt(rect.getAttribute("data-level"), 10);
+      if (isNaN(level) || level < 0 || level > 4) continue;
       rect.style.fill = colors[level];
       rect.style.stroke = stroke;
     }
   }
+
+  // Update colors when theme changes
+  const observer = new MutationObserver(updateCalendarColors);
+
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class"],
+  });
 
   function pollOnce() {
     if (!isActive || inFlight) return;
@@ -237,10 +247,10 @@
         consecutiveErrors = 0;
         const json = JSON.stringify(data);
         if (json !== cachedJson) {
-          cachedData = data;
-          cachedJson = json;
           try {
             renderCalendar(data);
+            cachedData = data;
+            cachedJson = json;
           } catch (renderError) {
             console.error("Error rendering GitHub calendar:", renderError);
           }
@@ -286,14 +296,6 @@
     if (pollTimeoutId) clearTimeout(pollTimeoutId);
     pollTimeoutId = null;
   }
-
-  // Update colors when theme changes
-  const observer = new MutationObserver(updateCalendarColors);
-
-  observer.observe(document.documentElement, {
-    attributes: true,
-    attributeFilter: ["class"],
-  });
 
   startPolling();
 

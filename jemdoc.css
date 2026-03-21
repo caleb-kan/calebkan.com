@@ -9,7 +9,7 @@
 }
 
 :root {
-  --primary-color: #0a84ff; /* macOS/iOS dark-mode system blue */
+  --primary-color: #0a84ff; /* System blue accent (macOS/iOS) */
 
   /* Background animated gradient */
   --gradient-color-1: #ff6d00;
@@ -30,7 +30,7 @@
   --card-padding: 40px 32px 48px;
 
   /* Links */
-  --link-color: #0066cc;
+  --link-color: #005bb5;
 
   /* Toggle */
   --toggle-width: 58px;
@@ -510,6 +510,10 @@ html.dark .spotify-progress-container {
   .spotify-artist {
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  .spotify-progress {
+    will-change: auto;
   }
 }
 

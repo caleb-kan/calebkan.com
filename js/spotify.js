@@ -9,6 +9,7 @@
   const MARQUEE_MOVE_FRACTION = 0.35;
   const MARQUEE_MIN_DURATION_SEC = 6;
   const POLL_INTERVAL_BACKOFF = 30000;
+  const API_URL = "/api/now-playing";
 
   // 1x1 transparent placeholder to avoid broken image icon
   const PLACEHOLDER_IMAGE =
@@ -19,6 +20,7 @@
   const titleEl = document.getElementById("spotify-title");
   const artistEl = document.getElementById("spotify-artist");
   const progressEl = document.getElementById("spotify-progress");
+  const pageTitleEl = document.getElementById("page-title");
 
   if (!spotifyCard || !albumArt || !titleEl || !artistEl || !progressEl) return;
 
@@ -42,7 +44,7 @@
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
-    return fetch("/api/now-playing", { signal: controller.signal })
+    return fetch(API_URL, { signal: controller.signal })
       .then(function (response) {
         if (!response.ok) {
           throw new Error(`Spotify returned HTTP ${response.status}`);
@@ -64,7 +66,9 @@
   function setProgress(percentage, instant) {
     if (instant) progressEl.style.transition = "none";
     progressEl.style.transform = `scaleX(${percentage / 100})`;
-    progressEl.setAttribute("aria-valuenow", Math.round(percentage));
+    const rounded = Math.round(percentage);
+    progressEl.setAttribute("aria-valuenow", rounded);
+    progressEl.setAttribute("aria-valuetext", `${rounded}%`);
     if (instant) {
       void progressEl.offsetWidth; // force reflow before re-enabling transition
       progressEl.style.transition = "";
@@ -126,7 +130,11 @@
   function isSafeUrl(url) {
     try {
       const parsed = new URL(url);
-      return parsed.protocol === "https:";
+      return (
+        parsed.protocol === "https:" &&
+        (parsed.hostname === "open.spotify.com" ||
+          parsed.hostname.endsWith(".spotify.com"))
+      );
     } catch (e) {
       return false;
     }
@@ -211,8 +219,7 @@
   function hideSpotifyCard() {
     if (!spotifyCard.hidden) {
       if (spotifyCard.contains(document.activeElement)) {
-        const fallback = document.getElementById("page-title");
-        if (fallback) fallback.focus();
+        if (pageTitleEl) pageTitleEl.focus();
       }
       spotifyCard.hidden = true;
     }

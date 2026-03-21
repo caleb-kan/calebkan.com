@@ -1,6 +1,7 @@
 (function () {
   "use strict";
 
+  var STORAGE_KEY = "card-theme";
   var DARK_COLOR = "#0b0b0b";
   var LIGHT_COLOR = "#ffffff";
   var root = document.documentElement;
@@ -14,7 +15,7 @@
 
   var saved;
   try {
-    saved = localStorage.getItem("card-theme");
+    saved = localStorage.getItem(STORAGE_KEY);
   } catch (e) {
     console.warn("theme-boot: localStorage unavailable:", e);
   }

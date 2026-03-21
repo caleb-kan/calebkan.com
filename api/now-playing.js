@@ -126,6 +126,8 @@ export default async function handler(req, res) {
   }
 
   res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  res.setHeader("Access-Control-Allow-Origin", "https://www.calebkan.com");
+  res.setHeader("Vary", "Origin");
 
   try {
     const nowPlaying = await getNowPlaying();
