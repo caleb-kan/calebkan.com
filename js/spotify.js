@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const POLL_INTERVAL_ACTIVE = 1000;
+  const POLL_INTERVAL_ACTIVE = 1000; // Must stay in sync with --spotify-progress-duration in jemdoc.css
   const POLL_INTERVAL_IDLE = 5000;
   const RESIZE_DEBOUNCE = 150;
   const MAX_CONSECUTIVE_ERRORS = 3;
@@ -22,7 +22,10 @@
   const progressEl = document.getElementById("spotify-progress");
   const pageTitleEl = document.getElementById("page-title");
 
-  if (!spotifyCard || !albumArt || !titleEl || !artistEl || !progressEl) return;
+  if (!spotifyCard || !albumArt || !titleEl || !artistEl || !progressEl) {
+    console.warn("spotify: missing required DOM element(s)");
+    return;
+  }
 
   let placeholderActive = false;
   albumArt.addEventListener("error", function () {
@@ -131,9 +134,7 @@
     try {
       const parsed = new URL(url);
       return (
-        parsed.protocol === "https:" &&
-        (parsed.hostname === "open.spotify.com" ||
-          parsed.hostname.endsWith(".spotify.com"))
+        parsed.protocol === "https:" && parsed.hostname.endsWith(".spotify.com")
       );
     } catch (e) {
       return false;

@@ -6,8 +6,9 @@ const TOKEN_ENDPOINT = "https://accounts.spotify.com/api/token";
 const NOW_PLAYING_ENDPOINT =
   "https://api.spotify.com/v1/me/player/currently-playing";
 const FETCH_TIMEOUT_MS = 5000;
-const TOKEN_REFRESH_MARGIN_MS = 60 * 1000;
+const TOKEN_REFRESH_MARGIN_MS = 60 * 1000; // Refresh token 60s before expiry to avoid clock skew
 const DEFAULT_TOKEN_EXPIRY_S = 3600;
+const ALBUM_ART_TARGET_PX = 300; // ~2x the 160px display size for retina
 
 let cachedToken = null;
 let tokenExpiresAt = 0;
@@ -50,14 +51,17 @@ async function getAccessToken() {
     throw new Error(`Spotify token refresh failed: ${response.status}`);
   }
 
-  const data = await response.json();
+  const data = await response.json().catch(() => {
+    throw new Error("Spotify token endpoint returned non-JSON response");
+  });
   if (!data.access_token) {
     throw new Error("Spotify token refresh returned no access token");
   }
 
   if (data.refresh_token) {
-    console.warn(
-      "Spotify issued a new refresh_token; update SPOTIFY_REFRESH_TOKEN env var",
+    console.error(
+      "Spotify issued a new refresh_token; the old token may be invalidated. " +
+        "Update SPOTIFY_REFRESH_TOKEN env var immediately.",
     );
   }
 
@@ -68,6 +72,25 @@ async function getAccessToken() {
   return cachedToken;
 }
 
+// Pick the smallest image >= target size for retina, regardless of array sort order
+function pickAlbumImage(images) {
+  if (!images || images.length === 0) return "";
+  let best = null;
+  for (const img of images) {
+    if (img.width >= ALBUM_ART_TARGET_PX) {
+      if (!best || img.width < best.width) best = img;
+    }
+  }
+  // Fall back to the largest available if none meets the target
+  if (!best) {
+    best = images[0];
+    for (const img of images) {
+      if (img.width > best.width) best = img;
+    }
+  }
+  return best.url || "";
+}
+
 async function getNowPlaying() {
   let accessToken = await getAccessToken();
   let response = await fetchWithTimeout(NOW_PLAYING_ENDPOINT, {
@@ -76,6 +99,7 @@ async function getNowPlaying() {
     },
   });
 
+  // If the token was revoked or expired despite our margin, force-refresh and retry once
   if (response.status === 401) {
     cachedToken = null;
     tokenExpiresAt = 0;
@@ -100,7 +124,9 @@ async function getNowPlaying() {
     throw new Error(`Spotify API error: ${response.status}`);
   }
 
-  const data = await response.json();
+  const data = await response.json().catch(() => {
+    throw new Error("Spotify now-playing endpoint returned non-JSON response");
+  });
 
   if (!data.item) {
     return { isPlaying: false };
@@ -112,7 +138,7 @@ async function getNowPlaying() {
     artist:
       data.item.artists?.map((artist) => artist.name).join(", ") || "Unknown",
     album: data.item.album?.name || "Unknown",
-    albumArt: data.item.album?.images?.[0]?.url || "",
+    albumArt: pickAlbumImage(data.item.album?.images),
     songUrl: data.item.external_urls?.spotify || "",
     progress: data.progress_ms || 0,
     duration: data.item.duration_ms || 0,
@@ -125,7 +151,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
+  // No caching -- playback state changes every second
   res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  // Also duplicated in github-contributions.js
   res.setHeader("Access-Control-Allow-Origin", "https://www.calebkan.com");
   res.setHeader("Vary", "Origin");
 

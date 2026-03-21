@@ -7,7 +7,7 @@
   const CELL_SIZE = 11;
   const CELL_GAP = 3;
   const STROKE_PADDING = 2; // Padding to prevent stroke clipping
-  const CELL_RADIUS = CELL_SIZE / 2;
+  const CELL_CORNER_RADIUS = CELL_SIZE / 2;
   const STROKE_WIDTH = 1;
   const DAYS_PER_WEEK = 7;
   const WEEKS_BACK = 52;
@@ -32,14 +32,17 @@
   const STROKE_COLOR_LIGHT = "rgba(0, 0, 0, 0.4)";
 
   const container = document.getElementById("github-calendar");
-  if (!container) return;
+  if (!container) {
+    console.warn("github-calendar: #github-calendar element not found");
+    return;
+  }
 
   const MAX_CONSECUTIVE_ERRORS = 5;
   // Fallback quartile boundaries (light / moderate / heavy) when no data is available
   const DEFAULT_QUARTILES = [0, 1, 3, 6];
 
-  let cachedData = null;
   let cachedJson = null;
+  let hasRendered = false;
   let pollTimeoutId = null;
   let inFlight = false;
   let isActive = false;
@@ -56,9 +59,9 @@
 
     if (counts.length === 0) return DEFAULT_QUARTILES;
 
-    const q1 = counts[Math.floor(counts.length * 0.25)] || 1;
-    const q2 = counts[Math.floor(counts.length * 0.5)] || 3;
-    const q3 = counts[Math.floor(counts.length * 0.75)] || 6;
+    const q1 = counts[Math.floor(counts.length * 0.25)];
+    const q2 = Math.max(counts[Math.floor(counts.length * 0.5)], q1 + 1);
+    const q3 = Math.max(counts[Math.floor(counts.length * 0.75)], q2 + 1);
 
     return [0, q1, q2, q3];
   }
@@ -116,7 +119,7 @@
     rect.setAttribute("height", CELL_SIZE);
     rect.setAttribute("x", week * (CELL_SIZE + CELL_GAP));
     rect.setAttribute("y", day * (CELL_SIZE + CELL_GAP));
-    rect.setAttribute("rx", CELL_RADIUS);
+    rect.setAttribute("rx", CELL_CORNER_RADIUS);
     rect.setAttribute("data-level", level);
 
     rect.setAttribute("stroke-width", STROKE_WIDTH);
@@ -247,12 +250,12 @@
         if (json !== cachedJson) {
           try {
             renderCalendar(data);
-            cachedData = data;
             cachedJson = json;
+            hasRendered = true;
           } catch (renderError) {
             console.error("Error rendering GitHub calendar:", renderError);
             cachedJson = json; // Prevent re-attempting render with same broken data
-            if (!cachedData) {
+            if (!hasRendered) {
               container.textContent = "Unable to load contributions";
             }
           }
@@ -261,7 +264,7 @@
       .catch(function (error) {
         consecutiveErrors++;
         console.error("Error loading GitHub contributions:", error);
-        if (!cachedData) {
+        if (!hasRendered) {
           container.textContent = "Unable to load contributions";
         }
         if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {

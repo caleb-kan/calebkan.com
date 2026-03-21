@@ -2,9 +2,13 @@
   "use strict";
 
   const toggle = document.querySelector(".theme-toggle");
-  if (!toggle) return;
+  if (!toggle) {
+    console.warn("theme-toggle: .theme-toggle element not found");
+    return;
+  }
   const root = document.documentElement;
 
+  // Must match corresponding values in theme-boot.js
   const STORAGE_KEY = "card-theme";
   const DARK_COLOR = "#0b0b0b";
   const LIGHT_COLOR = "#ffffff";

@@ -444,7 +444,6 @@ html.dark .card-spotify {
 
 .spotify-title.is-disabled {
   pointer-events: none;
-  text-decoration: none;
   opacity: var(--opacity-muted);
 }
 
@@ -536,6 +535,11 @@ html.dark .spotify-progress-container {
   .spotify-title,
   .spotify-artist {
     text-overflow: ellipsis;
+  }
+
+  .spotify-title.marquee,
+  .spotify-artist.marquee {
+    animation-name: none;
   }
 
   .spotify-progress {

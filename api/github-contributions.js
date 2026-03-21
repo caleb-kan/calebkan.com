@@ -63,17 +63,23 @@ async function fetchContributions() {
     throw new Error(`GitHub API failed: ${response.status}`);
   }
 
-  const json = await response.json();
+  const json = await response.json().catch(() => {
+    throw new Error("GitHub API returned non-JSON response");
+  });
 
   if (json.errors && json.errors.length > 0) {
     const msg = json.errors[0].message || JSON.stringify(json.errors[0]);
     throw new Error(`GitHub API error: ${msg}`);
   }
 
-  const calendar =
-    json.data?.user?.contributionsCollection?.contributionCalendar;
+  if (!json.data?.user) {
+    throw new Error(
+      `GitHub user "${GITHUB_USERNAME}" not found or not accessible`,
+    );
+  }
+  const calendar = json.data.user.contributionsCollection?.contributionCalendar;
   if (!calendar) {
-    throw new Error("No contribution data found");
+    throw new Error("GitHub API response missing contribution calendar data");
   }
 
   // Transform to expected format: { contributions: [{ date, count }] }
@@ -100,10 +106,12 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
+  // Browsers always fetch fresh (max-age=0); Vercel CDN caches for 60s with 60s stale-while-revalidate
   res.setHeader(
     "Cache-Control",
     `public, max-age=0, s-maxage=${CACHE_DURATION_SECONDS}, stale-while-revalidate=${CACHE_DURATION_SECONDS}`,
   );
+  // Also duplicated in now-playing.js
   res.setHeader("Access-Control-Allow-Origin", "https://www.calebkan.com");
   res.setHeader("Vary", "Origin");
 

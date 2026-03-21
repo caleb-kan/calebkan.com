@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  // Synchronous FOUC-prevention script. Uses var for maximum compatibility.
+  // Synchronous FOUC-prevention script. Uses var for a defensive, pre-framework style.
   // STORAGE_KEY, DARK_COLOR, LIGHT_COLOR must match theme-toggle.js.
   var STORAGE_KEY = "card-theme";
   var DARK_COLOR = "#0b0b0b";
@@ -25,4 +25,13 @@
   root.classList.toggle("dark", isDark);
   if (cs) cs.setAttribute("content", isDark ? "dark" : "light");
   tc.setAttribute("content", isDark ? DARK_COLOR : LIGHT_COLOR);
+
+  // Sync ARIA state on the toggle button so it is correct before theme-toggle.js loads
+  var toggle = document.querySelector(".theme-toggle");
+  if (toggle) {
+    var label = isDark ? "Switch to light mode" : "Switch to dark mode";
+    toggle.setAttribute("aria-label", label);
+    toggle.setAttribute("aria-pressed", String(isDark));
+    toggle.title = label;
+  }
 })();
