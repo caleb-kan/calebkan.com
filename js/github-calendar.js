@@ -8,9 +8,9 @@
   const STROKE_PADDING = 2; // Padding to prevent stroke clipping
   const CELL_RADIUS = 5.5;
   const STROKE_WIDTH = 1;
-  const WEEKS = 53;
   const DAYS_PER_WEEK = 7;
   const WEEKS_BACK = 52;
+  const WEEKS = WEEKS_BACK + 1;
 
   // Contribution colors matching GitHub's palette
   const CONTRIBUTION_COLORS_DARK = [
@@ -84,17 +84,14 @@
 
   function getStartDate() {
     const today = new Date();
-    // Use UTC to match GitHub API dates
     const dayOfWeek = today.getUTCDay();
-    // Go to start of current week (Sunday) in UTC
-    const startOfWeek = new Date(
+    return new Date(
       Date.UTC(
         today.getUTCFullYear(),
         today.getUTCMonth(),
         today.getUTCDate() - dayOfWeek - WEEKS_BACK * DAYS_PER_WEEK,
       ),
     );
-    return startOfWeek;
   }
 
   function formatDate(date) {
@@ -207,8 +204,8 @@
   const FETCH_TIMEOUT_MS = 5000;
 
   function fetchCalendar() {
-    var controller = new AbortController();
-    var timeout = setTimeout(function () {
+    const controller = new AbortController();
+    const timeout = setTimeout(function () {
       controller.abort();
     }, FETCH_TIMEOUT_MS);
 
@@ -299,9 +296,7 @@
   startPolling();
 
   // Update colors when theme changes
-  const observer = new MutationObserver(function () {
-    updateCalendarColors();
-  });
+  const observer = new MutationObserver(updateCalendarColors);
 
   observer.observe(document.documentElement, {
     attributes: true,

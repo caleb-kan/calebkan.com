@@ -37,8 +37,8 @@
   const FETCH_TIMEOUT_MS = 5000;
 
   function fetchNowPlaying() {
-    var controller = new AbortController();
-    var timeout = setTimeout(function () {
+    const controller = new AbortController();
+    const timeout = setTimeout(function () {
       controller.abort();
     }, FETCH_TIMEOUT_MS);
 
@@ -237,12 +237,14 @@
         if (!isActive) return;
 
         // Back off after persistent errors, otherwise poll based on state
-        const interval =
-          consecutiveErrors >= MAX_CONSECUTIVE_ERRORS
-            ? POLL_INTERVAL_BACKOFF
-            : spotifyCard.hidden
-              ? POLL_INTERVAL_IDLE
-              : POLL_INTERVAL_ACTIVE;
+        let interval;
+        if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+          interval = POLL_INTERVAL_BACKOFF;
+        } else if (spotifyCard.hidden) {
+          interval = POLL_INTERVAL_IDLE;
+        } else {
+          interval = POLL_INTERVAL_ACTIVE;
+        }
         const elapsed = Date.now() - pollStartTime;
         const delay = Math.max(0, interval - elapsed);
         pollTimeoutId = setTimeout(function () {

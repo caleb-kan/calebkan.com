@@ -38,6 +38,7 @@
     else root.classList.remove("dark");
     const label = isDark ? "Switch to light mode" : "Switch to dark mode";
     toggle.setAttribute("aria-label", label);
+    toggle.setAttribute("aria-pressed", String(isDark));
     toggle.title = label;
 
     if (csMeta) csMeta.setAttribute("content", isDark ? "dark" : "light");

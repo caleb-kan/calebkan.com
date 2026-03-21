@@ -55,6 +55,12 @@ async function getAccessToken() {
     throw new Error("Spotify token refresh returned no access token");
   }
 
+  if (data.refresh_token) {
+    console.warn(
+      "Spotify issued a new refresh_token; update SPOTIFY_REFRESH_TOKEN env var",
+    );
+  }
+
   cachedToken = data.access_token;
   const expiresInSeconds = Number(data.expires_in) || DEFAULT_TOKEN_EXPIRY_S;
   tokenExpiresAt = now + expiresInSeconds * 1000 - TOKEN_REFRESH_MARGIN_MS;
