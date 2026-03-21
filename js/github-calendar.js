@@ -39,6 +39,7 @@
   let inFlight = false;
   let isActive = false;
   let consecutiveErrors = 0;
+  let permanentlyFailed = false;
 
   function calculateQuartiles(data) {
     if (!data || !data.contributions) return [0, 1, 3, 6];
@@ -265,6 +266,7 @@
               MAX_CONSECUTIVE_ERRORS +
               " consecutive failures",
           );
+          permanentlyFailed = true;
           isActive = false;
         }
       })
@@ -314,7 +316,7 @@
   document.addEventListener("visibilitychange", function () {
     if (document.hidden) {
       stopPolling();
-    } else {
+    } else if (!permanentlyFailed) {
       startPolling();
     }
   });

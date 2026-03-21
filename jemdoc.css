@@ -90,7 +90,7 @@ body {
   color: var(--text-color);
 }
 
-#page-title:focus {
+#page-title:focus:not(:focus-visible) {
   outline: none;
 }
 
@@ -341,6 +341,11 @@ html.dark .theme-toggle .moon {
   opacity: 1;
 }
 
+.social-links a:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
 html.dark .card-main,
 html.dark .card-spotify {
   --background-color: rgba(22, 22, 24, 0.66);
@@ -501,6 +506,7 @@ html.dark .spotify-progress-container {
 
   .spotify-title.marquee,
   .spotify-artist.marquee {
+    animation: none !important;
     overflow: hidden;
     text-overflow: ellipsis;
   }
