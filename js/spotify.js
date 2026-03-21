@@ -134,9 +134,12 @@
     try {
       const parsed = new URL(url);
       return (
-        parsed.protocol === "https:" && parsed.hostname.endsWith(".spotify.com")
+        parsed.protocol === "https:" &&
+        (parsed.hostname === "spotify.com" ||
+          parsed.hostname.endsWith(".spotify.com"))
       );
     } catch (e) {
+      console.warn("spotify: rejected malformed songUrl:", url);
       return false;
     }
   }
@@ -212,7 +215,7 @@
         setProgress(targetPercentage, false);
       }
     } else {
-      // No duration info: show current position without animation
+      // Paused or missing duration: show current position without animation
       setProgress(currentPercentage, true);
     }
   }

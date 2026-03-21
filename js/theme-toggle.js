@@ -14,12 +14,7 @@
   const LIGHT_COLOR = "#ffffff";
 
   const csMeta = document.querySelector('meta[name="color-scheme"]');
-  let tcMeta = document.querySelector('meta[name="theme-color"]');
-  if (!tcMeta) {
-    tcMeta = document.createElement("meta");
-    tcMeta.setAttribute("name", "theme-color");
-    document.head.appendChild(tcMeta);
-  }
+  const tcMeta = document.querySelector('meta[name="theme-color"]');
 
   function safeGet(key) {
     try {
@@ -45,7 +40,8 @@
     toggle.title = label;
 
     if (csMeta) csMeta.setAttribute("content", isDark ? "dark" : "light");
-    tcMeta.setAttribute("content", isDark ? DARK_COLOR : LIGHT_COLOR);
+    if (tcMeta)
+      tcMeta.setAttribute("content", isDark ? DARK_COLOR : LIGHT_COLOR);
   }
 
   // Use saved preference if present; otherwise keep whatever the HTML set pre-paint.

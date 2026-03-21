@@ -2,12 +2,12 @@
   "use strict";
 
   const API_URL = "/api/github-contributions";
-  const POLL_INTERVAL = 60000; // 1 minute (matches server-side cache duration)
+  const POLL_INTERVAL = 60000; // 1 minute (matches server-side s-maxage)
   const FETCH_TIMEOUT_MS = 5000;
   const CELL_SIZE = 11;
   const CELL_GAP = 3;
   const STROKE_PADDING = 2; // Padding to prevent stroke clipping
-  const CELL_CORNER_RADIUS = CELL_SIZE / 2;
+  const CELL_CORNER_RADIUS = 2;
   const STROKE_WIDTH = 1;
   const DAYS_PER_WEEK = 7;
   const WEEKS_BACK = 52;
@@ -38,7 +38,7 @@
   }
 
   const MAX_CONSECUTIVE_ERRORS = 5;
-  // Fallback quartile boundaries (light / moderate / heavy) when no data is available
+  // Fallback quartile thresholds (Q1 / Q2 / Q3) for the four non-zero contribution levels
   const DEFAULT_QUARTILES = [0, 1, 3, 6];
 
   let cachedJson = null;

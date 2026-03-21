@@ -8,7 +8,7 @@ const NOW_PLAYING_ENDPOINT =
 const FETCH_TIMEOUT_MS = 5000;
 const TOKEN_REFRESH_MARGIN_MS = 60 * 1000; // Refresh token 60s before expiry to avoid clock skew
 const DEFAULT_TOKEN_EXPIRY_S = 3600;
-const ALBUM_ART_TARGET_PX = 300; // ~2x the 160px display size for retina
+const ALBUM_ART_TARGET_PX = 300; // ~2x the default 160px display size for retina (shrinks to 120px on small screens)
 
 let cachedToken = null;
 let tokenExpiresAt = 0;
@@ -75,20 +75,15 @@ async function getAccessToken() {
 // Pick the smallest image >= target size for retina, regardless of array sort order
 function pickAlbumImage(images) {
   if (!images || images.length === 0) return "";
-  let best = null;
+  let bestFit = null; // smallest image >= target
+  let largest = null; // largest image overall (fallback)
   for (const img of images) {
     if (img.width >= ALBUM_ART_TARGET_PX) {
-      if (!best || img.width < best.width) best = img;
+      if (!bestFit || img.width < bestFit.width) bestFit = img;
     }
+    if (!largest || img.width > largest.width) largest = img;
   }
-  // Fall back to the largest available if none meets the target
-  if (!best) {
-    best = images[0];
-    for (const img of images) {
-      if (img.width > best.width) best = img;
-    }
-  }
-  return best.url || "";
+  return (bestFit || largest).url || "";
 }
 
 async function getNowPlaying() {
@@ -140,8 +135,8 @@ async function getNowPlaying() {
     album: data.item.album?.name || "Unknown",
     albumArt: pickAlbumImage(data.item.album?.images),
     songUrl: data.item.external_urls?.spotify || "",
-    progress: data.progress_ms || 0,
-    duration: data.item.duration_ms || 0,
+    progress: data.progress_ms ?? 0,
+    duration: data.item.duration_ms ?? 0,
   };
 }
 
@@ -153,9 +148,6 @@ export default async function handler(req, res) {
 
   // No caching -- playback state changes every second
   res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  // Also duplicated in github-contributions.js
-  res.setHeader("Access-Control-Allow-Origin", "https://www.calebkan.com");
-  res.setHeader("Vary", "Origin");
 
   try {
     const nowPlaying = await getNowPlaying();

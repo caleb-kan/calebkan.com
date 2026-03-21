@@ -111,9 +111,6 @@ export default async function handler(req, res) {
     "Cache-Control",
     `public, max-age=0, s-maxage=${CACHE_DURATION_SECONDS}, stale-while-revalidate=${CACHE_DURATION_SECONDS}`,
   );
-  // Also duplicated in now-playing.js
-  res.setHeader("Access-Control-Allow-Origin", "https://www.calebkan.com");
-  res.setHeader("Vary", "Origin");
 
   try {
     const data = await fetchContributions();

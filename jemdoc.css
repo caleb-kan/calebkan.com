@@ -288,6 +288,7 @@ html.dark .theme-toggle .moon {
   box-shadow: var(--shadow-ambient);
   position: relative;
   isolation: isolate;
+  text-align: center;
   animation: fadeUp 0.6s ease-out both;
   transition:
     color var(--transition-theme),
@@ -312,14 +313,12 @@ html.dark .theme-toggle .moon {
 .card-main {
   width: var(--card-max-width);
   max-width: 100%;
-  text-align: center;
 }
 
 .card-spotify {
   width: var(--spotify-card-width);
   display: flex;
   flex-direction: column;
-  text-align: center;
 }
 
 /*
