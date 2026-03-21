@@ -9,7 +9,7 @@
 }
 
 :root {
-  --primary-color: #0a84ff; /* System blue accent (macOS/iOS) */
+  --primary-color: #0a84ff; /* Apple system blue (dark variant), used as accent for both themes */
 
   /* Background animated gradient */
   --gradient-color-1: #ff6d00;
@@ -29,6 +29,8 @@
   --blur-strength: 16px;
   --card-padding: 40px 32px 48px;
   --card-max-width: 760px;
+  --spotify-card-width: 280px;
+  --album-art-size: 160px;
 
   /* Links */
   --link-color: #005bb5;
@@ -44,7 +46,7 @@
       var(--toggle-thumb-offset)
   );
   --toggle-sun-color: #f6c453;
-  /* Dark blue-gray, similar to iOS moon */
+  /* Dark blue-gray for inactive moon icon */
   --toggle-moon-color: #2e3440;
 
   /* Shared opacities */
@@ -57,6 +59,11 @@
   /* Transitions */
   --transition-theme-duration: 0.35s;
   --transition-theme: var(--transition-theme-duration) ease;
+  --transition-hover-duration: 0.2s;
+  --transition-hover: var(--transition-hover-duration) ease;
+
+  /* Spotify progress bar: must stay in sync with POLL_INTERVAL_ACTIVE in spotify.js */
+  --spotify-progress-duration: 1s;
 }
 
 /* Ensure built-in UI (forms, scrollbars) matches theme */
@@ -125,7 +132,7 @@ h1 {
   text-decoration: none;
   transition:
     color var(--transition-theme),
-    opacity 0.2s ease;
+    opacity var(--transition-hover);
 }
 .card-main a:hover,
 .card-spotify a:hover {
@@ -309,7 +316,7 @@ html.dark .theme-toggle .moon {
 }
 
 .card-spotify {
-  width: 280px;
+  width: var(--spotify-card-width);
   display: flex;
   flex-direction: column;
   text-align: center;
@@ -350,8 +357,8 @@ html.dark .theme-toggle .moon {
   color: var(--text-color);
   opacity: var(--opacity-muted);
   transition:
-    transform 0.25s ease,
-    opacity 0.25s ease,
+    transform var(--transition-hover),
+    opacity var(--transition-hover),
     color var(--transition-theme);
 }
 
@@ -371,7 +378,7 @@ html.dark .card-spotify {
   --text-color: #e6e6e7;
   --border-color: rgba(255, 255, 255, 0.08);
   --link-color: #61adff;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+  --shadow-ambient: 0 12px 36px rgba(0, 0, 0, 0.35);
 }
 
 /*
@@ -403,8 +410,8 @@ html.dark .card-spotify {
 }
 
 .spotify-album-art {
-  width: 160px;
-  height: 160px;
+  width: var(--album-art-size);
+  height: var(--album-art-size);
   border-radius: 12px;
   object-fit: cover;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
@@ -420,6 +427,7 @@ html.dark .card-spotify {
 .spotify-artist {
   display: block;
   white-space: nowrap;
+  overflow: hidden;
 }
 
 .spotify-title {
@@ -440,7 +448,9 @@ html.dark .card-spotify {
   opacity: var(--opacity-muted);
 }
 
-/* Marquee animation for overflowing text */
+/* Marquee animation for overflowing text.
+   --marquee-offset and --marquee-duration are set by spotify.js.
+   The 35% movement phase (10%-45%, 55%-90%) must match MARQUEE_MOVE_FRACTION in spotify.js. */
 .spotify-title.marquee,
 .spotify-artist.marquee {
   text-align: left;
@@ -485,11 +495,11 @@ html.dark .spotify-progress-container {
   width: 100%;
   transform: scaleX(0);
   transform-origin: left;
-  transition: transform 1s linear;
+  transition: transform var(--spotify-progress-duration) linear;
   will-change: transform;
 }
 
-/* Responsive: stack cards on tablet/mobile */
+/* Responsive: stack cards vertically below 1100px */
 @media (max-width: 1100px) {
   #cards-wrapper {
     flex-direction: column;
@@ -525,7 +535,6 @@ html.dark .spotify-progress-container {
 
   .spotify-title,
   .spotify-artist {
-    overflow: hidden;
     text-overflow: ellipsis;
   }
 
@@ -542,11 +551,10 @@ html.dark .spotify-progress-container {
 
   .card-main,
   .card-spotify {
-    padding: 32px 20px 36px;
+    --card-padding: 32px 20px 36px;
   }
 
   .spotify-album-art {
-    width: 120px;
-    height: 120px;
+    --album-art-size: 120px;
   }
 }

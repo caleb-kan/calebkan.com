@@ -2,7 +2,8 @@
   "use strict";
 
   const API_URL = "/api/github-contributions";
-  const POLL_INTERVAL = 60000; // 1 minute
+  const POLL_INTERVAL = 60000; // 1 minute (matches server-side cache duration)
+  const FETCH_TIMEOUT_MS = 5000;
   const CELL_SIZE = 11;
   const CELL_GAP = 3;
   const STROKE_PADDING = 2; // Padding to prevent stroke clipping
@@ -27,11 +28,14 @@
     "#30a14e",
     "#216e39",
   ];
+  const STROKE_COLOR_DARK = "rgba(255, 255, 255, 0.4)";
+  const STROKE_COLOR_LIGHT = "rgba(0, 0, 0, 0.4)";
 
   const container = document.getElementById("github-calendar");
   if (!container) return;
 
   const MAX_CONSECUTIVE_ERRORS = 5;
+  // Fallback quartile boundaries (light / moderate / heavy) when no data is available
   const DEFAULT_QUARTILES = [0, 1, 3, 6];
 
   let cachedData = null;
@@ -67,14 +71,12 @@
     return 4;
   }
 
-  function getStrokeColor() {
+  function getThemeColors() {
     const isDark = document.documentElement.classList.contains("dark");
-    return isDark ? "rgba(255, 255, 255, 0.4)" : "rgba(0, 0, 0, 0.4)";
-  }
-
-  function getContributionColors() {
-    const isDark = document.documentElement.classList.contains("dark");
-    return isDark ? CONTRIBUTION_COLORS_DARK : CONTRIBUTION_COLORS_LIGHT;
+    return {
+      colors: isDark ? CONTRIBUTION_COLORS_DARK : CONTRIBUTION_COLORS_LIGHT,
+      stroke: isDark ? STROKE_COLOR_DARK : STROKE_COLOR_LIGHT,
+    };
   }
 
   function getStartDate() {
@@ -136,8 +138,7 @@
     const startDate = getStartDate();
     const contributionMap = buildContributionMap(data);
     const quartiles = calculateQuartiles(data);
-    const colors = getContributionColors();
-    const stroke = getStrokeColor();
+    const { colors, stroke } = getThemeColors();
     const currentDate = new Date(startDate);
     const now = new Date();
     const today = new Date(
@@ -197,8 +198,6 @@
     container.replaceChildren(svg);
   }
 
-  const FETCH_TIMEOUT_MS = 5000;
-
   function fetchCalendar() {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
@@ -216,8 +215,7 @@
     const svg = container.querySelector("svg");
     if (!svg) return;
 
-    const colors = getContributionColors();
-    const stroke = getStrokeColor();
+    const { colors, stroke } = getThemeColors();
     const rects = svg.querySelectorAll("rect[data-level]");
 
     for (const rect of rects) {
@@ -253,6 +251,10 @@
             cachedJson = json;
           } catch (renderError) {
             console.error("Error rendering GitHub calendar:", renderError);
+            cachedJson = json; // Prevent re-attempting render with same broken data
+            if (!cachedData) {
+              container.textContent = "Unable to load contributions";
+            }
           }
         }
       })

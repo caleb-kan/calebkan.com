@@ -6,7 +6,7 @@
   const RESIZE_DEBOUNCE = 150;
   const MAX_CONSECUTIVE_ERRORS = 3;
   const MARQUEE_SPEED_PX_PER_SEC = 15;
-  const MARQUEE_MOVE_FRACTION = 0.35;
+  const MARQUEE_MOVE_FRACTION = 0.35; // Must match CSS @keyframes marquee phase (10%-45%)
   const MARQUEE_MIN_DURATION_SEC = 6;
   const POLL_INTERVAL_BACKOFF = 30000;
   const API_URL = "/api/now-playing";
@@ -211,7 +211,7 @@
         setProgress(targetPercentage, false);
       }
     } else {
-      // Paused: show current position without animation
+      // No duration info: show current position without animation
       setProgress(currentPercentage, true);
     }
   }
@@ -243,7 +243,7 @@
       })
       .catch(function (error) {
         console.error("Spotify render error:", error);
-        hideSpotifyCard();
+        currentTrackId = null; // Force full re-render on next poll
       })
       .finally(function () {
         inFlight = false;

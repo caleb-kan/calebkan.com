@@ -1,6 +1,8 @@
 (function () {
   "use strict";
 
+  // Synchronous FOUC-prevention script. Uses var for maximum compatibility.
+  // STORAGE_KEY, DARK_COLOR, LIGHT_COLOR must match theme-toggle.js.
   var STORAGE_KEY = "card-theme";
   var DARK_COLOR = "#0b0b0b";
   var LIGHT_COLOR = "#ffffff";
