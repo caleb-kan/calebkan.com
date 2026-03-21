@@ -153,7 +153,9 @@
       currentTrackId = trackId;
       albumArt.src = data.albumArt || PLACEHOLDER_IMAGE;
       albumArt.alt = data.album ? data.album + " album art" : "Album art";
-      titleEl.textContent = data.title || "Unknown";
+      const title = data.title || "Unknown";
+      titleEl.textContent = title;
+      titleEl.setAttribute("aria-label", title + " on Spotify");
       artistEl.textContent = data.artist || "Unknown";
       updateSongLink(data.songUrl || null);
     }
@@ -206,6 +208,10 @@
 
   function hideSpotifyCard() {
     if (!spotifyCard.hidden) {
+      if (spotifyCard.contains(document.activeElement)) {
+        const fallback = document.getElementById("page-title");
+        if (fallback) fallback.focus();
+      }
       spotifyCard.hidden = true;
     }
     currentTrackId = null;

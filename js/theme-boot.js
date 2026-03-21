@@ -19,6 +19,7 @@
     if (cs) cs.setAttribute("content", isDark ? "dark" : "light");
     tc.setAttribute("content", isDark ? DARK_COLOR : LIGHT_COLOR);
   } catch (e) {
+    console.warn("theme-boot: localStorage unavailable:", e);
     root.classList.add("dark");
     if (cs) cs.setAttribute("content", "dark");
     tc.setAttribute("content", DARK_COLOR);

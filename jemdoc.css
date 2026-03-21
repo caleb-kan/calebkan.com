@@ -31,7 +31,7 @@
   --card-padding: 40px 32px 48px;
 
   /* Links */
-  --link-color: #007aff;
+  --link-color: #0066cc;
 
   /* Toggle */
   --toggle-width: 58px;
@@ -88,6 +88,10 @@ body {
   justify-content: center;
   padding: 48px 16px;
   color: var(--text-color);
+}
+
+#page-title:focus {
+  outline: none;
 }
 
 h1 {
