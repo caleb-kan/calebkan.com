@@ -213,13 +213,15 @@ h1 {
 .card-spotify a {
   color: var(--link-color);
   text-decoration: none;
-  transition:
-    color var(--transition-theme),
-    opacity var(--transition-hover);
+  transition: color var(--transition-hover);
 }
+/* Mix toward text color for a fully opaque "dimmed" hover. Avoids the
+   subpixel-antialiasing shift that any transparency (opacity OR color alpha)
+   causes on macOS by keeping the rendered color fully opaque.
+   70% keeps the link color dominant; 30% text color reduces contrast. */
 .card-main a:hover,
 .card-spotify a:hover {
-  opacity: var(--opacity-muted);
+  color: color-mix(in srgb, var(--link-color) 70%, var(--text-color));
 }
 .card-main a:focus-visible,
 .card-spotify a:focus-visible {
