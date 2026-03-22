@@ -211,6 +211,7 @@
       titleEl.removeAttribute("href");
       titleEl.removeAttribute("target");
       titleEl.removeAttribute("rel");
+      titleEl.removeAttribute("aria-label");
       titleEl.classList.add("is-disabled");
     }
   }
@@ -230,9 +231,11 @@
       albumArt.alt = data.album ? `${data.album} album art` : "Album art";
       const title = data.title || "Unknown";
       titleEl.textContent = title;
-      titleEl.setAttribute("aria-label", `${title} on Spotify`);
       artistEl.textContent = data.artist || "Unknown";
       updateSongLink(data.songUrl);
+      if (data.songUrl && isSafeUrl(data.songUrl)) {
+        titleEl.setAttribute("aria-label", `${title} on Spotify`);
+      }
     } else if (
       placeholderActive &&
       data.albumArt &&
@@ -361,7 +364,6 @@
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(scheduleMarqueeUpdate, RESIZE_DEBOUNCE);
   });
-  window.addEventListener("load", scheduleMarqueeUpdate);
 
   document.addEventListener("visibilitychange", function () {
     if (document.hidden) {

@@ -28,8 +28,9 @@
     "#30a14e",
     "#216e39",
   ];
-  const STROKE_COLOR_DARK = "rgba(255, 255, 255, 0.4)";
-  const STROKE_COLOR_LIGHT = "rgba(0, 0, 0, 0.4)";
+  const STROKE_OPACITY = 0.4;
+  const STROKE_COLOR_DARK = `rgba(255, 255, 255, ${STROKE_OPACITY})`;
+  const STROKE_COLOR_LIGHT = `rgba(0, 0, 0, ${STROKE_OPACITY})`;
 
   const container = document.getElementById("github-calendar");
   if (!container) {
@@ -65,11 +66,11 @@
     return [0, q1, q2, q3];
   }
 
-  function getContributionLevel(count, quartiles) {
+  function getContributionLevel(count, [, q1, q2, q3]) {
     if (count === 0) return 0;
-    if (count <= quartiles[1]) return 1;
-    if (count <= quartiles[2]) return 2;
-    if (count <= quartiles[3]) return 3;
+    if (count <= q1) return 1;
+    if (count <= q2) return 2;
+    if (count <= q3) return 3;
     return 4;
   }
 
