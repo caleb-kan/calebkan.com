@@ -67,6 +67,10 @@
   --opacity-muted: 0.7;
   --toggle-inactive-opacity: 0.35;
 
+  /* Font weights */
+  --font-weight-bold: 700;
+  --font-weight-semibold: 600;
+
   /* Focus ring */
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
@@ -90,6 +94,9 @@
   --spotify-content-gap: 16px;
   --spotify-progress-margin-top: 24px;
 
+  /* Body typography */
+  --body-line-height: 1.5;
+
   /* Animation & transition durations */
   --gradient-animation-duration: 20s;
   --fadeup-distance: 16px;
@@ -98,6 +105,7 @@
   --transition-theme: var(--transition-theme-duration) ease;
   --transition-hover-duration: 0.2s;
   --transition-hover: var(--transition-hover-duration) ease;
+  --transition-thumb-easing: cubic-bezier(0.4, 0, 0.2, 1);
 
   /* Spotify progress bar: must equal POLL_INTERVAL_ACTIVE in spotify.js so the bar animates smoothly between polls */
   --spotify-progress-duration: 1s;
@@ -152,7 +160,7 @@ html {
 body {
   min-height: 100%;
   margin: 0;
-  line-height: 1.5;
+  line-height: var(--body-line-height);
   background: linear-gradient(
     -45deg,
     var(--gradient-color-1),
@@ -190,7 +198,7 @@ body {
 h1 {
   margin: var(--h1-margin-top) 0 var(--h1-margin-bottom);
   line-height: var(--h1-line-height);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   font-size: var(--h1-font-size);
   letter-spacing: var(--h1-letter-spacing);
 }
@@ -292,7 +300,7 @@ h1 {
   background: var(--toggle-thumb-bg);
   box-shadow: var(--shadow-toggle-thumb);
   transition:
-    transform var(--transition-theme-duration) cubic-bezier(0.4, 0, 0.2, 1),
+    transform var(--transition-theme-duration) var(--transition-thumb-easing),
     background-color var(--transition-theme);
 }
 
@@ -457,7 +465,7 @@ html.dark .spotify-header {
   gap: var(--spotify-header-gap);
   margin: 0 0 var(--spotify-header-margin-bottom);
   font-size: var(--spotify-font-size-label);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   text-transform: uppercase;
   letter-spacing: var(--spotify-header-letter-spacing);
   opacity: var(--opacity-muted);
@@ -498,7 +506,7 @@ html.dark .spotify-header {
 
 .spotify-title {
   font-size: var(--spotify-font-size-title);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   margin-bottom: var(--spotify-title-gap);
 }
 

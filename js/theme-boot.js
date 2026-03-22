@@ -25,12 +25,4 @@
   root.classList.toggle("dark", isDark);
   if (cs) cs.setAttribute("content", isDark ? "dark" : "light");
   tc.setAttribute("content", isDark ? DARK_COLOR : LIGHT_COLOR);
-
-  // Sync ARIA state on the toggle button so it is correct before theme-toggle.js loads
-  var toggle = document.querySelector(".theme-toggle");
-  if (toggle) {
-    toggle.setAttribute("aria-label", "Dark mode");
-    toggle.setAttribute("aria-pressed", String(isDark));
-    toggle.title = isDark ? "Switch to light mode" : "Switch to dark mode";
-  }
 })();

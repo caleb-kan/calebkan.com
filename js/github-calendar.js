@@ -271,6 +271,10 @@
         }
       })
       .catch(function (error) {
+        if (error.name === "AbortError") {
+          console.warn("GitHub calendar: fetch timed out");
+          return;
+        }
         consecutiveErrors++;
         console.error("Error loading GitHub contributions:", error);
         if (!hasRendered) {
@@ -316,7 +320,9 @@
   document.addEventListener("visibilitychange", function () {
     if (document.hidden) {
       stopPolling();
-    } else if (!permanentlyFailed) {
+    } else {
+      permanentlyFailed = false;
+      consecutiveErrors = 0;
       startPolling();
     }
   });

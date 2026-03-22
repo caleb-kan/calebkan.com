@@ -66,6 +66,10 @@
         return data;
       })
       .catch(function (error) {
+        if (error.name === "AbortError") {
+          console.warn("Spotify API: fetch timed out");
+          return null;
+        }
         consecutiveErrors++;
         if (consecutiveErrors === MAX_CONSECUTIVE_ERRORS) {
           console.error(
