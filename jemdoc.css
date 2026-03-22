@@ -426,6 +426,8 @@ html.dark .theme-toggle .moon {
 }
 
 .social-links a:focus-visible {
+  outline: var(--focus-ring-width) solid var(--primary-color);
+  outline-offset: var(--focus-ring-offset);
   border-radius: 50%;
 }
 
@@ -438,10 +440,11 @@ html.dark .card-spotify {
   --shadow-ambient: 0 12px 36px rgba(0, 0, 0, 0.35);
   --shadow-album-art: 0 8px 24px rgba(0, 0, 0, 0.5);
   --progress-track-bg: rgba(255, 255, 255, 0.1);
+  --spotify-header-dark-opacity: 0.8;
 }
 
 html.dark .spotify-header {
-  opacity: 0.8;
+  opacity: var(--spotify-header-dark-opacity);
 }
 
 /*
@@ -592,6 +595,7 @@ html.dark .spotify-header {
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
 

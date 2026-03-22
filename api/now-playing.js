@@ -80,13 +80,18 @@ function pickAlbumImage(images) {
   let bestFit = null; // smallest image >= target
   let largest = null; // largest image overall (fallback)
   for (const img of images) {
-    if (!img || typeof img.width !== "number") continue;
+    if (!img || typeof img.width !== "number" || typeof img.url !== "string")
+      continue;
     if (img.width >= ALBUM_ART_TARGET_PX) {
       if (!bestFit || img.width < bestFit.width) bestFit = img;
     }
     if (!largest || img.width > largest.width) largest = img;
   }
-  return (bestFit || largest)?.url || images.find((img) => img?.url)?.url || "";
+  return (
+    (bestFit || largest)?.url ||
+    images.find((img) => img && typeof img.url === "string")?.url ||
+    ""
+  );
 }
 
 async function getNowPlaying() {

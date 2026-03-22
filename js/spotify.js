@@ -83,7 +83,8 @@
   }
 
   function formatTime(ms) {
-    const totalSeconds = Math.floor(ms / 1000);
+    const clamped = Math.max(0, ms);
+    const totalSeconds = Math.floor(clamped / 1000);
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
     return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
@@ -185,6 +186,17 @@
     }
   }
 
+  function isSafeImageUrl(url) {
+    try {
+      const parsed = new URL(url);
+      return (
+        parsed.protocol === "https:" && parsed.hostname.endsWith(".scdn.co")
+      );
+    } catch (e) {
+      return false;
+    }
+  }
+
   function updateSongLink(songUrl) {
     if (songUrl && isSafeUrl(songUrl)) {
       titleEl.href = songUrl;
@@ -210,8 +222,9 @@
       resetMarquee(artistEl);
       currentTrackId = trackId;
       lastFailedArtUrl = null;
-      placeholderActive = !data.albumArt;
-      albumArt.src = data.albumArt || PLACEHOLDER_IMAGE;
+      const safeArt = data.albumArt && isSafeImageUrl(data.albumArt);
+      placeholderActive = !safeArt;
+      albumArt.src = safeArt ? data.albumArt : PLACEHOLDER_IMAGE;
       albumArt.alt = data.album ? `${data.album} album art` : "Album art";
       const title = data.title || "Unknown";
       titleEl.textContent = title;
@@ -221,6 +234,7 @@
     } else if (
       placeholderActive &&
       data.albumArt &&
+      isSafeImageUrl(data.albumArt) &&
       data.albumArt !== lastFailedArtUrl
     ) {
       lastFailedArtUrl = null;
@@ -352,6 +366,7 @@
       stopPolling();
     } else {
       resumedFromHidden = true;
+      consecutiveErrors = 0;
       startPolling();
       scheduleMarqueeUpdate();
     }
