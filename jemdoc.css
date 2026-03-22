@@ -29,6 +29,9 @@
   --blur-strength: 16px;
   --card-padding: 40px 32px 48px;
   --card-max-width: 760px;
+  --card-inner-max-width: 66.67%;
+  --gradient-bg-size: 400%;
+  --touch-target-size: 44px;
   --spotify-card-width: 280px;
   --album-art-size: 160px;
   --radius-album-art: 12px;
@@ -54,6 +57,12 @@
   --shadow-toggle:
     0 0 0 1px rgba(0, 0, 0, 0.06) inset, 0 2px 10px rgba(0, 0, 0, 0.12);
 
+  --toggle-inset: 12px;
+  --toggle-icon-size: 16px;
+  --toggle-padding-h: 8px;
+  --shadow-toggle-thumb:
+    0 2px 8px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05) inset;
+
   /* Shared opacities */
   --opacity-muted: 0.7;
   --toggle-inactive-opacity: 0.35;
@@ -66,10 +75,18 @@
   --spotify-green: #1db954;
   --shadow-album-art: 0 8px 24px rgba(0, 0, 0, 0.3);
   --progress-track-bg: rgba(0, 0, 0, 0.1);
+  --progress-track-height: 4px;
   --saturate-strength: 180%;
+
+  /* Spotify typography */
+  --spotify-font-size-label: 13px;
+  --spotify-icon-size: 18px;
+  --spotify-font-size-title: 16px;
+  --spotify-font-size-artist: 14px;
 
   /* Animation & transition durations */
   --gradient-animation-duration: 20s;
+  --fadeup-distance: 16px;
   --card-fade-duration: 0.6s;
   --transition-theme-duration: 0.35s;
   --transition-theme: var(--transition-theme-duration) ease;
@@ -114,7 +131,7 @@ body {
     var(--gradient-color-4),
     var(--gradient-color-5)
   );
-  background-size: 400% 400%;
+  background-size: var(--gradient-bg-size) var(--gradient-bg-size);
   animation: gradient var(--gradient-animation-duration) ease infinite;
   font-family:
     system-ui,
@@ -181,7 +198,7 @@ h1 {
 @keyframes fadeUp {
   from {
     opacity: 0;
-    transform: translateY(16px);
+    transform: translateY(var(--fadeup-distance));
   }
   to {
     opacity: 1;
@@ -194,13 +211,13 @@ h1 {
  */
 .theme-toggle {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: var(--toggle-inset);
+  right: var(--toggle-inset);
   width: var(--toggle-width);
   height: var(--toggle-height);
   border: 0;
   border-radius: 999px;
-  padding: 0 8px;
+  padding: 0 var(--toggle-padding-h);
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
@@ -221,7 +238,7 @@ h1 {
 
 .theme-toggle .icon {
   pointer-events: none;
-  font-size: 16px;
+  font-size: var(--toggle-icon-size);
   line-height: 1;
   transition: opacity var(--transition-theme);
 }
@@ -243,9 +260,7 @@ h1 {
   height: var(--toggle-thumb-size);
   border-radius: 50%;
   background: var(--toggle-thumb-bg);
-  box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.25),
-    0 0 0 1px rgba(0, 0, 0, 0.05) inset;
+  box-shadow: var(--shadow-toggle-thumb);
   transition:
     transform var(--transition-theme-duration) cubic-bezier(0.4, 0, 0.2, 1),
     background-color var(--transition-theme);
@@ -339,7 +354,7 @@ html.dark .theme-toggle .moon {
  * Card content wrapper (~2/3 width for readability, full-width below 768px)
  */
 .card-inner {
-  max-width: 66.67%;
+  max-width: var(--card-inner-max-width);
   margin: 0 auto;
 }
 
@@ -363,8 +378,8 @@ html.dark .theme-toggle .moon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: var(--touch-target-size);
+  height: var(--touch-target-size);
   border-radius: 50%;
   font-size: 28px;
   color: var(--text-color);
@@ -404,7 +419,7 @@ html.dark .card-spotify {
   justify-content: center;
   gap: 8px;
   margin: 0 0 20px;
-  font-size: 13px;
+  font-size: var(--spotify-font-size-label);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -412,7 +427,7 @@ html.dark .card-spotify {
 }
 
 .spotify-header .fa-spotify {
-  font-size: 18px;
+  font-size: var(--spotify-icon-size);
   color: var(--spotify-green);
 }
 
@@ -445,13 +460,13 @@ html.dark .card-spotify {
 }
 
 .spotify-title {
-  font-size: 16px;
+  font-size: var(--spotify-font-size-title);
   font-weight: 600;
   margin-bottom: 4px;
 }
 
 .spotify-artist {
-  font-size: 14px;
+  font-size: var(--spotify-font-size-artist);
   opacity: var(--opacity-muted);
   margin: 0;
 }
@@ -498,9 +513,9 @@ html.dark .card-spotify {
 
 .spotify-progress-container {
   width: 100%;
-  height: 4px;
+  height: var(--progress-track-height);
   background: var(--progress-track-bg);
-  border-radius: 2px;
+  border-radius: calc(var(--progress-track-height) / 2);
   margin-top: 24px;
   overflow: hidden;
   transition: background-color var(--transition-theme);
@@ -533,7 +548,7 @@ html.dark .card-spotify {
 /* Responsive: full-width content on smaller screens */
 @media (max-width: 768px) {
   .card-inner {
-    max-width: 100%;
+    --card-inner-max-width: 100%;
   }
 }
 
