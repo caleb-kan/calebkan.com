@@ -141,6 +141,7 @@
     const { colors, stroke } = getThemeColors();
     const currentDate = new Date(startDate);
     const now = new Date();
+    // 23:59:59.999 UTC - end of today so future cells are excluded
     const today = new Date(
       Date.UTC(
         now.getUTCFullYear(),

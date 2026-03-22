@@ -82,13 +82,27 @@
       .finally(() => clearTimeout(timeout));
   }
 
-  function setProgress(percentage, instant) {
+  function formatTime(ms) {
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+  }
+
+  function setProgress(percentage, instant, progressMs, durationMs) {
     if (!Number.isFinite(percentage)) percentage = 0;
     if (instant) progressEl.style.transition = "none";
     progressEl.style.transform = `scaleX(${percentage / 100})`;
     const rounded = Math.round(percentage);
     progressEl.setAttribute("aria-valuenow", rounded);
-    progressEl.setAttribute("aria-valuetext", `${rounded}%`);
+    if (durationMs > 0 && Number.isFinite(progressMs)) {
+      progressEl.setAttribute(
+        "aria-valuetext",
+        formatTime(progressMs) + " of " + formatTime(durationMs),
+      );
+    } else {
+      progressEl.setAttribute("aria-valuetext", `${rounded}%`);
+    }
     if (instant) {
       void progressEl.offsetWidth; // force reflow before re-enabling transition
       progressEl.style.transition = "";
@@ -244,17 +258,17 @@
 
       if (isNewTrack || resumedFromHidden) {
         // New track or tab restore: jump to current position instantly, then animate
-        setProgress(currentPercentage, true);
+        setProgress(currentPercentage, true, progress, duration);
         requestAnimationFrame(function () {
-          setProgress(targetPercentage, false);
+          setProgress(targetPercentage, false, progress, duration);
         });
       } else {
         // Same track: smoothly animate to target
-        setProgress(targetPercentage, false);
+        setProgress(targetPercentage, false, progress, duration);
       }
     } else {
       // Paused or missing duration: show current position without animation
-      setProgress(currentPercentage, true);
+      setProgress(currentPercentage, true, progress, duration);
     }
   }
 

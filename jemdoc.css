@@ -70,6 +70,7 @@
   /* Focus ring */
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
+  --focus-ring-radius: 2px;
 
   /* Brand colors */
   --spotify-green: #1db954;
@@ -83,6 +84,11 @@
   --spotify-icon-size: 18px;
   --spotify-font-size-title: 16px;
   --spotify-font-size-artist: 14px;
+  --spotify-title-gap: 4px;
+  --spotify-header-gap: 8px;
+  --spotify-header-margin-bottom: 20px;
+  --spotify-content-gap: 16px;
+  --spotify-progress-margin-top: 24px;
 
   /* Animation & transition durations */
   --gradient-animation-duration: 20s;
@@ -95,6 +101,10 @@
 
   /* Spotify progress bar: must equal POLL_INTERVAL_ACTIVE in spotify.js so the bar animates smoothly between polls */
   --spotify-progress-duration: 1s;
+
+  /* Social links */
+  --social-links-gap: 16px;
+  --social-icon-size: 28px;
 
   /* Layout spacing */
   --body-padding-v: 48px;
@@ -182,7 +192,7 @@ h1 {
 .card-spotify a:focus-visible {
   outline: var(--focus-ring-width) solid var(--primary-color);
   outline-offset: var(--focus-ring-offset);
-  border-radius: 2px;
+  border-radius: var(--focus-ring-radius);
 }
 
 @keyframes gradient {
@@ -370,7 +380,7 @@ html.dark .theme-toggle .moon {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: var(--social-links-gap);
   margin-bottom: 1.2rem;
 }
 
@@ -381,7 +391,7 @@ html.dark .theme-toggle .moon {
   width: var(--touch-target-size);
   height: var(--touch-target-size);
   border-radius: 50%;
-  font-size: 28px;
+  font-size: var(--social-icon-size);
   color: var(--text-color);
   opacity: var(--opacity-muted);
   transition:
@@ -417,8 +427,8 @@ html.dark .card-spotify {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  margin: 0 0 20px;
+  gap: var(--spotify-header-gap);
+  margin: 0 0 var(--spotify-header-margin-bottom);
   font-size: var(--spotify-font-size-label);
   font-weight: 600;
   text-transform: uppercase;
@@ -435,7 +445,7 @@ html.dark .card-spotify {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: var(--spotify-content-gap);
 }
 
 .spotify-album-art {
@@ -462,7 +472,7 @@ html.dark .card-spotify {
 .spotify-title {
   font-size: var(--spotify-font-size-title);
   font-weight: 600;
-  margin-bottom: 4px;
+  margin-bottom: var(--spotify-title-gap);
 }
 
 .spotify-artist {
@@ -516,7 +526,7 @@ html.dark .card-spotify {
   height: var(--progress-track-height);
   background: var(--progress-track-bg);
   border-radius: calc(var(--progress-track-height) / 2);
-  margin-top: 24px;
+  margin-top: var(--spotify-progress-margin-top);
   overflow: hidden;
   transition: background-color var(--transition-theme);
 }
