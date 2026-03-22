@@ -80,7 +80,12 @@ function pickAlbumImage(images) {
   let bestFit = null; // smallest image >= target
   let largest = null; // largest image overall (fallback)
   for (const img of images) {
-    if (!img || typeof img.width !== "number" || typeof img.url !== "string")
+    if (
+      !img ||
+      typeof img.width !== "number" ||
+      img.width <= 0 ||
+      typeof img.url !== "string"
+    )
       continue;
     if (img.width >= ALBUM_ART_TARGET_PX) {
       if (!bestFit || img.width < bestFit.width) bestFit = img;

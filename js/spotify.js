@@ -206,13 +206,11 @@
       titleEl.href = songUrl;
       titleEl.target = "_blank";
       titleEl.rel = "noopener noreferrer";
-      titleEl.removeAttribute("aria-disabled");
       titleEl.classList.remove("is-disabled");
     } else {
       titleEl.removeAttribute("href");
       titleEl.removeAttribute("target");
       titleEl.removeAttribute("rel");
-      titleEl.setAttribute("aria-disabled", "true");
       titleEl.classList.add("is-disabled");
     }
   }

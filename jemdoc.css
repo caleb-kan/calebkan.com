@@ -138,6 +138,8 @@
   --body-padding-v: 48px;
   --body-padding-h: 16px;
   --cards-gap: 24px;
+  --paragraph-margin-bottom: 1rem;
+  --github-calendar-margin-top: 1rem;
 }
 
 /* Ensure built-in UI (forms, scrollbars) matches theme */
@@ -319,7 +321,7 @@ html.dark .theme-toggle .moon {
  * GitHub contribution calendar
  */
 #github-calendar {
-  margin-top: 1rem;
+  margin-top: var(--github-calendar-margin-top);
 }
 
 #github-calendar svg {
@@ -398,7 +400,7 @@ html.dark .theme-toggle .moon {
 
 .card-main p {
   margin-top: 0;
-  margin-bottom: 1rem;
+  margin-bottom: var(--paragraph-margin-bottom);
 }
 
 /*
