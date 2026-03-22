@@ -11,9 +11,13 @@ const TOKEN_REFRESH_MARGIN_MS = 60 * MS_PER_S; // Re-fetch access token 60s befo
 const DEFAULT_TOKEN_EXPIRY_S = 3600;
 const ALBUM_ART_TARGET_PX = 300; // Spotify medium size; close to 2x the 160px CSS display size for retina clarity
 const FALLBACK_TEXT = "Unknown";
+const HTTP_OK = 200;
 const HTTP_NO_CONTENT = 204;
 const HTTP_CLIENT_ERROR_MIN = 400;
 const HTTP_UNAUTHORIZED = 401;
+const HTTP_METHOD_NOT_ALLOWED = 405;
+const HTTP_INTERNAL_SERVER_ERROR = 500;
+const ALLOWED_METHOD = "GET";
 
 let cachedToken = null;
 let tokenExpiresAt = 0;
@@ -145,7 +149,7 @@ async function getNowPlaying() {
     });
   });
 
-  if (!data.item) {
+  if (!data.item || data.currently_playing_type !== "track") {
     return { isPlaying: false };
   }
 
@@ -164,9 +168,11 @@ async function getNowPlaying() {
 }
 
 export default async function handler(req, res) {
-  if (req.method !== "GET") {
-    res.setHeader("Allow", "GET");
-    return res.status(405).json({ error: "Method not allowed" });
+  if (req.method !== ALLOWED_METHOD) {
+    res.setHeader("Allow", ALLOWED_METHOD);
+    return res
+      .status(HTTP_METHOD_NOT_ALLOWED)
+      .json({ error: "Method not allowed" });
   }
 
   // No caching -- playback state changes every second
@@ -174,9 +180,11 @@ export default async function handler(req, res) {
 
   try {
     const nowPlaying = await getNowPlaying();
-    return res.status(200).json(nowPlaying);
+    return res.status(HTTP_OK).json(nowPlaying);
   } catch (error) {
     console.error("Spotify API error:", error);
-    return res.status(500).json({ error: "Failed to fetch now playing data" });
+    return res
+      .status(HTTP_INTERNAL_SERVER_ERROR)
+      .json({ error: "Failed to fetch now playing data" });
   }
 }

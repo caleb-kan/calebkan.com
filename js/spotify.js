@@ -9,6 +9,9 @@
   const MARQUEE_MOVE_FRACTION = 0.35; // Must match CSS @keyframes marquee movement phases (10%-45% and 55%-90%)
   const MARQUEE_MIN_DURATION_SEC = 4;
   const POLL_INTERVAL_BACKOFF = 30000;
+  const MS_PER_S = 1000;
+  const SPOTIFY_LINK_HOST = "open.spotify.com";
+  const SPOTIFY_CDN_HOST_SUFFIX = ".scdn.co";
   const API_URL = "/api/now-playing";
   const FETCH_TIMEOUT_MS = 5000;
 
@@ -88,7 +91,7 @@
 
   function formatTime(ms) {
     const clamped = Math.max(0, ms);
-    const totalSeconds = Math.floor(clamped / 1000);
+    const totalSeconds = Math.floor(clamped / MS_PER_S);
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
     return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
@@ -187,7 +190,7 @@
     try {
       const parsed = new URL(url);
       return (
-        parsed.protocol === "https:" && parsed.hostname === "open.spotify.com"
+        parsed.protocol === "https:" && parsed.hostname === SPOTIFY_LINK_HOST
       );
     } catch (e) {
       console.warn("spotify: rejected malformed songUrl:", url);
@@ -199,7 +202,8 @@
     try {
       const parsed = new URL(url);
       return (
-        parsed.protocol === "https:" && parsed.hostname.endsWith(".scdn.co")
+        parsed.protocol === "https:" &&
+        parsed.hostname.endsWith(SPOTIFY_CDN_HOST_SUFFIX)
       );
     } catch (e) {
       console.warn("spotify: rejected malformed album art URL:", url);

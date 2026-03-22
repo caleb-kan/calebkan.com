@@ -40,6 +40,7 @@
 
   /* Links */
   --link-color: #005bb5;
+  --link-hover-mix: 70%;
 
   /* Toggle */
   --toggle-width: 58px;
@@ -221,7 +222,11 @@ h1 {
    70% keeps the link color dominant; 30% text color reduces contrast. */
 .card-main a:hover,
 .card-spotify a:hover {
-  color: color-mix(in srgb, var(--link-color) 70%, var(--text-color));
+  color: color-mix(
+    in srgb,
+    var(--link-color) var(--link-hover-mix),
+    var(--text-color)
+  );
 }
 .card-main a:focus-visible,
 .card-spotify a:focus-visible {
@@ -435,7 +440,8 @@ html.dark .theme-toggle .moon {
     color var(--transition-theme);
 }
 
-.social-links a:hover {
+.social-links a:hover,
+.social-links a:focus-visible {
   transform: scale(var(--social-hover-scale));
   opacity: 1;
 }

@@ -9,6 +9,7 @@
   const STROKE_PADDING = 2; // Padding to prevent stroke clipping
   const CELL_CORNER_RADIUS = 2;
   const STROKE_WIDTH = 1;
+  const ISO_DATE_LENGTH = 10; // "YYYY-MM-DD".length
   const SVG_NS = "http://www.w3.org/2000/svg";
   const DAYS_PER_WEEK = 7;
   const WEEKS_BACK = 52;
@@ -109,7 +110,7 @@
   }
 
   function formatDate(date) {
-    return date.toISOString().slice(0, 10);
+    return date.toISOString().slice(0, ISO_DATE_LENGTH);
   }
 
   function buildContributionMap(data) {
