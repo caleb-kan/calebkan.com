@@ -47,7 +47,6 @@
   let inFlight = false;
   let isActive = false;
   let consecutiveErrors = 0;
-  let permanentlyFailed = false;
 
   function calculateQuartiles(data) {
     if (!data || !data.contributions) return DEFAULT_QUARTILES;
@@ -284,7 +283,6 @@
           console.error(
             `GitHub calendar: stopping polling after ${MAX_CONSECUTIVE_ERRORS} consecutive failures`,
           );
-          permanentlyFailed = true;
           isActive = false;
         }
       })
@@ -321,7 +319,6 @@
     if (document.hidden) {
       stopPolling();
     } else {
-      permanentlyFailed = false;
       consecutiveErrors = 0;
       startPolling();
     }
