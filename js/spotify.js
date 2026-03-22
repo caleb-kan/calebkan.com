@@ -110,7 +110,7 @@
   function wrapInMarquee(el) {
     const span = document.createElement("span");
     span.className = "marquee-inner";
-    span.append(...el.childNodes);
+    span.append(...Array.from(el.childNodes));
     el.replaceChildren(span);
   }
 
@@ -182,7 +182,7 @@
       titleEl.removeAttribute("href");
       titleEl.removeAttribute("target");
       titleEl.removeAttribute("rel");
-      titleEl.removeAttribute("aria-disabled");
+      titleEl.setAttribute("aria-disabled", "true");
       titleEl.classList.add("is-disabled");
     }
   }
@@ -267,6 +267,7 @@
     fetchNowPlaying()
       .then(function (data) {
         if (data === null) return; // Transient error, keep last state
+        resumedFromHidden = false;
         if (data.isPlaying) {
           showSpotifyCard(data);
         } else {
