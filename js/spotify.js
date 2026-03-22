@@ -6,7 +6,7 @@
   const RESIZE_DEBOUNCE = 150;
   const MAX_CONSECUTIVE_ERRORS = 3;
   const MARQUEE_SPEED_PX_PER_SEC = 30;
-  const MARQUEE_MOVE_FRACTION = 0.35; // Must match CSS @keyframes marquee phase (10%-45%)
+  const MARQUEE_MOVE_FRACTION = 0.35; // Must match CSS @keyframes marquee movement phases (10%-45% and 55%-90%)
   const MARQUEE_MIN_DURATION_SEC = 4;
   const POLL_INTERVAL_BACKOFF = 30000;
   const API_URL = "/api/now-playing";
@@ -41,6 +41,7 @@
   let inFlight = false;
   let isActive = false;
   let consecutiveErrors = 0;
+  let resumedFromHidden = false;
 
   const FETCH_TIMEOUT_MS = 5000;
 
@@ -53,8 +54,10 @@
         if (!response.ok) {
           throw new Error(`Spotify returned HTTP ${response.status}`);
         }
-        return response.json().catch(function () {
-          throw new Error("Spotify API returned non-JSON response");
+        return response.json().catch(function (parseError) {
+          throw new Error("Spotify API returned non-JSON response", {
+            cause: parseError,
+          });
         });
       })
       .then(function (data) {
@@ -63,7 +66,16 @@
       })
       .catch(function (error) {
         consecutiveErrors++;
-        console.warn("Spotify API error:", error);
+        if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+          console.error(
+            "Spotify API: persistent failure after",
+            consecutiveErrors,
+            "attempts:",
+            error,
+          );
+        } else {
+          console.warn("Spotify API error:", error);
+        }
         return null;
       })
       .finally(() => clearTimeout(timeout));
@@ -98,10 +110,8 @@
   function wrapInMarquee(el) {
     const span = document.createElement("span");
     span.className = "marquee-inner";
-    while (el.firstChild) {
-      span.appendChild(el.firstChild);
-    }
-    el.appendChild(span);
+    span.append(...el.childNodes);
+    el.replaceChildren(span);
   }
 
   function updateMarquee() {
@@ -172,7 +182,7 @@
       titleEl.removeAttribute("href");
       titleEl.removeAttribute("target");
       titleEl.removeAttribute("rel");
-      titleEl.setAttribute("aria-disabled", "true");
+      titleEl.removeAttribute("aria-disabled");
       titleEl.classList.add("is-disabled");
     }
   }
@@ -193,8 +203,8 @@
       updateSongLink(data.songUrl);
     }
 
-    const duration = data.duration || 0;
-    const progress = data.progress || 0;
+    const duration = data.duration ?? 0;
+    const progress = data.progress ?? 0;
     const currentPercentage =
       duration > 0 ? Math.min((progress / duration) * 100, 100) : 0;
 
@@ -221,8 +231,9 @@
         100,
       );
 
-      if (isNewTrack) {
-        // New track: jump to current position instantly, then animate
+      if (isNewTrack || resumedFromHidden) {
+        // New track or tab restore: jump to current position instantly, then animate
+        resumedFromHidden = false;
         setProgress(currentPercentage, true);
         requestAnimationFrame(function () {
           setProgress(targetPercentage, false);
@@ -313,6 +324,7 @@
     if (document.hidden) {
       stopPolling();
     } else {
+      resumedFromHidden = true;
       startPolling();
       scheduleMarqueeUpdate();
     }

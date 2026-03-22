@@ -8,7 +8,7 @@ const NOW_PLAYING_ENDPOINT =
 const FETCH_TIMEOUT_MS = 5000;
 const TOKEN_REFRESH_MARGIN_MS = 60 * 1000; // Re-fetch access token 60s before expiry to avoid clock-skew failures
 const DEFAULT_TOKEN_EXPIRY_S = 3600;
-const ALBUM_ART_TARGET_PX = 300; // ~2x the CSS display size for retina screens
+const ALBUM_ART_TARGET_PX = 300; // Spotify medium size; close to 2x the 160px CSS display size for retina clarity
 
 let cachedToken = null;
 let tokenExpiresAt = 0;
@@ -51,8 +51,10 @@ async function getAccessToken() {
     throw new Error(`Spotify token refresh failed: ${response.status}`);
   }
 
-  const data = await response.json().catch(() => {
-    throw new Error("Spotify token endpoint returned non-JSON response");
+  const data = await response.json().catch((parseError) => {
+    throw new Error("Spotify token endpoint returned non-JSON response", {
+      cause: parseError,
+    });
   });
   if (!data.access_token) {
     throw new Error("Spotify token refresh returned no access token");
@@ -78,12 +80,13 @@ function pickAlbumImage(images) {
   let bestFit = null; // smallest image >= target
   let largest = null; // largest image overall (fallback)
   for (const img of images) {
+    if (!img || typeof img.width !== "number") continue;
     if (img.width >= ALBUM_ART_TARGET_PX) {
       if (!bestFit || img.width < bestFit.width) bestFit = img;
     }
     if (!largest || img.width > largest.width) largest = img;
   }
-  return (bestFit || largest).url || "";
+  return (bestFit || largest)?.url || "";
 }
 
 async function getNowPlaying() {
@@ -119,8 +122,10 @@ async function getNowPlaying() {
     throw new Error(`Spotify API error: ${response.status}`);
   }
 
-  const data = await response.json().catch(() => {
-    throw new Error("Spotify now-playing endpoint returned non-JSON response");
+  const data = await response.json().catch((parseError) => {
+    throw new Error("Spotify now-playing endpoint returned non-JSON response", {
+      cause: parseError,
+    });
   });
 
   if (!data.item) {

@@ -2,7 +2,7 @@
   "use strict";
 
   const API_URL = "/api/github-contributions";
-  const POLL_INTERVAL = 60000; // 1 minute (matches s-maxage in api/github-contributions.js)
+  const POLL_INTERVAL = 60000; // 1 minute: matches s-maxage in api/github-contributions.js (polling faster only hits CDN cache)
   const FETCH_TIMEOUT_MS = 5000;
   const CELL_SIZE = 11;
   const CELL_GAP = 3;
@@ -95,10 +95,7 @@
   }
 
   function formatDate(date) {
-    const year = date.getUTCFullYear();
-    const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-    const day = String(date.getUTCDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
+    return date.toISOString().slice(0, 10);
   }
 
   function buildContributionMap(data) {
@@ -209,8 +206,10 @@
       .then(function (response) {
         if (!response.ok)
           throw new Error(`GitHub API returned HTTP ${response.status}`);
-        return response.json().catch(function () {
-          throw new Error("GitHub API returned non-JSON response");
+        return response.json().catch(function (parseError) {
+          throw new Error("GitHub API returned non-JSON response", {
+            cause: parseError,
+          });
         });
       })
       .finally(() => clearTimeout(timeout));
@@ -259,7 +258,7 @@
             // Do not cache json here: allow the next poll to re-attempt the render
             // in case the failure was transient (e.g. DOM in a bad state during tab restore)
             if (!hasRendered) {
-              container.textContent = "Unable to load contributions";
+              container.textContent = "Unable to display contributions";
             }
           }
         }
@@ -268,7 +267,7 @@
         consecutiveErrors++;
         console.error("Error loading GitHub contributions:", error);
         if (!hasRendered) {
-          container.textContent = "Unable to load contributions";
+          container.textContent = "Unable to display contributions";
         }
         if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
           console.error(

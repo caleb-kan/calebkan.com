@@ -31,6 +31,7 @@
   --card-max-width: 760px;
   --spotify-card-width: 280px;
   --album-art-size: 160px;
+  --radius-album-art: 12px;
 
   /* Links */
   --link-color: #005bb5;
@@ -53,6 +54,10 @@
   --opacity-muted: 0.7;
   --toggle-inactive-opacity: 0.35;
 
+  /* Focus ring */
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+
   /* Brand colors */
   --spotify-green: #1db954;
 
@@ -62,7 +67,7 @@
   --transition-hover-duration: 0.2s;
   --transition-hover: var(--transition-hover-duration) ease;
 
-  /* Spotify progress bar: must stay in sync with POLL_INTERVAL_ACTIVE in spotify.js */
+  /* Spotify progress bar: must equal POLL_INTERVAL_ACTIVE in spotify.js so the bar animates smoothly between polls */
   --spotify-progress-duration: 1s;
 }
 
@@ -140,8 +145,8 @@ h1 {
 }
 .card-main a:focus-visible,
 .card-spotify a:focus-visible {
-  outline: 2px solid var(--primary-color);
-  outline-offset: 2px;
+  outline: var(--focus-ring-width) solid var(--primary-color);
+  outline-offset: var(--focus-ring-offset);
   border-radius: 2px;
 }
 
@@ -194,8 +199,8 @@ h1 {
 }
 
 .theme-toggle:focus-visible {
-  outline: 2px solid var(--primary-color);
-  outline-offset: 2px;
+  outline: var(--focus-ring-width) solid var(--primary-color);
+  outline-offset: var(--focus-ring-offset);
 }
 
 .theme-toggle .icon {
@@ -367,8 +372,8 @@ html.dark .theme-toggle .moon {
 }
 
 .social-links a:focus-visible {
-  outline: 2px solid var(--primary-color);
-  outline-offset: 2px;
+  outline: var(--focus-ring-width) solid var(--primary-color);
+  outline-offset: var(--focus-ring-offset);
 }
 
 html.dark .card-main,
@@ -411,7 +416,7 @@ html.dark .card-spotify {
 .spotify-album-art {
   width: var(--album-art-size);
   height: var(--album-art-size);
-  border-radius: 12px;
+  border-radius: var(--radius-album-art);
   object-fit: cover;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }

@@ -63,8 +63,10 @@ async function fetchContributions() {
     throw new Error(`GitHub API failed: ${response.status}`);
   }
 
-  const json = await response.json().catch(() => {
-    throw new Error("GitHub API returned non-JSON response");
+  const json = await response.json().catch((parseError) => {
+    throw new Error("GitHub API returned non-JSON response", {
+      cause: parseError,
+    });
   });
 
   if (json.errors && json.errors.length > 0) {
