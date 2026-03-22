@@ -440,6 +440,10 @@ html.dark .card-spotify {
   --progress-track-bg: rgba(255, 255, 255, 0.1);
 }
 
+html.dark .spotify-header {
+  opacity: 0.8;
+}
+
 /*
  * Spotify card specific styles
  */

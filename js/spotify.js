@@ -119,7 +119,7 @@
     el.style.removeProperty("--marquee-duration");
     const inner = el.querySelector(".marquee-inner");
     if (inner) {
-      el.textContent = inner.textContent;
+      el.replaceChildren(...Array.from(inner.childNodes));
     }
   }
 
@@ -311,6 +311,7 @@
         let interval;
         if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
           interval = POLL_INTERVAL_BACKOFF;
+          resumedFromHidden = false;
         } else if (spotifyCard.hidden) {
           interval = POLL_INTERVAL_IDLE;
         } else {

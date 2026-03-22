@@ -29,9 +29,8 @@
   // Sync ARIA state on the toggle button so it is correct before theme-toggle.js loads
   var toggle = document.querySelector(".theme-toggle");
   if (toggle) {
-    var label = isDark ? "Switch to light mode" : "Switch to dark mode";
-    toggle.setAttribute("aria-label", label);
+    toggle.setAttribute("aria-label", "Dark mode");
     toggle.setAttribute("aria-pressed", String(isDark));
-    toggle.title = label;
+    toggle.title = isDark ? "Switch to light mode" : "Switch to dark mode";
   }
 })();
