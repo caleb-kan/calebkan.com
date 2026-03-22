@@ -6,9 +6,14 @@ const TOKEN_ENDPOINT = "https://accounts.spotify.com/api/token";
 const NOW_PLAYING_ENDPOINT =
   "https://api.spotify.com/v1/me/player/currently-playing";
 const FETCH_TIMEOUT_MS = 5000;
-const TOKEN_REFRESH_MARGIN_MS = 60 * 1000; // Re-fetch access token 60s before expiry to avoid clock-skew failures
+const MS_PER_S = 1000;
+const TOKEN_REFRESH_MARGIN_MS = 60 * MS_PER_S; // Re-fetch access token 60s before expiry to avoid clock-skew failures
 const DEFAULT_TOKEN_EXPIRY_S = 3600;
 const ALBUM_ART_TARGET_PX = 300; // Spotify medium size; close to 2x the 160px CSS display size for retina clarity
+const FALLBACK_TEXT = "Unknown";
+const HTTP_NO_CONTENT = 204;
+const HTTP_CLIENT_ERROR_MIN = 400;
+const HTTP_UNAUTHORIZED = 401;
 
 let cachedToken = null;
 let tokenExpiresAt = 0;
@@ -69,7 +74,7 @@ async function getAccessToken() {
 
   cachedToken = data.access_token;
   const expiresInSeconds = Number(data.expires_in) || DEFAULT_TOKEN_EXPIRY_S;
-  tokenExpiresAt = now + expiresInSeconds * 1000 - TOKEN_REFRESH_MARGIN_MS;
+  tokenExpiresAt = now + expiresInSeconds * MS_PER_S - TOKEN_REFRESH_MARGIN_MS;
 
   return cachedToken;
 }
@@ -108,7 +113,7 @@ async function getNowPlaying() {
   });
 
   // If the token was revoked or expired despite our margin, force-refresh and retry once
-  if (response.status === 401) {
+  if (response.status === HTTP_UNAUTHORIZED) {
     cachedToken = null;
     tokenExpiresAt = 0;
     accessToken = await getAccessToken();
@@ -117,7 +122,7 @@ async function getNowPlaying() {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-    if (response.status === 401) {
+    if (response.status === HTTP_UNAUTHORIZED) {
       cachedToken = null;
       tokenExpiresAt = 0;
       throw new Error(
@@ -126,11 +131,11 @@ async function getNowPlaying() {
     }
   }
 
-  if (response.status === 204) {
+  if (response.status === HTTP_NO_CONTENT) {
     return { isPlaying: false };
   }
 
-  if (response.status >= 400) {
+  if (response.status >= HTTP_CLIENT_ERROR_MIN) {
     throw new Error(`Spotify API error: ${response.status}`);
   }
 
@@ -146,10 +151,11 @@ async function getNowPlaying() {
 
   return {
     isPlaying: data.is_playing === true,
-    title: data.item.name || "Unknown",
+    title: data.item.name || FALLBACK_TEXT,
     artist:
-      data.item.artists?.map((artist) => artist.name).join(", ") || "Unknown",
-    album: data.item.album?.name || "Unknown",
+      data.item.artists?.map((artist) => artist.name).join(", ") ||
+      FALLBACK_TEXT,
+    album: data.item.album?.name || FALLBACK_TEXT,
     albumArt: pickAlbumImage(data.item.album?.images),
     songUrl: data.item.external_urls?.spotify || "",
     progress: data.progress_ms ?? 0,

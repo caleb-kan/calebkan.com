@@ -376,6 +376,8 @@ html.dark .theme-toggle .moon {
   z-index: -1;
   border-radius: inherit;
   background-color: var(--background-color);
+  -webkit-backdrop-filter: saturate(var(--saturate-strength))
+    blur(var(--blur-strength));
   backdrop-filter: saturate(var(--saturate-strength)) blur(var(--blur-strength));
   transition: background-color var(--transition-theme);
 }

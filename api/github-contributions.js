@@ -2,6 +2,7 @@ const GITHUB_USERNAME = "caleb-kan";
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const GITHUB_GRAPHQL_API = "https://api.github.com/graphql";
 const FETCH_TIMEOUT_MS = 5000;
+const MS_PER_S = 1000;
 
 // 1 minute: balances freshness against GitHub API rate limits (5000 req/hr)
 const CACHE_DURATION_SECONDS = 60;
@@ -96,7 +97,7 @@ async function fetchContributions() {
 
   const data = { contributions };
   cachedData = data;
-  cacheExpiresAt = now + CACHE_DURATION_SECONDS * 1000;
+  cacheExpiresAt = now + CACHE_DURATION_SECONDS * MS_PER_S;
 
   return data;
 }

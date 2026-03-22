@@ -9,6 +9,7 @@
   const STROKE_PADDING = 2; // Padding to prevent stroke clipping
   const CELL_CORNER_RADIUS = 2;
   const STROKE_WIDTH = 1;
+  const SVG_NS = "http://www.w3.org/2000/svg";
   const DAYS_PER_WEEK = 7;
   const WEEKS_BACK = 52;
   const WEEKS = WEEKS_BACK + 1;
@@ -122,7 +123,7 @@
   }
 
   function createSquare(week, day, date, count, quartiles, colors, stroke) {
-    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    const rect = document.createElementNS(SVG_NS, "rect");
     const level = getContributionLevel(count, quartiles);
 
     rect.setAttribute("width", CELL_SIZE);
@@ -136,10 +137,7 @@
     rect.style.fill = colors[level];
     rect.style.stroke = stroke;
 
-    const title = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "title",
-    );
+    const title = document.createElementNS(SVG_NS, "title");
     const noun = count === 1 ? "contribution" : "contributions";
     title.textContent = `${count} ${noun} on ${date}`;
     rect.appendChild(title);
@@ -167,7 +165,7 @@
       ),
     );
 
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    const svg = document.createElementNS(SVG_NS, "svg");
     const svgWidth =
       WEEKS * (CELL_SIZE + CELL_GAP) - CELL_GAP + 2 * STROKE_PADDING;
     const svgHeight =
@@ -180,10 +178,7 @@
     svg.setAttribute("role", "img");
     svg.setAttribute("aria-labelledby", "gh-cal-title");
 
-    const svgTitle = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "title",
-    );
+    const svgTitle = document.createElementNS(SVG_NS, "title");
     svgTitle.id = "gh-cal-title";
     svgTitle.textContent = "GitHub contribution calendar";
     svg.appendChild(svgTitle);
