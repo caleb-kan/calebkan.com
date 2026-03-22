@@ -42,12 +42,12 @@
     </style>
   </head>
   <body>
-    <div class="container">
+    <main class="container">
       <h1>Spotify Authorization</h1>
       <p>Your authorization code:</p>
       <code id="code">Checking...</code>
       <p id="message">Copy this code and paste it in your terminal.</p>
-    </div>
+    </main>
     <script>
       const params = new URLSearchParams(window.location.search);
       const code = params.get("code");

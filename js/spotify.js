@@ -260,11 +260,11 @@
         // New track or tab restore: jump to current position instantly, then animate
         setProgress(currentPercentage, true, progress, duration);
         requestAnimationFrame(function () {
-          setProgress(targetPercentage, false, progress, duration);
+          setProgress(targetPercentage, false, progressAtNextPoll, duration);
         });
       } else {
         // Same track: smoothly animate to target
-        setProgress(targetPercentage, false, progress, duration);
+        setProgress(targetPercentage, false, progressAtNextPoll, duration);
       }
     } else {
       // Paused or missing duration: show current position without animation

@@ -105,6 +105,26 @@
   /* Social links */
   --social-links-gap: 16px;
   --social-icon-size: 28px;
+  --social-hover-scale: 1.1;
+  --social-links-margin-bottom: 1.2rem;
+
+  /* Heading typography */
+  --h1-font-size: clamp(1.75rem, 4vw, 2.25rem);
+  --h1-line-height: 1.18;
+  --h1-letter-spacing: -0.01em;
+  --h1-margin-top: 0.6em;
+  --h1-margin-bottom: 0.4em;
+
+  /* Spotify header typography */
+  --spotify-header-letter-spacing: 0.08em;
+
+  /* Z-index scale */
+  --z-cards: 2;
+  --z-toggle: 3;
+
+  /* Misc component tokens */
+  --radius-pill: 999px;
+  --border-width: 1px;
 
   /* Layout spacing */
   --body-padding-v: 48px;
@@ -168,11 +188,11 @@ body {
 }
 
 h1 {
-  margin: 0.6em 0 0.4em;
-  line-height: 1.18;
+  margin: var(--h1-margin-top) 0 var(--h1-margin-bottom);
+  line-height: var(--h1-line-height);
   font-weight: 700;
-  font-size: clamp(1.75rem, 4vw, 2.25rem);
-  letter-spacing: -0.01em;
+  font-size: var(--h1-font-size);
+  letter-spacing: var(--h1-letter-spacing);
 }
 
 /* Links */
@@ -226,7 +246,7 @@ h1 {
   width: var(--toggle-width);
   height: var(--toggle-height);
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   padding: 0 var(--toggle-padding-h);
   display: inline-flex;
   align-items: center;
@@ -238,7 +258,7 @@ h1 {
   transition:
     background-color var(--transition-theme),
     box-shadow var(--transition-theme);
-  z-index: 3;
+  z-index: var(--z-toggle);
 }
 
 .theme-toggle:focus-visible {
@@ -309,7 +329,7 @@ html.dark .theme-toggle .moon {
   align-items: stretch;
   justify-content: center;
   gap: var(--cards-gap);
-  z-index: 2;
+  z-index: var(--z-cards);
   position: relative;
   width: 100%;
 }
@@ -322,7 +342,7 @@ html.dark .theme-toggle .moon {
   color: var(--text-color);
   border-radius: var(--radius-card);
   padding: var(--card-padding);
-  border: 1px solid var(--border-color);
+  border: var(--border-width) solid var(--border-color);
   box-shadow: var(--shadow-ambient);
   position: relative;
   isolation: isolate;
@@ -381,7 +401,7 @@ html.dark .theme-toggle .moon {
   align-items: center;
   justify-content: center;
   gap: var(--social-links-gap);
-  margin-bottom: 1.2rem;
+  margin-bottom: var(--social-links-margin-bottom);
 }
 
 .social-links a {
@@ -401,7 +421,7 @@ html.dark .theme-toggle .moon {
 }
 
 .social-links a:hover {
-  transform: scale(1.1);
+  transform: scale(var(--social-hover-scale));
   opacity: 1;
 }
 
@@ -432,7 +452,7 @@ html.dark .card-spotify {
   font-size: var(--spotify-font-size-label);
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: var(--spotify-header-letter-spacing);
   opacity: var(--opacity-muted);
 }
 
