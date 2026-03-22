@@ -212,6 +212,12 @@
           });
         });
       })
+      .then(function (data) {
+        if (!data || !Array.isArray(data.contributions)) {
+          throw new Error("GitHub API returned unexpected response shape");
+        }
+        return data;
+      })
       .finally(() => clearTimeout(timeout));
   }
 

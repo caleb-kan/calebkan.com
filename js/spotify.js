@@ -10,6 +10,7 @@
   const MARQUEE_MIN_DURATION_SEC = 4;
   const POLL_INTERVAL_BACKOFF = 30000;
   const API_URL = "/api/now-playing";
+  const FETCH_TIMEOUT_MS = 5000;
 
   // 1x1 transparent placeholder to avoid broken image icon
   const PLACEHOLDER_IMAGE =
@@ -28,9 +29,11 @@
   }
 
   let placeholderActive = false;
+  let lastFailedArtUrl = null;
   albumArt.addEventListener("error", function () {
     if (!placeholderActive) {
       console.warn("spotify: album art failed to load:", albumArt.src);
+      lastFailedArtUrl = albumArt.src;
       placeholderActive = true;
       albumArt.src = PLACEHOLDER_IMAGE;
     }
@@ -42,8 +45,6 @@
   let isActive = false;
   let consecutiveErrors = 0;
   let resumedFromHidden = false;
-
-  const FETCH_TIMEOUT_MS = 5000;
 
   function fetchNowPlaying() {
     const controller = new AbortController();
@@ -66,7 +67,7 @@
       })
       .catch(function (error) {
         consecutiveErrors++;
-        if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+        if (consecutiveErrors === MAX_CONSECUTIVE_ERRORS) {
           console.error(
             "Spotify API: persistent failure after",
             consecutiveErrors,
@@ -82,6 +83,7 @@
   }
 
   function setProgress(percentage, instant) {
+    if (!Number.isFinite(percentage)) percentage = 0;
     if (instant) progressEl.style.transition = "none";
     progressEl.style.transform = `scaleX(${percentage / 100})`;
     const rounded = Math.round(percentage);
@@ -192,7 +194,10 @@
     const isNewTrack = trackId !== currentTrackId;
 
     if (isNewTrack) {
+      resetMarquee(titleEl);
+      resetMarquee(artistEl);
       currentTrackId = trackId;
+      lastFailedArtUrl = null;
       placeholderActive = !data.albumArt;
       albumArt.src = data.albumArt || PLACEHOLDER_IMAGE;
       albumArt.alt = data.album ? `${data.album} album art` : "Album art";
@@ -201,6 +206,14 @@
       titleEl.setAttribute("aria-label", `${title} on Spotify`);
       artistEl.textContent = data.artist || "Unknown";
       updateSongLink(data.songUrl);
+    } else if (
+      placeholderActive &&
+      data.albumArt &&
+      data.albumArt !== lastFailedArtUrl
+    ) {
+      lastFailedArtUrl = null;
+      placeholderActive = false;
+      albumArt.src = data.albumArt;
     }
 
     const duration = data.duration ?? 0;
@@ -233,7 +246,6 @@
 
       if (isNewTrack || resumedFromHidden) {
         // New track or tab restore: jump to current position instantly, then animate
-        resumedFromHidden = false;
         setProgress(currentPercentage, true);
         requestAnimationFrame(function () {
           setProgress(targetPercentage, false);
@@ -266,16 +278,20 @@
 
     fetchNowPlaying()
       .then(function (data) {
-        if (data === null) return; // Transient error, keep last state
-        resumedFromHidden = false;
+        if (data === null) {
+          resumedFromHidden = false;
+          return; // Transient error, keep last state
+        }
         if (data.isPlaying) {
           showSpotifyCard(data);
         } else {
           hideSpotifyCard();
         }
+        resumedFromHidden = false;
       })
       .catch(function (error) {
         console.error("Spotify render error:", error);
+        resumedFromHidden = false;
         currentTrackId = null; // Force full re-render on next poll
       })
       .finally(function () {

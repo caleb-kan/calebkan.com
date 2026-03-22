@@ -61,7 +61,7 @@ async function getAccessToken() {
   }
 
   if (data.refresh_token) {
-    console.error(
+    console.warn(
       "Spotify issued a new refresh_token; the old token may be invalidated. " +
         "Update SPOTIFY_REFRESH_TOKEN env var immediately.",
     );
@@ -86,7 +86,7 @@ function pickAlbumImage(images) {
     }
     if (!largest || img.width > largest.width) largest = img;
   }
-  return (bestFit || largest)?.url || "";
+  return (bestFit || largest)?.url || images.find((img) => img?.url)?.url || "";
 }
 
 async function getNowPlaying() {
