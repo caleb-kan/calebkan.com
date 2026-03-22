@@ -2,7 +2,7 @@
   "use strict";
 
   const API_URL = "/api/github-contributions";
-  const POLL_INTERVAL = 60000; // 1 minute: matches s-maxage in api/github-contributions.js (polling faster only hits CDN cache)
+  const POLL_INTERVAL = 60000; // 1 minute: matches CACHE_DURATION_SECONDS in api/github-contributions.js (polling faster only hits CDN cache)
   const FETCH_TIMEOUT_MS = 5000;
   const CELL_SIZE = 11;
   const CELL_GAP = 3;

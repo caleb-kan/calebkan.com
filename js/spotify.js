@@ -163,9 +163,7 @@
     try {
       const parsed = new URL(url);
       return (
-        parsed.protocol === "https:" &&
-        (parsed.hostname === "spotify.com" ||
-          parsed.hostname.endsWith(".spotify.com"))
+        parsed.protocol === "https:" && parsed.hostname === "open.spotify.com"
       );
     } catch (e) {
       console.warn("spotify: rejected malformed songUrl:", url);
@@ -262,8 +260,8 @@
 
   function hideSpotifyCard() {
     if (!spotifyCard.hidden) {
-      if (spotifyCard.contains(document.activeElement)) {
-        if (pageTitleEl) pageTitleEl.focus();
+      if (pageTitleEl && spotifyCard.contains(document.activeElement)) {
+        pageTitleEl.focus();
       }
       spotifyCard.hidden = true;
     }
@@ -278,10 +276,7 @@
 
     fetchNowPlaying()
       .then(function (data) {
-        if (data === null) {
-          resumedFromHidden = false;
-          return; // Transient error, keep last state
-        }
+        if (data === null) return; // Transient error: preserve resumedFromHidden for next poll
         if (data.isPlaying) {
           showSpotifyCard(data);
         } else {

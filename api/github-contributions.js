@@ -14,7 +14,6 @@ query($username: String!) {
   user(login: $username) {
     contributionsCollection {
       contributionCalendar {
-        totalContributions
         weeks {
           contributionDays {
             contributionCount
@@ -108,7 +107,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  // Browsers always fetch fresh (max-age=0); Vercel CDN caches for 60s with 60s stale-while-revalidate
+  // Browsers always fetch fresh (max-age=0); Vercel CDN caches for CACHE_DURATION_SECONDS with equal stale-while-revalidate
   res.setHeader(
     "Cache-Control",
     `public, max-age=0, s-maxage=${CACHE_DURATION_SECONDS}, stale-while-revalidate=${CACHE_DURATION_SECONDS}`,

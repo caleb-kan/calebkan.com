@@ -66,8 +66,11 @@
   --spotify-green: #1db954;
   --shadow-album-art: 0 8px 24px rgba(0, 0, 0, 0.3);
   --progress-track-bg: rgba(0, 0, 0, 0.1);
+  --saturate-strength: 180%;
 
-  /* Transitions */
+  /* Animation & transition durations */
+  --gradient-animation-duration: 20s;
+  --card-fade-duration: 0.6s;
   --transition-theme-duration: 0.35s;
   --transition-theme: var(--transition-theme-duration) ease;
   --transition-hover-duration: 0.2s;
@@ -75,6 +78,11 @@
 
   /* Spotify progress bar: must equal POLL_INTERVAL_ACTIVE in spotify.js so the bar animates smoothly between polls */
   --spotify-progress-duration: 1s;
+
+  /* Layout spacing */
+  --body-padding-v: 48px;
+  --body-padding-h: 16px;
+  --cards-gap: 24px;
 }
 
 /* Ensure built-in UI (forms, scrollbars) matches theme */
@@ -107,7 +115,7 @@ body {
     var(--gradient-color-5)
   );
   background-size: 400% 400%;
-  animation: gradient 20s ease infinite;
+  animation: gradient var(--gradient-animation-duration) ease infinite;
   font-family:
     system-ui,
     -apple-system,
@@ -124,7 +132,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 48px 16px;
+  padding: var(--body-padding-v) var(--body-padding-h);
   color: var(--text-color);
 }
 
@@ -275,7 +283,7 @@ html.dark .theme-toggle .moon {
   display: flex;
   align-items: stretch;
   justify-content: center;
-  gap: 24px;
+  gap: var(--cards-gap);
   z-index: 2;
   position: relative;
   width: 100%;
@@ -294,7 +302,7 @@ html.dark .theme-toggle .moon {
   position: relative;
   isolation: isolate;
   text-align: center;
-  animation: fadeUp 0.6s ease-out both;
+  animation: fadeUp var(--card-fade-duration) ease-out both;
   transition:
     color var(--transition-theme),
     box-shadow var(--transition-theme),
@@ -310,8 +318,9 @@ html.dark .theme-toggle .moon {
   z-index: -1;
   border-radius: inherit;
   background-color: var(--background-color);
-  backdrop-filter: saturate(180%) blur(var(--blur-strength));
-  -webkit-backdrop-filter: saturate(180%) blur(var(--blur-strength));
+  backdrop-filter: saturate(var(--saturate-strength)) blur(var(--blur-strength));
+  -webkit-backdrop-filter: saturate(var(--saturate-strength))
+    blur(var(--blur-strength));
   transition: background-color var(--transition-theme);
 }
 
@@ -372,8 +381,7 @@ html.dark .theme-toggle .moon {
 }
 
 .social-links a:focus-visible {
-  outline: var(--focus-ring-width) solid var(--primary-color);
-  outline-offset: var(--focus-ring-offset);
+  border-radius: 50%;
 }
 
 html.dark .card-main,
@@ -395,7 +403,7 @@ html.dark .card-spotify {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-bottom: 20px;
+  margin: 0 0 20px;
   font-size: 13px;
   font-weight: 600;
   text-transform: uppercase;
@@ -450,6 +458,7 @@ html.dark .card-spotify {
 
 .spotify-title.is-disabled {
   pointer-events: none;
+  cursor: default;
   opacity: var(--opacity-muted);
 }
 
@@ -553,7 +562,8 @@ html.dark .card-spotify {
 /* Responsive: smaller screens */
 @media (max-width: 600px) {
   body {
-    padding: 24px 12px;
+    --body-padding-v: 24px;
+    --body-padding-h: 12px;
   }
 
   .card-main,
