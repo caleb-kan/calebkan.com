@@ -12,6 +12,9 @@
   const DAYS_PER_WEEK = 7;
   const WEEKS_BACK = 52;
   const WEEKS = WEEKS_BACK + 1;
+  const Q1_FRACTION = 0.25;
+  const Q2_FRACTION = 0.5;
+  const Q3_FRACTION = 0.75;
 
   // Contribution colors matching GitHub's palette
   const CONTRIBUTION_COLORS_DARK = [
@@ -39,8 +42,12 @@
   }
 
   const MAX_CONSECUTIVE_ERRORS = 5;
-  // Fallback quartile boundaries [zero-floor, Q1, Q2, Q3] mapping counts to levels 0-4
+  // Fallback quartile boundaries [zero-floor, Q1, Q2, Q3] mapping contribution counts to color levels 0-4
   const DEFAULT_QUARTILES = [0, 1, 3, 6];
+  const END_OF_DAY_H = 23;
+  const END_OF_DAY_M = 59;
+  const END_OF_DAY_S = 59;
+  const END_OF_DAY_MS = 999;
 
   let cachedJson = null;
   let hasRendered = false;
@@ -59,9 +66,15 @@
 
     if (counts.length === 0) return DEFAULT_QUARTILES;
 
-    const q1 = counts[Math.floor(counts.length * 0.25)];
-    const q2 = Math.max(counts[Math.floor(counts.length * 0.5)], q1 + 1);
-    const q3 = Math.max(counts[Math.floor(counts.length * 0.75)], q2 + 1);
+    const q1 = counts[Math.floor(counts.length * Q1_FRACTION)];
+    const q2 = Math.max(
+      counts[Math.floor(counts.length * Q2_FRACTION)],
+      q1 + 1,
+    );
+    const q3 = Math.max(
+      counts[Math.floor(counts.length * Q3_FRACTION)],
+      q2 + 1,
+    );
 
     return [0, q1, q2, q3];
   }
@@ -141,16 +154,16 @@
     const { colors, stroke } = getThemeColors();
     const currentDate = new Date(startDate);
     const now = new Date();
-    // 23:59:59.999 UTC - end of today so future cells are excluded
+    // End of today (UTC) so future cells are excluded
     const today = new Date(
       Date.UTC(
         now.getUTCFullYear(),
         now.getUTCMonth(),
         now.getUTCDate(),
-        23,
-        59,
-        59,
-        999,
+        END_OF_DAY_H,
+        END_OF_DAY_M,
+        END_OF_DAY_S,
+        END_OF_DAY_MS,
       ),
     );
 

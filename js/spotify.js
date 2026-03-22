@@ -173,9 +173,14 @@
     if (artistOverflow > 0) artistEl.classList.add("marquee");
   }
 
+  let marqueeRafId = null;
   function scheduleMarqueeUpdate() {
     if (spotifyCard.hidden) return;
-    requestAnimationFrame(updateMarquee);
+    if (marqueeRafId !== null) cancelAnimationFrame(marqueeRafId);
+    marqueeRafId = requestAnimationFrame(function () {
+      marqueeRafId = null;
+      updateMarquee();
+    });
   }
 
   function isSafeUrl(url) {
@@ -197,6 +202,7 @@
         parsed.protocol === "https:" && parsed.hostname.endsWith(".scdn.co")
       );
     } catch (e) {
+      console.warn("spotify: rejected malformed album art URL:", url);
       return false;
     }
   }

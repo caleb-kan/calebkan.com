@@ -118,6 +118,8 @@ async function getNowPlaying() {
       },
     });
     if (response.status === 401) {
+      cachedToken = null;
+      tokenExpiresAt = 0;
       throw new Error(
         "Spotify token refresh failed: still getting 401. Check SPOTIFY_REFRESH_TOKEN.",
       );
