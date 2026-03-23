@@ -5,6 +5,7 @@
   const POLL_INTERVAL_IDLE = 5000;
   const RESIZE_DEBOUNCE = 150;
   const MAX_CONSECUTIVE_ERRORS = 3;
+  const SECONDS_PER_MINUTE = 60;
   const MARQUEE_SPEED_PX_PER_SEC = 30;
   const MARQUEE_MOVE_FRACTION = 0.35; // Must match CSS @keyframes marquee movement phases (10%-45% and 55%-90%)
   const MARQUEE_MIN_DURATION_SEC = 4;
@@ -92,8 +93,8 @@
   function formatTime(ms) {
     const clamped = Math.max(0, ms);
     const totalSeconds = Math.floor(clamped / MS_PER_S);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
+    const minutes = Math.floor(totalSeconds / SECONDS_PER_MINUTE);
+    const seconds = totalSeconds % SECONDS_PER_MINUTE;
     return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
   }
 
