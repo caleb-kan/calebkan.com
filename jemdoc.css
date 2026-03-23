@@ -367,7 +367,10 @@ html.dark .theme-toggle .moon {
   position: relative;
   isolation: isolate;
   text-align: center;
-  animation: fadeUp var(--card-fade-duration) ease-out both;
+  /* backwards (not both): prevents FOUC while avoiding a persistent compositing
+     layer from transform:translateY(0) in the to-frame. Two compositing layers
+     (both cards) + backdrop-filter causes subpixel position shifts on hover repaints. */
+  animation: fadeUp var(--card-fade-duration) ease-out backwards;
   transition:
     color var(--transition-theme),
     box-shadow var(--transition-theme),
