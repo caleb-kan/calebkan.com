@@ -28,9 +28,9 @@
   /* Surface & component tokens */
   --radius-card: 24px;
   --blur-strength: 16px;
-  --card-padding: 40px 32px 48px;
+  --card-padding: 40px 32px;
   --card-max-width: 760px;
-  --card-inner-max-width: 66.67%;
+  --card-inner-width: 66.67%;
   --gradient-bg-size: 400%;
   --gradient-bg-size-static: 100%;
   --touch-target-size: 44px;
@@ -118,14 +118,11 @@
   --social-links-gap: 16px;
   --social-icon-size: 28px;
   --social-hover-scale: 1.1;
-  --social-links-margin-bottom: 1.2rem;
 
   /* Heading typography */
   --h1-font-size: clamp(1.75rem, 4vw, 2.25rem);
   --h1-line-height: 1.18;
   --h1-letter-spacing: -0.01em;
-  --h1-margin-top: 0.6em;
-  --h1-margin-bottom: 0.4em;
 
   /* Spotify header typography */
   --spotify-header-letter-spacing: 0.08em;
@@ -142,8 +139,7 @@
   --body-padding-v: 48px;
   --body-padding-h: 16px;
   --cards-gap: 24px;
-  --paragraph-margin-bottom: 1rem;
-  --github-calendar-margin-top: 1rem;
+  --card-inner-gap: 24px;
 }
 
 /* Ensure built-in UI (forms, scrollbars) matches theme */
@@ -202,7 +198,7 @@ body {
 }
 
 h1 {
-  margin: var(--h1-margin-top) 0 var(--h1-margin-bottom);
+  margin: 0;
   line-height: var(--h1-line-height);
   font-weight: var(--font-weight-bold);
   font-size: var(--h1-font-size);
@@ -331,7 +327,7 @@ html.dark .theme-toggle .moon {
  * GitHub contribution calendar
  */
 #github-calendar {
-  margin-top: var(--github-calendar-margin-top);
+  margin: 0;
 }
 
 #github-calendar svg {
@@ -395,6 +391,9 @@ html.dark .theme-toggle .moon {
 .card-main {
   width: var(--card-max-width);
   max-width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .card-spotify {
@@ -407,13 +406,14 @@ html.dark .theme-toggle .moon {
  * Card content wrapper (~2/3 width for readability, full-width below 768px)
  */
 .card-inner {
-  max-width: var(--card-inner-max-width);
-  margin: 0 auto;
+  width: var(--card-inner-width);
+  display: flex;
+  flex-direction: column;
+  gap: var(--card-inner-gap);
 }
 
 .card-main p {
-  margin-top: 0;
-  margin-bottom: var(--paragraph-margin-bottom);
+  margin: 0;
 }
 
 /*
@@ -424,7 +424,7 @@ html.dark .theme-toggle .moon {
   align-items: center;
   justify-content: center;
   gap: var(--social-links-gap);
-  margin-bottom: var(--social-links-margin-bottom);
+  margin: 0;
 }
 
 .social-links a {
@@ -608,7 +608,7 @@ html.dark .spotify-header {
 /* Responsive: full-width content on smaller screens */
 @media (max-width: 768px) {
   .card-inner {
-    --card-inner-max-width: 100%;
+    --card-inner-width: 100%;
   }
 }
 
@@ -645,7 +645,8 @@ html.dark .spotify-header {
 
   .card-main,
   .card-spotify {
-    --card-padding: 32px 20px 36px;
+    --card-padding: 32px 20px;
+    --card-inner-gap: 20px;
   }
 
   .spotify-album-art {
