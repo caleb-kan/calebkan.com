@@ -293,7 +293,7 @@
           console.error(
             `GitHub calendar: stopping polling after ${MAX_CONSECUTIVE_ERRORS} consecutive failures`,
           );
-          isActive = false;
+          stopPolling();
         }
       })
       .finally(function () {
