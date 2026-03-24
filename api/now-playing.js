@@ -7,7 +7,8 @@ const NOW_PLAYING_ENDPOINT =
   "https://api.spotify.com/v1/me/player/currently-playing";
 const FETCH_TIMEOUT_MS = 5000;
 const MS_PER_S = 1000;
-const TOKEN_REFRESH_MARGIN_MS = 60 * MS_PER_S; // Re-fetch access token 60s before expiry to avoid clock-skew failures
+const SECONDS_PER_MINUTE = 60;
+const TOKEN_REFRESH_MARGIN_MS = SECONDS_PER_MINUTE * MS_PER_S; // Re-fetch access token 60s before expiry to avoid clock-skew failures
 const DEFAULT_TOKEN_EXPIRY_S = 3600;
 const ALBUM_ART_TARGET_PX = 300; // Spotify medium size; close to 2x the 160px CSS display size for retina clarity
 const FALLBACK_TEXT = "Unknown";

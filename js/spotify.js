@@ -8,6 +8,8 @@
   const SECONDS_PER_MINUTE = 60;
   const MARQUEE_SPEED_PX_PER_SEC = 30;
   const MARQUEE_MOVE_FRACTION = 0.35; // Must match CSS @keyframes marquee movement phases (10%-45% and 55%-90%)
+  const ZERO_PAD_THRESHOLD = 10;
+  const PERCENT = 100;
   const MARQUEE_MIN_DURATION_SEC = 4;
   const POLL_INTERVAL_BACKOFF = 30000;
   const MS_PER_S = 1000;
@@ -95,13 +97,13 @@
     const totalSeconds = Math.floor(clamped / MS_PER_S);
     const minutes = Math.floor(totalSeconds / SECONDS_PER_MINUTE);
     const seconds = totalSeconds % SECONDS_PER_MINUTE;
-    return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+    return minutes + ":" + (seconds < ZERO_PAD_THRESHOLD ? "0" : "") + seconds;
   }
 
   function setProgress(percentage, instant, progressMs, durationMs) {
     if (!Number.isFinite(percentage)) percentage = 0;
     if (instant) progressEl.style.transition = "none";
-    progressEl.style.transform = `scaleX(${percentage / 100})`;
+    progressEl.style.transform = `scaleX(${percentage / PERCENT})`;
     const rounded = Math.round(percentage);
     progressEl.setAttribute("aria-valuenow", rounded);
     if (durationMs > 0 && Number.isFinite(progressMs)) {
@@ -261,7 +263,7 @@
     const duration = data.duration ?? 0;
     const progress = data.progress ?? 0;
     const currentPercentage =
-      duration > 0 ? Math.min((progress / duration) * 100, 100) : 0;
+      duration > 0 ? Math.min((progress / duration) * PERCENT, PERCENT) : 0;
 
     if (spotifyCard.hidden) {
       spotifyCard.hidden = false;
@@ -282,8 +284,8 @@
         duration,
       );
       const targetPercentage = Math.min(
-        (progressAtNextPoll / duration) * 100,
-        100,
+        (progressAtNextPoll / duration) * PERCENT,
+        PERCENT,
       );
 
       if (isNewTrack || resumedFromHidden) {
