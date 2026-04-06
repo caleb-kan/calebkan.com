@@ -51,6 +51,7 @@
   let isActive = false;
   let consecutiveErrors = 0;
   let resumedFromHidden = false;
+  let progressRafId = null;
 
   function fetchNowPlaying() {
     const controller = new AbortController();
@@ -62,6 +63,7 @@
           throw new Error(`Spotify returned HTTP ${response.status}`);
         }
         return response.json().catch(function (parseError) {
+          if (parseError.name === "AbortError") throw parseError;
           throw new Error("Spotify API returned non-JSON response", {
             cause: parseError,
           });
@@ -277,6 +279,11 @@
       scheduleMarqueeUpdate();
     }
 
+    if (progressRafId !== null) {
+      cancelAnimationFrame(progressRafId);
+      progressRafId = null;
+    }
+
     if (data.isPlaying && duration > 0) {
       // Calculate where progress will be at the next poll
       const progressAtNextPoll = Math.min(
@@ -291,7 +298,8 @@
       if (isNewTrack || resumedFromHidden) {
         // New track or tab restore: jump to current position instantly, then animate
         setProgress(currentPercentage, true, progress, duration);
-        requestAnimationFrame(function () {
+        progressRafId = requestAnimationFrame(function () {
+          progressRafId = null;
           setProgress(targetPercentage, false, progressAtNextPoll, duration);
         });
       } else {
@@ -305,6 +313,10 @@
   }
 
   function hideSpotifyCard() {
+    if (progressRafId !== null) {
+      cancelAnimationFrame(progressRafId);
+      progressRafId = null;
+    }
     if (!spotifyCard.hidden) {
       if (pageTitleEl && spotifyCard.contains(document.activeElement)) {
         pageTitleEl.focus();
@@ -383,7 +395,6 @@
       stopPolling();
     } else {
       resumedFromHidden = true;
-      consecutiveErrors = 0;
       startPolling();
       scheduleMarqueeUpdate();
     }

@@ -115,14 +115,13 @@ export default async function handler(req, res) {
       .json({ error: "Method not allowed" });
   }
 
-  // Browsers always fetch fresh (max-age=0); Vercel CDN caches for CACHE_DURATION_SECONDS with equal stale-while-revalidate
-  res.setHeader(
-    "Cache-Control",
-    `public, max-age=0, s-maxage=${CACHE_DURATION_SECONDS}, stale-while-revalidate=${CACHE_DURATION_SECONDS}`,
-  );
-
   try {
     const data = await fetchContributions();
+    // Browsers always fetch fresh (max-age=0); Vercel CDN caches for CACHE_DURATION_SECONDS with equal stale-while-revalidate
+    res.setHeader(
+      "Cache-Control",
+      `public, max-age=0, s-maxage=${CACHE_DURATION_SECONDS}, stale-while-revalidate=${CACHE_DURATION_SECONDS}`,
+    );
     return res.status(HTTP_OK).json(data);
   } catch (error) {
     console.error("GitHub contributions API error:", error);

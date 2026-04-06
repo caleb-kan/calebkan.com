@@ -57,6 +57,7 @@
   let inFlight = false;
   let isActive = false;
   let consecutiveErrors = 0;
+  let stoppedByErrors = false;
 
   function calculateQuartiles(data) {
     if (!data || !data.contributions) return DEFAULT_QUARTILES;
@@ -217,6 +218,7 @@
         if (!response.ok)
           throw new Error(`GitHub API returned HTTP ${response.status}`);
         return response.json().catch(function (parseError) {
+          if (parseError.name === "AbortError") throw parseError;
           throw new Error("GitHub API returned non-JSON response", {
             cause: parseError,
           });
@@ -293,6 +295,7 @@
           console.error(
             `GitHub calendar: stopping polling after ${MAX_CONSECUTIVE_ERRORS} consecutive failures`,
           );
+          stoppedByErrors = true;
           stopPolling();
         }
       })
@@ -328,7 +331,7 @@
   document.addEventListener("visibilitychange", function () {
     if (document.hidden) {
       stopPolling();
-    } else {
+    } else if (!stoppedByErrors) {
       consecutiveErrors = 0;
       startPolling();
     }
