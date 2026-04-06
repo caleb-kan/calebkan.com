@@ -70,6 +70,9 @@
         });
       })
       .then(function (data) {
+        if (!data || typeof data.isPlaying !== "boolean") {
+          throw new Error("Spotify API returned unexpected response shape");
+        }
         consecutiveErrors = 0;
         return data;
       })
