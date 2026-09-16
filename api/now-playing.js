@@ -27,7 +27,22 @@ async function fetchWithTimeout(url, options) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
-    return await fetch(url, { ...options, signal: controller.signal });
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    // Read successful JSON bodies inside the deadline. Leave 401/204 responses
+    // unparsed so token retry and idle playback keep their existing behavior.
+    const data =
+      response.ok && response.status !== HTTP_NO_CONTENT
+        ? await response.json().catch((parseError) => {
+            if (parseError.name === "AbortError") throw parseError;
+            throw new Error("Spotify endpoint returned non-JSON response", {
+              cause: parseError,
+            });
+          })
+        : null;
+    return { response, data };
   } finally {
     clearTimeout(timeout);
   }
@@ -45,7 +60,7 @@ async function getAccessToken() {
 
   const basic = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString("base64");
 
-  const response = await fetchWithTimeout(TOKEN_ENDPOINT, {
+  const { response, data } = await fetchWithTimeout(TOKEN_ENDPOINT, {
     method: "POST",
     headers: {
       Authorization: `Basic ${basic}`,
@@ -61,11 +76,6 @@ async function getAccessToken() {
     throw new Error(`Spotify token refresh failed: ${response.status}`);
   }
 
-  const data = await response.json().catch((parseError) => {
-    throw new Error("Spotify token endpoint returned non-JSON response", {
-      cause: parseError,
-    });
-  });
   if (!data.access_token) {
     throw new Error("Spotify token refresh returned no access token");
   }
@@ -111,7 +121,7 @@ function pickAlbumImage(images) {
 
 async function getNowPlaying() {
   let accessToken = await getAccessToken();
-  let response = await fetchWithTimeout(NOW_PLAYING_ENDPOINT, {
+  let { response, data } = await fetchWithTimeout(NOW_PLAYING_ENDPOINT, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
@@ -122,11 +132,11 @@ async function getNowPlaying() {
     cachedToken = null;
     tokenExpiresAt = 0;
     accessToken = await getAccessToken();
-    response = await fetchWithTimeout(NOW_PLAYING_ENDPOINT, {
+    ({ response, data } = await fetchWithTimeout(NOW_PLAYING_ENDPOINT, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
-    });
+    }));
     if (response.status === HTTP_UNAUTHORIZED) {
       cachedToken = null;
       tokenExpiresAt = 0;
@@ -143,12 +153,6 @@ async function getNowPlaying() {
   if (response.status >= HTTP_CLIENT_ERROR_MIN) {
     throw new Error(`Spotify API error: ${response.status}`);
   }
-
-  const data = await response.json().catch((parseError) => {
-    throw new Error("Spotify now-playing endpoint returned non-JSON response", {
-      cause: parseError,
-    });
-  });
 
   if (!data.item || data.currently_playing_type !== "track") {
     return { isPlaying: false };

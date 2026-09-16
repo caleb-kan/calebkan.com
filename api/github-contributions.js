@@ -36,7 +36,20 @@ async function fetchWithTimeout(url, options) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
-    return await fetch(url, { ...options, signal: controller.signal });
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      throw new Error(`GitHub API failed: ${response.status}`);
+    }
+    // Keep the deadline active until the entire body has arrived.
+    return await response.json().catch((parseError) => {
+      if (parseError.name === "AbortError") throw parseError;
+      throw new Error("GitHub API returned non-JSON response", {
+        cause: parseError,
+      });
+    });
   } finally {
     clearTimeout(timeout);
   }
@@ -52,7 +65,7 @@ async function fetchContributions() {
     throw new Error("Missing GITHUB_TOKEN environment variable");
   }
 
-  const response = await fetchWithTimeout(GITHUB_GRAPHQL_API, {
+  const json = await fetchWithTimeout(GITHUB_GRAPHQL_API, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${GITHUB_TOKEN}`,
@@ -62,16 +75,6 @@ async function fetchContributions() {
       query: CONTRIBUTIONS_QUERY,
       variables: { username: GITHUB_USERNAME },
     }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`GitHub API failed: ${response.status}`);
-  }
-
-  const json = await response.json().catch((parseError) => {
-    throw new Error("GitHub API returned non-JSON response", {
-      cause: parseError,
-    });
   });
 
   if (json.errors && json.errors.length > 0) {

@@ -52,6 +52,7 @@
   const END_OF_DAY_MS = 999;
 
   let cachedJson = null;
+  let renderedDate = null;
   let hasRendered = false;
   let pollTimeoutId = null;
   let inFlight = false;
@@ -168,6 +169,7 @@
     );
 
     const svg = document.createElementNS(SVG_NS, "svg");
+    // Keep jemdoc.css --calendar-aspect-ratio in sync with these dimensions.
     const svgWidth =
       WEEKS * (CELL_SIZE + CELL_GAP) - CELL_GAP + 2 * STROKE_PADDING;
     const svgHeight =
@@ -266,10 +268,13 @@
       .then(function (data) {
         consecutiveErrors = 0;
         const json = JSON.stringify(data);
-        if (json !== cachedJson) {
+        const today = formatDate(new Date());
+        // The date window advances even on days with no new contributions.
+        if (json !== cachedJson || today !== renderedDate) {
           try {
             renderCalendar(data);
             cachedJson = json;
+            renderedDate = today;
             hasRendered = true;
           } catch (renderError) {
             console.error("Error rendering GitHub calendar:", renderError);

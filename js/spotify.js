@@ -272,9 +272,6 @@
 
     if (spotifyCard.hidden) {
       spotifyCard.hidden = false;
-      spotifyCard.style.animation = "none";
-      void spotifyCard.offsetWidth;
-      spotifyCard.style.animation = "";
     }
 
     // Schedule marquee update after card is visible so measurements work

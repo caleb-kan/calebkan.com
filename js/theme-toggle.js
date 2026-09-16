@@ -16,14 +16,6 @@
   const csMeta = document.querySelector('meta[name="color-scheme"]');
   const tcMeta = document.querySelector('meta[name="theme-color"]');
 
-  function safeGet(key) {
-    try {
-      return localStorage.getItem(key);
-    } catch (e) {
-      console.warn("theme-toggle: could not read localStorage:", e);
-      return null;
-    }
-  }
   function safeSet(key, value) {
     try {
       localStorage.setItem(key, value);
@@ -42,12 +34,9 @@
       tcMeta.setAttribute("content", isDark ? DARK_COLOR : LIGHT_COLOR);
   }
 
-  // Use saved preference if present; otherwise keep whatever the HTML set pre-paint.
-  const stored = safeGet(STORAGE_KEY);
-  const initialDark = stored
-    ? stored === "dark"
-    : root.classList.contains("dark");
-  applyTheme(initialDark);
+  // theme-boot.js already resolved storage before first paint. Keep that decision
+  // so a stale or invalid preference cannot switch themes during initialization.
+  applyTheme(root.classList.contains("dark"));
 
   // Toggle on click and persist.
   toggle.addEventListener("click", function () {

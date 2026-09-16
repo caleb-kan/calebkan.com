@@ -37,6 +37,9 @@
   --spotify-card-width: 280px;
   --album-art-size: 160px;
   --radius-album-art: 12px;
+  /* Match the 743 x 99 SVG viewBox in github-calendar.js. Reserve its space
+     before the request completes so the centered card never jumps. */
+  --calendar-aspect-ratio: 743 / 99;
 
   /* Links */
   --link-color: #005bb5;
@@ -103,8 +106,6 @@
 
   /* Animation & transition durations */
   --gradient-animation-duration: 20s;
-  --fadeup-distance: 16px;
-  --card-fade-duration: 0.6s;
   --transition-theme-duration: 0.35s;
   --transition-theme: var(--transition-theme-duration) ease;
   --transition-hover-duration: 0.2s;
@@ -241,17 +242,6 @@ h1 {
   }
 }
 
-@keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(var(--fadeup-distance));
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 /*
  * Theme toggle (top-right of the card)
  */
@@ -328,10 +318,14 @@ html.dark .theme-toggle .moon {
  */
 #github-calendar {
   margin: 0;
+  aspect-ratio: var(--calendar-aspect-ratio);
+  display: grid;
+  place-items: center;
 }
 
 #github-calendar svg {
   display: block;
+  width: 100%;
   max-width: 100%;
   height: auto;
   margin: 0 auto;
@@ -363,10 +357,9 @@ html.dark .theme-toggle .moon {
   position: relative;
   isolation: isolate;
   text-align: center;
-  /* backwards (not both): prevents FOUC while avoiding a persistent compositing
-     layer from transform:translateY(0) in the to-frame. Two compositing layers
-     (both cards) + backdrop-filter causes subpixel position shifts on hover repaints. */
-  animation: fadeUp var(--card-fade-duration) ease-out backwards;
+  /* Keep the glass surface opaque at the element level. Animating opacity on
+     this ancestor creates a backdrop root until the animation ends, making
+     the pseudo-element's backdrop filter switch abruptly at first load. */
   transition:
     color var(--transition-theme),
     box-shadow var(--transition-theme),
