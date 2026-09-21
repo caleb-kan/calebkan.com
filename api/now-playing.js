@@ -1,7 +1,3 @@
-const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
-const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
-const REFRESH_TOKEN = process.env.SPOTIFY_REFRESH_TOKEN;
-
 const TOKEN_ENDPOINT = "https://accounts.spotify.com/api/token";
 const NOW_PLAYING_ENDPOINT =
   "https://api.spotify.com/v1/me/player/currently-playing";
@@ -48,7 +44,12 @@ async function fetchWithTimeout(url, options) {
   }
 }
 
-async function getAccessToken() {
+async function getAccessToken(env) {
+  const {
+    SPOTIFY_CLIENT_ID: CLIENT_ID,
+    SPOTIFY_CLIENT_SECRET: CLIENT_SECRET,
+    SPOTIFY_REFRESH_TOKEN: REFRESH_TOKEN,
+  } = env;
   if (!CLIENT_ID || !CLIENT_SECRET || !REFRESH_TOKEN) {
     throw new Error("Missing Spotify credentials");
   }
@@ -58,7 +59,7 @@ async function getAccessToken() {
     return cachedToken;
   }
 
-  const basic = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString("base64");
+  const basic = btoa(`${CLIENT_ID}:${CLIENT_SECRET}`);
 
   const { response, data } = await fetchWithTimeout(TOKEN_ENDPOINT, {
     method: "POST",
@@ -119,8 +120,8 @@ function pickAlbumImage(images) {
   );
 }
 
-async function getNowPlaying() {
-  let accessToken = await getAccessToken();
+async function getNowPlaying(env) {
+  let accessToken = await getAccessToken(env);
   let { response, data } = await fetchWithTimeout(NOW_PLAYING_ENDPOINT, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -131,7 +132,7 @@ async function getNowPlaying() {
   if (response.status === HTTP_UNAUTHORIZED) {
     cachedToken = null;
     tokenExpiresAt = 0;
-    accessToken = await getAccessToken();
+    accessToken = await getAccessToken(env);
     ({ response, data } = await fetchWithTimeout(NOW_PLAYING_ENDPOINT, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -172,24 +173,31 @@ async function getNowPlaying() {
   };
 }
 
-export default async function handler(req, res) {
-  if (req.method !== ALLOWED_METHOD) {
-    res.setHeader("Allow", ALLOWED_METHOD);
-    return res
-      .status(HTTP_METHOD_NOT_ALLOWED)
-      .json({ error: "Method not allowed" });
+export default async function handler(request, env) {
+  if (request.method !== ALLOWED_METHOD) {
+    return Response.json(
+      { error: "Method not allowed" },
+      {
+        status: HTTP_METHOD_NOT_ALLOWED,
+        headers: { Allow: ALLOWED_METHOD, "Cache-Control": "no-store" },
+      },
+    );
   }
 
   // No caching -- playback state changes every second
-  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  const headers = { "Cache-Control": "no-cache, no-store, must-revalidate" };
 
   try {
-    const nowPlaying = await getNowPlaying();
-    return res.status(HTTP_OK).json(nowPlaying);
+    const nowPlaying = await getNowPlaying(env);
+    return Response.json(nowPlaying, { status: HTTP_OK, headers });
   } catch (error) {
     console.error("Spotify API error:", error);
-    return res
-      .status(HTTP_INTERNAL_SERVER_ERROR)
-      .json({ error: "Failed to fetch now playing data" });
+    return Response.json(
+      { error: "Failed to fetch now playing data" },
+      {
+        status: HTTP_INTERNAL_SERVER_ERROR,
+        headers,
+      },
+    );
   }
 }
