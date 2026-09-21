@@ -185,6 +185,28 @@ test("the apex redirects paths and OAuth query parameters to the canonical host"
   assert.equal(app.reads.length, 0);
 });
 
+for (const method of ["GET", "HEAD"]) {
+  test(`the apex ${method} redirect declares HTML after Cloudflare verification`, async (t) => {
+    const app = setup(t);
+    const response = await app.fetch(
+      "https://calebkan.com/?__cf_chl_tk=test-token&source=mobile",
+      { method },
+    );
+    assert.equal(response.status, 308);
+    assert.equal(
+      response.headers.get("Location"),
+      "https://www.calebkan.com/?__cf_chl_tk=test-token&source=mobile",
+    );
+    assert.equal(
+      response.headers.get("Content-Type"),
+      "text/html; charset=utf-8",
+    );
+    assert.equal(response.headers.get("Content-Disposition"), null);
+    assert.equal(await response.text(), "");
+    assertHeaders(response);
+  });
+}
+
 test("unknown API routes return JSON 404s with security and CORS headers", async (t) => {
   const app = setup(t);
   const response = await app.fetch("/api/not-found");
