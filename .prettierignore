@@ -1,0 +1,8 @@
+AGENTS.md
+CLAUDE.md
+.claude/
+.wrangler/
+.playwright-mcp/
+dist/
+node_modules/
+package-lock.json

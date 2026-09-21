@@ -2,13 +2,16 @@ import assert from "node:assert/strict";
 import { setImmediate } from "node:timers/promises";
 import test from "node:test";
 
+const testEnv = {
+  GITHUB_TOKEN: "test-github-token",
+  SPOTIFY_CLIENT_ID: "test-client",
+  SPOTIFY_CLIENT_SECRET: "test-secret",
+  SPOTIFY_REFRESH_TOKEN: "test-refresh",
+};
+
 // Each test imports a fresh copy so warm-instance caches cannot leak across tests.
 let importId = 0;
 async function loadHandler(name, t, fetcher) {
-  process.env.GITHUB_TOKEN = "test-github-token";
-  process.env.SPOTIFY_CLIENT_ID = "test-client";
-  process.env.SPOTIFY_CLIENT_SECRET = "test-secret";
-  process.env.SPOTIFY_REFRESH_TOKEN = "test-refresh";
   t.mock.method(globalThis, "fetch", fetcher);
   t.mock.method(console, "error", () => {});
   return (
@@ -18,21 +21,8 @@ async function loadHandler(name, t, fetcher) {
   ).default;
 }
 
-function responseRecorder() {
-  return {
-    headers: {},
-    setHeader(name, value) {
-      this.headers[name] = value;
-    },
-    status(code) {
-      this.statusCode = code;
-      return this;
-    },
-    json(body) {
-      this.body = body;
-      return this;
-    },
-  };
+function request(api, method = "GET") {
+  return new Request(`https://www.calebkan.com/api/${api}`, { method });
 }
 const json = (data) => Response.json(data);
 const token = () => json({ access_token: "test-access", expires_in: 3600 });
@@ -76,10 +66,33 @@ for (const api of ["github-contributions", "now-playing"]) {
     const handler = await loadHandler(api, t, () => {
       throw new Error("Unexpected upstream request");
     });
-    const res = responseRecorder();
-    await handler({ method: "POST" }, res);
-    assert.equal(res.statusCode, 405);
-    assert.equal(res.headers.Allow, "GET");
+    const res = await handler(request(api, "POST"), testEnv);
+    assert.equal(res.status, 405);
+    assert.equal(res.headers.get("Allow"), "GET");
+    assert.match(res.headers.get("Cache-Control"), /no-store/);
+    assert.deepEqual(await res.json(), { error: "Method not allowed" });
+  });
+}
+
+for (const [api, missingSecret, expectedError] of [
+  ["github-contributions", "GITHUB_TOKEN", "Failed to fetch contributions"],
+  ["now-playing", "SPOTIFY_CLIENT_ID", "Failed to fetch now playing data"],
+  ["now-playing", "SPOTIFY_CLIENT_SECRET", "Failed to fetch now playing data"],
+  ["now-playing", "SPOTIFY_REFRESH_TOKEN", "Failed to fetch now playing data"],
+]) {
+  test(`${api} fails privately without requesting upstream when ${missingSecret} is missing`, async (t) => {
+    let calls = 0;
+    const handler = await loadHandler(api, t, async () => {
+      calls++;
+      return json({});
+    });
+    const env = { ...testEnv };
+    delete env[missingSecret];
+    const res = await handler(request(api), env);
+    assert.equal(res.status, 500);
+    assert.deepEqual(await res.json(), { error: expectedError });
+    assert.match(res.headers.get("Cache-Control"), /no-store/);
+    assert.equal(calls, 0);
   });
 }
 
@@ -89,32 +102,43 @@ test("GitHub contributions are transformed and reused until the cache expires", 
     now: Date.UTC(2026, 8, 16),
   });
   let calls = 0;
-  const handler = await loadHandler("github-contributions", t, async () => {
-    calls++;
-    return json(calendar);
-  });
-  const res = responseRecorder();
-  await handler({ method: "GET" }, res);
-  assert.deepEqual(res.body, {
+  const handler = await loadHandler(
+    "github-contributions",
+    t,
+    async (url, options) => {
+      calls++;
+      const headers = new Headers(options.headers);
+      assert.ok(headers.get("User-Agent"), "GitHub requires a User-Agent");
+      assert.equal(headers.get("Authorization"), "Bearer test-github-token");
+      return json(calendar);
+    },
+  );
+  const res = await handler(request("github-contributions"), testEnv);
+  assert.equal(res.status, 200);
+  assert.deepEqual(await res.json(), {
     contributions: [{ date: "2026-09-16", count: 3 }],
   });
-  await handler({ method: "GET" }, responseRecorder());
+  await handler(request("github-contributions"), testEnv);
   assert.equal(calls, 1);
   t.mock.timers.tick(60001);
-  await handler({ method: "GET" }, responseRecorder());
+  await handler(request("github-contributions"), testEnv);
   assert.equal(calls, 2);
-  assert.match(res.headers["Cache-Control"], /s-maxage=60/);
+  assert.equal(
+    res.headers.get("Cache-Control"),
+    "public, max-age=0, s-maxage=60",
+  );
 });
 
 test("GitHub failures return a generic error without public caching", async (t) => {
   const handler = await loadHandler("github-contributions", t, async () =>
     json({ errors: [{ message: "Private upstream details" }] }),
   );
-  const res = responseRecorder();
-  await handler({ method: "GET" }, res);
-  assert.equal(res.statusCode, 500);
-  assert.equal(res.headers["Cache-Control"], undefined);
-  assert.equal(res.body.error, "Failed to fetch contributions");
+  const res = await handler(request("github-contributions"), testEnv);
+  assert.equal(res.status, 500);
+  assert.match(res.headers.get("Cache-Control"), /no-store/);
+  assert.deepEqual(await res.json(), {
+    error: "Failed to fetch contributions",
+  });
 });
 
 test("Spotify refreshes a rejected token once and preserves track and image selection", async (t) => {
@@ -124,18 +148,28 @@ test("Spotify refreshes a rejected token once and preserves track and image sele
     token,
     () => json(track),
   ];
-  const handler = await loadHandler("now-playing", t, async () =>
-    queue.shift()(),
-  );
-  const res = responseRecorder();
-  await handler({ method: "GET" }, res);
-  assert.equal(res.statusCode, 200);
+  const handler = await loadHandler("now-playing", t, async (url, options) => {
+    const headers = new Headers(options.headers);
+    if (url === "https://accounts.spotify.com/api/token") {
+      assert.equal(
+        headers.get("Authorization"),
+        "Basic dGVzdC1jbGllbnQ6dGVzdC1zZWNyZXQ=",
+      );
+      assert.equal(options.body.get("refresh_token"), "test-refresh");
+    } else {
+      assert.equal(headers.get("Authorization"), "Bearer test-access");
+    }
+    return queue.shift()();
+  });
+  const res = await handler(request("now-playing"), testEnv);
+  const body = await res.json();
+  assert.equal(res.status, 200);
   assert.equal(queue.length, 0);
-  assert.equal(res.body.isPlaying, true);
-  assert.equal(res.body.albumArt, "https://i.scdn.co/medium");
-  assert.equal(res.body.title, "Example track");
-  assert.equal(res.body.progress, 30000);
-  assert.match(res.headers["Cache-Control"], /no-store/);
+  assert.equal(body.isPlaying, true);
+  assert.equal(body.albumArt, "https://i.scdn.co/medium");
+  assert.equal(body.title, "Example track");
+  assert.equal(body.progress, 30000);
+  assert.match(res.headers.get("Cache-Control"), /no-store/);
 });
 
 test("Spotify stops after a second 401", async (t) => {
@@ -148,9 +182,12 @@ test("Spotify stops after a second 401", async (t) => {
   const handler = await loadHandler("now-playing", t, async () =>
     queue.shift()(),
   );
-  const res = responseRecorder();
-  await handler({ method: "GET" }, res);
-  assert.equal(res.statusCode, 500);
+  const res = await handler(request("now-playing"), testEnv);
+  assert.equal(res.status, 500);
+  assert.match(res.headers.get("Cache-Control"), /no-store/);
+  assert.deepEqual(await res.json(), {
+    error: "Failed to fetch now playing data",
+  });
   assert.equal(queue.length, 0);
 });
 
@@ -167,10 +204,10 @@ for (const [label, upstream] of [
     const handler = await loadHandler("now-playing", t, async () =>
       queue.shift()(),
     );
-    const res = responseRecorder();
-    await handler({ method: "GET" }, res);
-    assert.equal(res.statusCode, 200);
-    assert.deepEqual(res.body, { isPlaying: false });
+    const res = await handler(request("now-playing"), testEnv);
+    assert.equal(res.status, 200);
+    assert.deepEqual(await res.json(), { isPlaying: false });
+    assert.match(res.headers.get("Cache-Control"), /no-store/);
   });
 }
 
@@ -198,16 +235,19 @@ for (const [api, stallAt] of [
         }),
       );
     });
-    const res = responseRecorder();
-    const pending = handler({ method: "GET" }, res);
+    let res;
+    const pending = handler(request(api), testEnv).then((response) => {
+      res = response;
+    });
     await setImmediate();
     t.mock.timers.tick(5001);
     await setImmediate();
     assert.equal(
-      res.statusCode,
+      res?.status,
       500,
       "The request must finish after its deadline, including while reading JSON",
     );
+    assert.match(res.headers.get("Cache-Control"), /no-store/);
     await pending;
   });
 }

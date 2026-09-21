@@ -1,5 +1,5 @@
 const GITHUB_USERNAME = "caleb-kan";
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const GITHUB_USER_AGENT = "calebkan.com";
 const GITHUB_GRAPHQL_API = "https://api.github.com/graphql";
 const FETCH_TIMEOUT_MS = 5000;
 const MS_PER_S = 1000;
@@ -55,14 +55,14 @@ async function fetchWithTimeout(url, options) {
   }
 }
 
-async function fetchContributions() {
+async function fetchContributions(env) {
+  const GITHUB_TOKEN = env.GITHUB_TOKEN;
+  if (!GITHUB_TOKEN) {
+    throw new Error("Missing GITHUB_TOKEN environment variable");
+  }
   const now = Date.now();
   if (cachedData && now < cacheExpiresAt) {
     return cachedData;
-  }
-
-  if (!GITHUB_TOKEN) {
-    throw new Error("Missing GITHUB_TOKEN environment variable");
   }
 
   const json = await fetchWithTimeout(GITHUB_GRAPHQL_API, {
@@ -70,6 +70,7 @@ async function fetchContributions() {
     headers: {
       Authorization: `Bearer ${GITHUB_TOKEN}`,
       "Content-Type": "application/json",
+      "User-Agent": GITHUB_USER_AGENT,
     },
     body: JSON.stringify({
       query: CONTRIBUTIONS_QUERY,
@@ -110,26 +111,36 @@ async function fetchContributions() {
   return data;
 }
 
-export default async function handler(req, res) {
-  if (req.method !== ALLOWED_METHOD) {
-    res.setHeader("Allow", ALLOWED_METHOD);
-    return res
-      .status(HTTP_METHOD_NOT_ALLOWED)
-      .json({ error: "Method not allowed" });
+export default async function handler(request, env) {
+  if (request.method !== ALLOWED_METHOD) {
+    return Response.json(
+      { error: "Method not allowed" },
+      {
+        status: HTTP_METHOD_NOT_ALLOWED,
+        headers: { Allow: ALLOWED_METHOD, "Cache-Control": "no-store" },
+      },
+    );
   }
 
   try {
-    const data = await fetchContributions();
-    // Browsers always fetch fresh (max-age=0); Vercel CDN caches for CACHE_DURATION_SECONDS with equal stale-while-revalidate
-    res.setHeader(
-      "Cache-Control",
-      `public, max-age=0, s-maxage=${CACHE_DURATION_SECONDS}, stale-while-revalidate=${CACHE_DURATION_SECONDS}`,
+    const data = await fetchContributions(env);
+    // Do not extend the lifetime of data already held by a warm Worker.
+    const remaining = Math.max(
+      0,
+      Math.ceil((cacheExpiresAt - Date.now()) / MS_PER_S),
     );
-    return res.status(HTTP_OK).json(data);
+    return Response.json(data, {
+      status: HTTP_OK,
+      headers: { "Cache-Control": `public, max-age=0, s-maxage=${remaining}` },
+    });
   } catch (error) {
     console.error("GitHub contributions API error:", error);
-    return res
-      .status(HTTP_INTERNAL_SERVER_ERROR)
-      .json({ error: "Failed to fetch contributions" });
+    return Response.json(
+      { error: "Failed to fetch contributions" },
+      {
+        status: HTTP_INTERNAL_SERVER_ERROR,
+        headers: { "Cache-Control": "no-store" },
+      },
+    );
   }
 }

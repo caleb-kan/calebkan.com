@@ -1,0 +1,20 @@
+{
+  "name": "calebkan-com",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "node scripts/build-assets.mjs",
+    "dev": "wrangler dev",
+    "test": "node --test tests/*.test.mjs",
+    "check": "prettier --check . && npm test && node scripts/check-syntax.mjs",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "prettier": "3.9.8",
+    "wrangler": "4.136.1"
+  }
+}
