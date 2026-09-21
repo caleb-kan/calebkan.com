@@ -31,8 +31,12 @@ credentials are never published as static files. The browser code and design
 remain plain HTML, CSS, and JavaScript.
 
 GitHub Actions checks every pull request and push to `main`. Cloudflare Workers
-Builds deploys `main` automatically after running the same checks. Runtime
-secrets are stored in Cloudflare, separate from build configuration:
+Builds deploys `main` automatically after running the same checks. The build
+command is `npm run check && npm run build`; the production deploy command is
+`npm run deploy`. Other branches upload preview versions without changing
+production.
+
+Runtime secrets are stored in Cloudflare, separate from build configuration:
 
 - `GITHUB_TOKEN`
 - `SPOTIFY_CLIENT_ID`
@@ -69,6 +73,11 @@ hiding. The calendar's reserved CSS aspect ratio must match its SVG viewBox.
 The GitHub response is cached for up to 60 seconds in the Worker and the local
 Cloudflare data center. Spotify playback responses are never cached. Security
 headers and API CORS are applied centrally in `worker/index.js`.
+
+Cloudflare Under Attack Mode remains enabled for the custom domains. Browsers
+may see a security verification page before the site loads, and command-line
+probes can receive a challenge. The Worker test URL is
+<https://calebkan-com.caleb-kan.workers.dev>.
 
 To roll back a deployment, use the Worker's **Deployments** page in Cloudflare
 or `npx wrangler rollback`.
