@@ -82,6 +82,8 @@ hiding. The calendar's reserved CSS aspect ratio must match its SVG viewBox.
 The GitHub response is cached for up to 60 seconds in the Worker and the local
 Cloudflare data center. Spotify playback responses are never cached. Security
 headers and API CORS are applied centrally in `worker/index.js`.
+Worker logs redact query strings so Spotify authorization codes are not
+recorded in request URLs.
 Keep Cloudflare's **Browser Cache TTL** set to **Respect Existing Headers**
 (`0` in the API), so it does not override the calendar's freshness policy.
 
