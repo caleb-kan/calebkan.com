@@ -72,15 +72,7 @@ export default {
         destination.pathname = url.pathname;
         destination.search = url.search;
         return withHeaders(
-          // Safari needs a document MIME type when Cloudflare resumes this
-          // navigation after a challenge; an untyped response can download.
-          new Response(null, {
-            status: HTTP_PERMANENT_REDIRECT,
-            headers: {
-              Location: destination.href,
-              "Content-Type": "text/html; charset=utf-8",
-            },
-          }),
+          Response.redirect(destination, HTTP_PERMANENT_REDIRECT),
           isApi,
         );
       }
