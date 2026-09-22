@@ -1,7 +1,23 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { mockServices, playing } from "./fixtures";
 
 const WIDTHS = [1440, 1101, 1100, 769, 768, 601, 600, 375, 320];
+
+async function spotifyGeometry(page: Page) {
+  return page
+    .locator("#spotify-card, #spotify-card *")
+    .evaluateAll((elements) =>
+      elements.map((element) => {
+        const style = getComputedStyle(element);
+        return {
+          element: element.id || element.className || element.tagName,
+          box: element.getBoundingClientRect().toJSON(),
+          font: style.font,
+          lineHeight: style.lineHeight,
+        };
+      }),
+    );
+}
 
 for (const theme of ["dark", "light"]) {
   for (const width of WIDTHS) {
@@ -66,13 +82,18 @@ for (const theme of ["dark", "light"]) {
       expect(geometry.albumWidth).toBe(width <= 600 ? 120 : 160);
       expect(geometry.opacity).toBe("1");
       expect(geometry.backdrop).toContain("blur(16px)");
+      const spotifyBefore = await spotifyGeometry(page);
       await page.getByRole("button", { name: "Dark mode" }).click();
       await expect(
         page.getByRole("button", { name: "Dark mode" }),
       ).toHaveAttribute("aria-pressed", String(theme !== "dark"));
-      expect(await page.locator(".card-main").boundingBox()).toEqual(
-        geometry.main,
-      );
+      expect(
+        await page.locator(".card-main").boundingBox(),
+        JSON.stringify({
+          spotifyBefore,
+          spotifyAfter: await spotifyGeometry(page),
+        }),
+      ).toEqual(geometry.main);
       await page.getByRole("button", { name: "Dark mode" }).click();
       expect(await page.locator(".card-main").boundingBox()).toEqual(
         geometry.main,
