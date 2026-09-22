@@ -32,6 +32,8 @@ for (const theme of ["dark", "light"]) {
         "naturalWidth",
         1,
       );
+      // Isolate theme geometry from the separate network-loaded icon fonts.
+      await page.evaluate(() => document.fonts.ready);
       const geometry = await page.evaluate(() => {
         const main = document
           .querySelector(".card-main")!
@@ -202,8 +204,9 @@ test("Spotify measures long titles when its stylesheet arrives after hydration",
     route.fulfill({
       json: {
         ...playing,
-        title:
-          "A very long track title that overflows the Spotify card by a considerable amount",
+        // Wide enough to overflow the side card, short enough to fit the
+        // stacked card with either macOS or Linux system-font metrics.
+        title: "A long track title that overflows the narrow Spotify card",
         artist: "A very long artist name that also overflows the Spotify card",
       },
     }),
