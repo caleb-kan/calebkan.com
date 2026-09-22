@@ -605,7 +605,9 @@ html.dark .spotify-header {
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    /* A nonzero duration also activates the default transition-property: all
+       on descendants, briefly animating inherited font sizes in WebKit. */
+    transition-duration: 0s !important;
   }
 
   body {
