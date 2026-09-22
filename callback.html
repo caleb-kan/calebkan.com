@@ -6,40 +6,10 @@
     <meta name="robots" content="noindex, nofollow" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'none'; script-src 'sha256-NNuKM7D4zDwLsvk1hsyaQIx0+ItdfdTAxxKveIgNwqs='; style-src 'sha256-0hsvv8tAnFN8/nHYRElB7bs/wlqjKOIqR+1YnHeC6Go='"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; base-uri 'none'; form-action 'none'"
     />
     <title>Spotify Authorization</title>
-    <style>
-      body {
-        font-family: system-ui, sans-serif;
-        background: #0b0b0b;
-        color: #fff;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-        margin: 0;
-      }
-      .container {
-        text-align: center;
-        padding: 2rem;
-      }
-      code {
-        padding: 0.5rem 1rem;
-        border-radius: 4px;
-        word-break: break-all;
-        display: block;
-        margin: 1rem 0;
-      }
-      .success {
-        background: #1db954;
-        color: #000;
-      }
-      .error {
-        background: #c62828;
-        color: #fff;
-      }
-    </style>
+    <link rel="stylesheet" href="/src/callback.css" />
   </head>
   <body>
     <main class="container">
@@ -53,22 +23,6 @@
       <code id="code">Checking...</code>
       <p id="message">Copy this code and paste it in your terminal.</p>
     </main>
-    <script>
-      const params = new URLSearchParams(window.location.search);
-      const code = params.get("code");
-      const error = params.get("error");
-      const codeEl = document.getElementById("code");
-      const msgEl = document.getElementById("message");
-      if (code) {
-        codeEl.textContent = code;
-        codeEl.classList.add("success");
-      } else {
-        codeEl.textContent = error || "No code found";
-        codeEl.classList.add("error");
-        msgEl.textContent = error
-          ? "Authorization failed. Check your Spotify app settings and try again."
-          : "No authorization code was returned.";
-      }
-    </script>
+    <script type="module" src="/src/callback.ts"></script>
   </body>
 </html>

@@ -4,17 +4,37 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=22"
+    "node": ">=24"
   },
   "scripts": {
-    "build": "node scripts/build-assets.mjs",
-    "dev": "wrangler dev",
-    "test": "node --test tests/*.test.mjs",
-    "check": "prettier --check . && npm test && node scripts/check-syntax.mjs",
-    "deploy": "wrangler deploy"
+    "dev": "vite --host 127.0.0.1 --port 8787",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 8787",
+    "types": "wrangler types --env-file .dev.vars.example",
+    "typecheck": "npm run types && tsc -p tsconfig.json && tsc -p tsconfig.worker.json && tsc -p tsconfig.tests-worker.json",
+    "test": "npm run build && tsx --test tests/*.test.ts",
+    "test:browser": "playwright test",
+    "check": "prettier --check . && npm run typecheck && npm test",
+    "deploy": "npm run build && wrangler deploy"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "1.57.2",
+    "@playwright/test": "1.63.0",
+    "@tailwindcss/vite": "4.3.3",
+    "@types/node": "24.13.6",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.1",
+    "esbuild": "0.28.2",
     "prettier": "3.9.8",
-    "wrangler": "4.136.1"
+    "tailwindcss": "4.3.3",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2",
+    "vite": "8.3.0",
+    "wrangler": "4.136.2"
+  },
+  "dependencies": {
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
   }
 }

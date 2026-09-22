@@ -1,3 +1,6 @@
+import { isAbortError, isRecord } from "./types";
+import type { NowPlayingResponse, SpotifyEnv } from "./types";
+
 const TOKEN_ENDPOINT = "https://accounts.spotify.com/api/token";
 const NOW_PLAYING_ENDPOINT =
   "https://api.spotify.com/v1/me/player/currently-playing";
@@ -16,10 +19,13 @@ const HTTP_METHOD_NOT_ALLOWED = 405;
 const HTTP_INTERNAL_SERVER_ERROR = 500;
 const ALLOWED_METHOD = "GET";
 
-let cachedToken = null;
+let cachedToken: string | null = null;
 let tokenExpiresAt = 0;
 
-async function fetchWithTimeout(url, options) {
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit,
+): Promise<{ response: Response; data: unknown }> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
@@ -29,10 +35,10 @@ async function fetchWithTimeout(url, options) {
     });
     // Read successful JSON bodies inside the deadline. Leave 401/204 responses
     // unparsed so token retry and idle playback keep their existing behavior.
-    const data =
+    const data: unknown =
       response.ok && response.status !== HTTP_NO_CONTENT
-        ? await response.json().catch((parseError) => {
-            if (parseError.name === "AbortError") throw parseError;
+        ? await response.json().catch((parseError: unknown) => {
+            if (isAbortError(parseError)) throw parseError;
             throw new Error("Spotify endpoint returned non-JSON response", {
               cause: parseError,
             });
@@ -44,7 +50,7 @@ async function fetchWithTimeout(url, options) {
   }
 }
 
-async function getAccessToken(env) {
+async function getAccessToken(env: SpotifyEnv): Promise<string> {
   const {
     SPOTIFY_CLIENT_ID: CLIENT_ID,
     SPOTIFY_CLIENT_SECRET: CLIENT_SECRET,
@@ -77,7 +83,11 @@ async function getAccessToken(env) {
     throw new Error(`Spotify token refresh failed: ${response.status}`);
   }
 
-  if (!data.access_token) {
+  if (
+    !isRecord(data) ||
+    typeof data.access_token !== "string" ||
+    !data.access_token
+  ) {
     throw new Error("Spotify token refresh returned no access token");
   }
 
@@ -96,31 +106,55 @@ async function getAccessToken(env) {
 }
 
 // Pick the smallest image >= target size for retina, regardless of array sort order
-function pickAlbumImage(images) {
-  if (!images || images.length === 0) return "";
-  let bestFit = null; // smallest image >= target
-  let largest = null; // largest image overall (fallback)
+function pickAlbumImage(value: unknown): string {
+  if (!Array.isArray(value) || value.length === 0) return "";
+  const images: unknown[] = value;
+  let bestFit: { width: number; url: string } | null = null;
+  let largest: { width: number; url: string } | null = null;
   for (const img of images) {
     if (
-      !img ||
+      !isRecord(img) ||
       typeof img.width !== "number" ||
       img.width <= 0 ||
       typeof img.url !== "string"
     )
       continue;
     if (img.width >= ALBUM_ART_TARGET_PX) {
-      if (!bestFit || img.width < bestFit.width) bestFit = img;
+      if (!bestFit || img.width < bestFit.width) {
+        bestFit = { width: img.width, url: img.url };
+      }
     }
-    if (!largest || img.width > largest.width) largest = img;
+    if (!largest || img.width > largest.width) {
+      largest = { width: img.width, url: img.url };
+    }
   }
   return (
     (bestFit || largest)?.url ||
-    images.find((img) => img && typeof img.url === "string")?.url ||
+    images.find(
+      (img): img is Record<string, unknown> & { url: string } =>
+        isRecord(img) && typeof img.url === "string",
+    )?.url ||
     ""
   );
 }
 
-async function getNowPlaying(env) {
+function optionalString(value: unknown): string | undefined {
+  if (value == null) return undefined;
+  if (typeof value !== "string") {
+    throw new Error("Spotify response contains an invalid text field");
+  }
+  return value;
+}
+
+function optionalNumber(value: unknown): number | undefined {
+  if (value == null) return undefined;
+  if (typeof value !== "number") {
+    throw new Error("Spotify response contains an invalid numeric field");
+  }
+  return value;
+}
+
+async function getNowPlaying(env: SpotifyEnv): Promise<NowPlayingResponse> {
   let accessToken = await getAccessToken(env);
   let { response, data } = await fetchWithTimeout(NOW_PLAYING_ENDPOINT, {
     headers: {
@@ -155,25 +189,54 @@ async function getNowPlaying(env) {
     throw new Error(`Spotify API error: ${response.status}`);
   }
 
+  if (!isRecord(data)) {
+    throw new Error("Spotify API returned an invalid response");
+  }
+
   if (!data.item || data.currently_playing_type !== "track") {
     return { isPlaying: false };
   }
 
+  const item = data.item;
+  if (!isRecord(item)) {
+    throw new Error("Spotify API returned an invalid track");
+  }
+  const album = isRecord(item.album) ? item.album : undefined;
+  const externalUrls = isRecord(item.external_urls)
+    ? item.external_urls
+    : undefined;
+  let artist: string | undefined;
+  if (item.artists != null) {
+    if (!Array.isArray(item.artists)) {
+      throw new Error("Spotify API returned invalid artists");
+    }
+    const artists: unknown[] = item.artists;
+    artist = artists
+      .map((entry) => {
+        if (!isRecord(entry)) {
+          throw new Error("Spotify API returned an invalid artist");
+        }
+        return optionalString(entry.name);
+      })
+      .join(", ");
+  }
+
   return {
     isPlaying: data.is_playing === true,
-    title: data.item.name || FALLBACK_TEXT,
-    artist:
-      data.item.artists?.map((artist) => artist.name).join(", ") ||
-      FALLBACK_TEXT,
-    album: data.item.album?.name || FALLBACK_TEXT,
-    albumArt: pickAlbumImage(data.item.album?.images),
-    songUrl: data.item.external_urls?.spotify || "",
-    progress: data.progress_ms ?? 0,
-    duration: data.item.duration_ms ?? 0,
+    title: optionalString(item.name) || FALLBACK_TEXT,
+    artist: artist || FALLBACK_TEXT,
+    album: optionalString(album?.name) || FALLBACK_TEXT,
+    albumArt: pickAlbumImage(album?.images),
+    songUrl: optionalString(externalUrls?.spotify) || "",
+    progress: optionalNumber(data.progress_ms) ?? 0,
+    duration: optionalNumber(item.duration_ms) ?? 0,
   };
 }
 
-export default async function handler(request, env) {
+export default async function handler(
+  request: Request,
+  env: SpotifyEnv,
+): Promise<Response> {
   if (request.method !== ALLOWED_METHOD) {
     return Response.json(
       { error: "Method not allowed" },

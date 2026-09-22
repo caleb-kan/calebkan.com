@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.worker.json",
+  "compilerOptions": {
+    "types": ["node", "./worker-configuration.d.ts"]
+  },
+  "include": [
+    "api",
+    "worker",
+    "tests/api.test.ts",
+    "tests/worker.test.ts",
+    "worker-configuration.d.ts"
+  ]
+}

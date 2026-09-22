@@ -1,0 +1,29 @@
+body {
+  font-family: system-ui, sans-serif;
+  background: #0b0b0b;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
+}
+.container {
+  text-align: center;
+  padding: 2rem;
+}
+code {
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  word-break: break-all;
+  display: block;
+  margin: 1rem 0;
+}
+.success {
+  background: #1db954;
+  color: #000;
+}
+.error {
+  background: #c62828;
+  color: #fff;
+}

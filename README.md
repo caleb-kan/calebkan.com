@@ -1,5 +1,9 @@
 # [calebkan.com](https://www.calebkan.com/)
 
+A personal portfolio built with TypeScript, React, Vite, and Tailwind CSS,
+served by Cloudflare Workers. The GitHub contribution calendar and Spotify
+Now Playing card use APIs in the same Worker.
+
 ## Local Development
 
 Install Node.js 24 (see `.nvmrc`), then:
@@ -10,47 +14,78 @@ cp .dev.vars.example .dev.vars
 ```
 
 Fill in the four secrets in `.dev.vars`. This file is ignored by Git and is
-never included in the deployed assets.
+never included in the public assets.
 
 ```sh
 npm run dev
 ```
 
-Open <http://localhost:8787>. Wrangler runs the static site and both APIs in
-Cloudflare's local runtime.
+Open <http://127.0.0.1:8787>. Vite provides development updates, and the
+Cloudflare Vite plugin runs the Worker and both APIs in the local Cloudflare
+runtime. To preview the production build:
+
+```sh
+npm run build
+npm run preview
+```
+
+## Architecture
+
+- `src/app.tsx` and `src/components/` define the React interface. Vite renders
+  the same component tree into HTML at build time, then `src/main.tsx` hydrates
+  it in the browser. The portfolio remains readable without JavaScript.
+- `src/lib/` holds typed calendar, playback, polling, and theme logic.
+  `src/theme-boot.ts` compiles to a separate synchronous script that applies
+  the saved theme before styles load.
+- `src/styles.css` preserves the design and uses Tailwind utilities through
+  `@apply`. Tailwind Preflight is omitted to retain existing browser defaults.
+- `api/*.ts` implement the upstream integrations. `worker/index.ts` routes
+  requests and applies security headers and API CORS.
+- `callback.html` uses `src/callback.ts` and `src/callback.css` for Spotify
+  authorization. Its script and styles compile to same-origin assets.
+
+The build publishes browser assets from `dist/client` only. The Worker bundle
+and generated deployment configuration live separately in `dist/calebkan_com`.
+Source files, tests, and credentials are not public assets. `wrangler types`
+generates the Worker binding and runtime types from the configuration and empty
+secret template.
+
+## Verification
+
+```sh
+npm run check
+npx wrangler deploy --dry-run
+```
+
+`check` verifies formatting, regenerates Worker types, checks TypeScript, builds
+the application, and runs unit and build regression tests. A build must exist
+before the Wrangler dry-run so it can find Vite's generated deployment config.
+
+Browser tests run separately against the production preview in Chromium and
+WebKit:
+
+```sh
+npx playwright install chromium webkit
+npm run test:browser
+```
+
+Run `npm run check` first and stop any development server on port 8787 before
+browser testing. For visual changes, also inspect first load, both themes,
+the 1100px / 768px / 600px breakpoints, reduced motion, and Spotify appearing
+and hiding. The calendar's reserved CSS aspect ratio must match its SVG viewBox.
 
 ## Hosting and Deployment
 
-One Cloudflare Worker, `calebkan-com`, serves the site and its GitHub/Spotify
-APIs. Cloudflare also manages DNS and HTTPS. `calebkan.com` redirects to
-`www.calebkan.com`, preserving paths and query strings.
+The Cloudflare Worker is named `calebkan-com`. Cloudflare also manages DNS and
+HTTPS. `calebkan.com` redirects to `www.calebkan.com`, preserving paths and
+query strings. `wrangler.jsonc` defines both custom domains and the runtime;
+Vite generates the final asset and bundle paths during the build.
 
-The zone's **Canonical host redirect** Single Redirect runs before the
-security challenge. Keep this rule enabled: completing a challenge on the
-apex and then redirecting from the Worker can trigger a download in Safari.
-The rule matches `http.host eq "calebkan.com"`, returns status `308`, targets
-`concat("https://www.calebkan.com", http.request.uri.path)`, and preserves the
-query string. Manage it under **Cloudflare → calebkan.com → Rules**; Wrangler
-deployments do not manage zone rules. Under Attack Mode stays enabled, so
-verification occurs on the canonical `www` host.
-
-`wrangler.jsonc` defines the Worker and asset configuration. The build copies
-only eight explicitly listed public files into `dist/`; source, tests, and
-credentials are never published as static files. The browser code and design
-remain plain HTML, CSS, and JavaScript.
-
-GitHub Actions checks every pull request and push to `main`. Cloudflare Workers
-Builds deploys `main` automatically after running the same checks. The build
-command is `npm run check && npm run build`; the production deploy command is
-`npm run deploy`. Other branches upload preview versions without changing
-production.
-
-Runtime secrets are stored in Cloudflare, separate from build configuration:
-
-- `GITHUB_TOKEN`
-- `SPOTIFY_CLIENT_ID`
-- `SPOTIFY_CLIENT_SECRET`
-- `SPOTIFY_REFRESH_TOKEN`
+GitHub Actions checks pull requests and pushes to `main`, including a deployment
+dry-run. Cloudflare Workers Builds is configured to deploy `main` after
+`npm run check && npm run build`, using `npm run deploy` as the production
+deploy command. Other branches upload preview versions without changing
+production. Local verification alone does not deploy changes.
 
 To deploy manually:
 
@@ -60,42 +95,39 @@ npm run check
 npm run deploy
 ```
 
-To update a secret without printing it:
+Runtime secrets are stored in Cloudflare, separate from build configuration:
 
-```sh
-npx wrangler secret put GITHUB_TOKEN
-```
+- `GITHUB_TOKEN`
+- `SPOTIFY_CLIENT_ID`
+- `SPOTIFY_CLIENT_SECRET`
+- `SPOTIFY_REFRESH_TOKEN`
 
-## Verification
+Update a secret without printing it using `npx wrangler secret put NAME`.
+To roll back, use the Worker's **Deployments** page in Cloudflare or
+`npx wrangler rollback`.
 
-Run formatting, regression tests, syntax checks, and deployment validation:
+## Cloudflare Settings to Preserve
 
-```sh
-npm run check
-npx wrangler deploy --dry-run
-```
+The zone's **Canonical host redirect** Single Redirect must run before the
+security challenge. Keep it enabled: completing a challenge on the apex and
+then redirecting from the Worker can trigger a download in Safari. The rule
+matches `http.host eq "calebkan.com"`, returns status `308`, targets
+`concat("https://www.calebkan.com", http.request.uri.path)`, and preserves the
+query string. Manage it under **Cloudflare → calebkan.com → Rules**;
+Wrangler deployments do not manage zone rules.
 
-For visual changes, also check first load and both themes in a browser, the
-1100px / 768px / 600px breakpoints, reduced motion, and Spotify appearing and
-hiding. The calendar's reserved CSS aspect ratio must match its SVG viewBox.
+Keep **Browser Cache TTL** set to **Respect Existing Headers** (`0` in the
+API). GitHub responses are cached for up to 60 seconds in warm Worker instances
+and the Cloudflare data center, without extending their remaining lifetime.
+Spotify responses are never cached. Worker logs redact query strings to avoid
+recording Spotify authorization codes.
 
-The GitHub response is cached for up to 60 seconds in the Worker and the local
-Cloudflare data center. Spotify playback responses are never cached. Security
-headers and API CORS are applied centrally in `worker/index.js`.
-Worker logs redact query strings so Spotify authorization codes are not
-recorded in request URLs.
-Keep Cloudflare's **Browser Cache TTL** set to **Respect Existing Headers**
-(`0` in the API), so it does not override the calendar's freshness policy.
-
-Cloudflare Under Attack Mode remains enabled for the custom domains. Browsers
-may see a security verification page before the site loads, and command-line
-probes can receive a challenge. The Worker test URL is
+**Under Attack Mode remains enabled** on the custom domains, with verification
+on the canonical `www` host. Browsers may see a security verification page, and
+command-line probes can receive a challenge. The Worker test URL is
 <https://calebkan-com.caleb-kan.workers.dev>.
 
-For redirect changes, test a fresh private Safari window starting at
-`https://calebkan.com/`: it must reach the `www` security check and then render
-the site without a download prompt. A direct request to the apex must return
-`308` with the expected `Location` and no `cf-mitigated: challenge` header.
-
-To roll back a deployment, use the Worker's **Deployments** page in Cloudflare
-or `npx wrangler rollback`.
+After redirect changes, use a fresh private Safari window starting at
+`https://calebkan.com/`. It must reach the `www` security check and then render
+the site without a download prompt. A direct apex request must return `308`
+with the expected `Location` and no `cf-mitigated: challenge` header.
