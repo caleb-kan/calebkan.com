@@ -33,8 +33,11 @@ async function fetchWithTimeout(
       ...options,
       signal: controller.signal,
     });
-    // Read successful JSON bodies inside the deadline. Leave 401/204 responses
-    // unparsed so token retry and idle playback keep their existing behavior.
+    // Release ignored error bodies before clearing the deadline or retrying a
+    // 401. Aborting preserves the status without awaiting stream cancellation.
+    if (!response.ok) controller.abort();
+    // Read successful JSON bodies inside the deadline. Leave 204 responses
+    // unparsed so idle playback keeps its existing behavior.
     const data: unknown =
       response.ok && response.status !== HTTP_NO_CONTENT
         ? await response.json().catch((parseError: unknown) => {
@@ -162,10 +165,14 @@ async function getNowPlaying(env: SpotifyEnv): Promise<NowPlayingResponse> {
     },
   });
 
-  // If the token was revoked or expired despite our margin, force-refresh and retry once
+  // Retry once with a newer cached token or refresh a revoked or expired token.
   if (response.status === HTTP_UNAUTHORIZED) {
-    cachedToken = null;
-    tokenExpiresAt = 0;
+    // A different request may have refreshed the shared cache while this
+    // response was in flight. Only invalidate the token this request used.
+    if (cachedToken === accessToken) {
+      cachedToken = null;
+      tokenExpiresAt = 0;
+    }
     accessToken = await getAccessToken(env);
     ({ response, data } = await fetchWithTimeout(NOW_PLAYING_ENDPOINT, {
       headers: {
@@ -173,8 +180,10 @@ async function getNowPlaying(env: SpotifyEnv): Promise<NowPlayingResponse> {
       },
     }));
     if (response.status === HTTP_UNAUTHORIZED) {
-      cachedToken = null;
-      tokenExpiresAt = 0;
+      if (cachedToken === accessToken) {
+        cachedToken = null;
+        tokenExpiresAt = 0;
+      }
       throw new Error(
         "Spotify token refresh failed: still getting 401. Check SPOTIFY_REFRESH_TOKEN.",
       );

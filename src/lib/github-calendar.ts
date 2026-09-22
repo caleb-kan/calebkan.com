@@ -222,6 +222,8 @@ export function startCalendarPolling({
     try {
       const response = await fetcher(API_URL, { signal: controller.signal });
       if (!response.ok) {
+        // Release the unused body before clearing the request deadline.
+        controller.abort();
         throw new Error(`GitHub API returned HTTP ${response.status}`);
       }
       const data: unknown = await response.json().catch((error: unknown) => {
@@ -308,7 +310,7 @@ export function startCalendarPolling({
   }
 
   visibility.addEventListener("visibilitychange", handleVisibility);
-  startPolling();
+  if (!visibility.hidden) startPolling();
 
   return () => {
     disposed = true;

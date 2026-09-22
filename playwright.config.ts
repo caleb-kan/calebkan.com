@@ -16,10 +16,18 @@ export default defineConfig({
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
     { name: "webkit", use: { ...devices["Desktop Safari"] } },
   ],
-  webServer: {
-    command: "npm run preview",
-    url: "http://127.0.0.1:8787",
-    reuseExistingServer: !process.env.CI,
-    timeout: 60_000,
-  },
+  webServer: [
+    {
+      command: "npm run preview",
+      url: "http://127.0.0.1:8787",
+      reuseExistingServer: !process.env.CI,
+      timeout: 60_000,
+    },
+    {
+      command: "npm run dev -- --port 8788 --strictPort",
+      url: "http://127.0.0.1:8788",
+      reuseExistingServer: !process.env.CI,
+      timeout: 60_000,
+    },
+  ],
 });

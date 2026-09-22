@@ -55,6 +55,30 @@ export default defineConfig(async ({ command }) => {
                 /(script-src|style-src) 'self'/g,
                 `$1 'self' 'nonce-${developmentNonce}'`,
               );
+              // The callback otherwise inherits connect-src from default-src
+              // 'none'. Use the actual local server origins, including its
+              // selected port, instead of permitting arbitrary WebSockets.
+              const websocketSources = (server?.resolvedUrls?.local ?? [])
+                .map((address) => {
+                  const url = new URL(address);
+                  url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
+                  return url.origin;
+                })
+                .join(" ");
+              if (websocketSources) {
+                html = html.replace(
+                  /(\bcontent=")([^"]*\bdefault-src\b[^"]*)(")/g,
+                  (_match, prefix: string, policy: string, suffix: string) => {
+                    const developmentPolicy = /\bconnect-src\b/.test(policy)
+                      ? policy.replace(
+                          /\bconnect-src[^;]*/,
+                          (directive) => `${directive} ${websocketSources}`,
+                        )
+                      : `${policy}; connect-src 'self' ${websocketSources}`;
+                    return `${prefix}${developmentPolicy}${suffix}`;
+                  },
+                );
+              }
             }
             if (!html.includes("<!--app-html-->")) return html;
             const { App } = server

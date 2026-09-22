@@ -47,6 +47,9 @@ async function fetchWithTimeout(
       signal: controller.signal,
     });
     if (!response.ok) {
+      // We only need the status. Abort the unread body before clearing its
+      // deadline, without waiting for a stream cancellation promise.
+      controller.abort();
       throw new Error(`GitHub API failed: ${response.status}`);
     }
     // Keep the deadline active until the entire body has arrived.

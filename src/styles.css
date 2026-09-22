@@ -15,8 +15,6 @@
 }
 
 :root {
-  --primary-color: #0a84ff; /* Apple system blue (dark-mode variant); used as accent in both site themes */
-
   /* Background animated gradient */
   --gradient-angle: -45deg;
   --gradient-color-1: #ff6d00;
@@ -48,7 +46,8 @@
   --calendar-aspect-ratio: 743 / 99;
 
   /* Links */
-  --link-color: #005bb5;
+  /* Maintain text contrast over every phase of the translucent gradient. */
+  --link-color: #00458a;
   --link-hover-mix: 70%;
 
   /* Toggle */
@@ -77,6 +76,7 @@
 
   /* Shared opacities */
   --opacity-muted: 0.7;
+  --spotify-artist-opacity: 0.8;
   --toggle-inactive-opacity: 0.35;
   --spotify-header-dark-opacity: 0.8;
 
@@ -231,7 +231,7 @@ h1 {
 }
 .card-main a:focus-visible,
 .card-spotify a:focus-visible {
-  outline: var(--focus-ring-width) solid var(--primary-color);
+  outline: var(--focus-ring-width) solid var(--link-color);
   outline-offset: var(--focus-ring-offset);
   border-radius: var(--focus-ring-radius);
 }
@@ -272,7 +272,7 @@ h1 {
 }
 
 .theme-toggle:focus-visible {
-  outline: var(--focus-ring-width) solid var(--primary-color);
+  outline: var(--focus-ring-width) solid var(--link-color);
   outline-offset: var(--focus-ring-offset);
 }
 
@@ -406,6 +406,7 @@ html.dark .theme-toggle .moon {
 
 .card-main p {
   margin: 0;
+  overflow-wrap: anywhere;
 }
 
 /*
@@ -438,7 +439,7 @@ html.dark .theme-toggle .moon {
 }
 
 .social-links a:focus-visible {
-  outline: var(--focus-ring-width) solid var(--primary-color);
+  outline: var(--focus-ring-width) solid var(--link-color);
   outline-offset: var(--focus-ring-offset);
   border-radius: 50%;
 }
@@ -448,7 +449,7 @@ html.dark .card-spotify {
   --background-color: rgba(22, 22, 24, 0.66);
   --text-color: #e6e6e7;
   --border-color: rgba(255, 255, 255, 0.08);
-  --link-color: #61adff;
+  --link-color: #8ec8ff;
   --shadow-ambient: 0 12px 36px rgba(0, 0, 0, 0.35);
   --shadow-album-art: 0 8px 24px rgba(0, 0, 0, 0.5);
   --progress-track-bg: rgba(255, 255, 255, 0.1);
@@ -512,7 +513,7 @@ html.dark .spotify-header {
 
 .spotify-artist {
   font-size: var(--spotify-font-size-artist);
-  opacity: var(--opacity-muted);
+  opacity: var(--spotify-artist-opacity);
   margin: 0;
 }
 

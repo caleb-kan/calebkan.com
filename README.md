@@ -61,15 +61,15 @@ npx wrangler deploy --dry-run
 the application, and runs unit and build regression tests. A build must exist
 before the Wrangler dry-run so it can find Vite's generated deployment config.
 
-Browser tests run separately against the production preview in Chromium and
-WebKit:
+Browser tests run separately in Chromium and WebKit against the production
+preview on port 8787 and a development CSP/HMR smoke test on port 8788:
 
 ```sh
 npx playwright install chromium webkit
 npm run test:browser
 ```
 
-Run `npm run check` first and stop any development server on port 8787 before
+Run `npm run check` first and stop any servers on ports 8787 and 8788 before
 browser testing. For visual changes, also inspect first load, both themes,
 the 1100px / 768px / 600px breakpoints, reduced motion, and Spotify appearing
 and hiding. The calendar's reserved CSS aspect ratio must match its SVG viewBox.
@@ -82,10 +82,10 @@ query strings. `wrangler.jsonc` defines both custom domains and the runtime;
 Vite generates the final asset and bundle paths during the build.
 
 GitHub Actions checks pull requests and pushes to `main`, including a deployment
-dry-run. Cloudflare Workers Builds is configured to deploy `main` after
-`npm run check && npm run build`, using `npm run deploy` as the production
-deploy command. Other branches upload preview versions without changing
-production. Local verification alone does not deploy changes.
+dry-run. Cloudflare Workers Builds runs `npm run check`, which includes the
+production build, then deploys that verified output from `main` with
+`npx wrangler deploy`. Other branches use `npx wrangler versions upload`
+without changing production. Local verification alone does not deploy changes.
 
 To deploy manually:
 
