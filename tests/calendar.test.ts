@@ -29,6 +29,7 @@ class Visibility extends EventTarget {
 async function calendarPage(
   t: TestContext,
   fetcher: typeof fetch = async () => Response.json({ contributions: [] }),
+  initiallyHidden = false,
 ) {
   t.mock.timers.enable({
     apis: ["Date", "setTimeout"],
@@ -37,6 +38,7 @@ async function calendarPage(
   t.mock.method(console, "warn", () => {});
   t.mock.method(console, "error", () => {});
   const visibility = new Visibility();
+  visibility.hidden = initiallyHidden;
   let cells: CalendarCell[] | null = null;
   let updates = 0;
   let errors = 0;
@@ -122,6 +124,23 @@ test("calendar pauses while hidden and immediately refreshes when visible", asyn
   assert.equal(page.requests(), 2);
 });
 
+test("calendar opened in a background tab waits until it becomes visible", async (t) => {
+  const page = await calendarPage(t, undefined, true);
+  assert.equal(page.requests(), 0);
+  await page.tick(CALENDAR_POLL_INTERVAL * 3);
+  assert.equal(page.requests(), 0);
+  assert.equal(page.updates(), 0);
+  assert.equal(page.errors(), 0);
+
+  page.visibility.setHidden(false);
+  await setImmediate();
+  assert.equal(page.requests(), 1);
+  assert.equal(page.updates(), 1);
+  page.visibility.setHidden(true);
+  await page.tick(CALENDAR_POLL_INTERVAL * 3);
+  assert.equal(page.requests(), 1);
+});
+
 test("calendar prevents overlapping requests and keeps cadence relative to request start", async (t) => {
   let finishRequest: ((response: Response) => void) | undefined;
   let firstRequest = true;
@@ -158,6 +177,44 @@ test("a successful calendar response resets consecutive failure escalation", asy
   assert.equal(page.requests(), 10);
   await page.tick();
   assert.equal(page.requests(), 10);
+});
+
+test("calendar releases failed response bodies while preserving its render and HTTP error stop", async (t) => {
+  let failing = false;
+  let releasedBodies = 0;
+  const page = await calendarPage(t, async (_url, options) => {
+    if (!failing) return Response.json({ contributions: [] });
+    const signal = options?.signal;
+    assert.ok(signal);
+    return new Response(
+      new ReadableStream({
+        start(controller) {
+          signal.addEventListener(
+            "abort",
+            () => {
+              releasedBodies++;
+              controller.error(new DOMException("Aborted", "AbortError"));
+            },
+            { once: true },
+          );
+        },
+      }),
+      { status: 503 },
+    );
+  });
+  const cells = page.cells();
+  failing = true;
+  for (let attempt = 1; attempt <= 5; attempt++) {
+    await page.tick();
+    assert.equal(releasedBodies, attempt);
+    assert.equal(page.cells(), cells);
+  }
+  assert.equal(page.errors(), 0);
+  assert.equal(page.requests(), 6);
+  page.visibility.setHidden(true);
+  page.visibility.setHidden(false);
+  await page.tick();
+  assert.equal(page.requests(), 6);
 });
 
 test("calendar aborts stalled response bodies without escalating timeout errors", async (t) => {

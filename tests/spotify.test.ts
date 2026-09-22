@@ -311,6 +311,44 @@ test("Spotify prevents overlapping requests and resumes after an in-flight visib
   harness.poller.dispose();
 });
 
+test("Spotify releases failed response bodies while preserving its track and HTTP error backoff", async (t) => {
+  t.mock.method(console, "warn", () => {});
+  t.mock.method(console, "error", () => {});
+  let failing = false;
+  let releasedBodies = 0;
+  const harness = pollerHarness(async (signal) => {
+    if (!failing) return Response.json(playing);
+    return new Response(
+      new ReadableStream({
+        start(controller) {
+          signal.addEventListener(
+            "abort",
+            () => {
+              releasedBodies++;
+              controller.error(new DOMException("Aborted", "AbortError"));
+            },
+            { once: true },
+          );
+        },
+      }),
+      { status: 503 },
+    );
+  });
+  t.after(() => harness.poller.dispose());
+  await harness.start();
+  failing = true;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    await harness.runNext();
+    assert.equal(releasedBodies, attempt);
+    assert.equal(harness.received.length, 1);
+  }
+  assert.equal(harness.nextDelay(), POLL_INTERVAL_BACKOFF);
+  failing = false;
+  await harness.runNext();
+  assert.equal(harness.received.length, 2);
+  assert.equal(harness.nextDelay(), POLL_INTERVAL_ACTIVE);
+});
+
 test("Spotify's timeout covers a stalled JSON body and does not count as a persistent error", async () => {
   const harness = pollerHarness(
     async (signal) =>

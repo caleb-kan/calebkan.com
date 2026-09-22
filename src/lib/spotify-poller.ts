@@ -64,8 +64,11 @@ export function createSpotifyPoller(
       const response = await runtime.fetch(API_URL, {
         signal: controller.signal,
       });
-      if (!response.ok)
+      if (!response.ok) {
+        // Release the unused body before clearing the request deadline.
+        controller.abort();
         throw new Error(`Spotify returned HTTP ${response.status}`);
+      }
       // The deadline includes body consumption, which can stall after headers arrive.
       const json: unknown = await response.json().catch((error: unknown) => {
         if (isAbortError(error)) throw error;
