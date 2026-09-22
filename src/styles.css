@@ -1,3 +1,9 @@
+/* Keep the existing browser defaults; Tailwind Preflight is intentionally omitted. */
+@layer theme, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+@source "./**/*.{ts,tsx}";
+
 *,
 *::before,
 *::after {
@@ -37,7 +43,7 @@
   --spotify-card-width: 280px;
   --album-art-size: 160px;
   --radius-album-art: 12px;
-  /* Match the 743 x 99 SVG viewBox in github-calendar.js. Reserve its space
+  /* Match the 743 x 99 SVG viewBox in src/lib/github-calendar.ts. Reserve its space
      before the request completes so the centered card never jumps. */
   --calendar-aspect-ratio: 743 / 99;
 
@@ -112,7 +118,7 @@
   --transition-hover: var(--transition-hover-duration) ease;
   --transition-thumb-easing: cubic-bezier(0.4, 0, 0.2, 1);
 
-  /* Spotify progress bar: must equal POLL_INTERVAL_ACTIVE in spotify.js so the bar animates smoothly between polls */
+  /* Spotify progress bar: must equal POLL_INTERVAL_ACTIVE in src/lib/spotify.ts so the bar animates smoothly between polls */
   --spotify-progress-duration: 1s;
 
   /* Social links */
@@ -187,9 +193,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @apply flex items-center justify-center;
   padding: var(--body-padding-v) var(--body-padding-h);
   color: var(--text-color);
 }
@@ -319,8 +323,7 @@ html.dark .theme-toggle .moon {
 #github-calendar {
   margin: 0;
   aspect-ratio: var(--calendar-aspect-ratio);
-  display: grid;
-  place-items: center;
+  @apply grid place-items-center;
 }
 
 #github-calendar svg {
@@ -384,15 +387,12 @@ html.dark .theme-toggle .moon {
 .card-main {
   width: var(--card-max-width);
   max-width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  @apply flex justify-center items-center;
 }
 
 .card-spotify {
   width: var(--spotify-card-width);
-  display: flex;
-  flex-direction: column;
+  @apply flex flex-col;
 }
 
 /*
@@ -400,8 +400,7 @@ html.dark .theme-toggle .moon {
  */
 .card-inner {
   width: var(--card-inner-width);
-  display: flex;
-  flex-direction: column;
+  @apply flex flex-col;
   gap: var(--card-inner-gap);
 }
 
@@ -413,17 +412,13 @@ html.dark .theme-toggle .moon {
  * Social links
  */
 .social-links {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @apply flex items-center justify-center;
   gap: var(--social-links-gap);
   margin: 0;
 }
 
 .social-links a {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  @apply inline-flex items-center justify-center;
   width: var(--touch-target-size);
   height: var(--touch-target-size);
   border-radius: 50%;
@@ -467,9 +462,7 @@ html.dark .spotify-header {
  * Spotify card specific styles
  */
 .spotify-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @apply flex items-center justify-center;
   gap: var(--spotify-header-gap);
   margin: 0 0 var(--spotify-header-margin-bottom);
   font-size: var(--spotify-font-size-label);
@@ -485,8 +478,7 @@ html.dark .spotify-header {
 }
 
 .spotify-content {
-  display: flex;
-  flex-direction: column;
+  @apply flex flex-col;
   align-items: center;
   gap: var(--spotify-content-gap);
 }
@@ -531,8 +523,8 @@ html.dark .spotify-header {
 }
 
 /* Marquee animation for overflowing text.
-   --marquee-offset and --marquee-duration are set by spotify.js.
-   The 35% movement phase (10%-45%, 55%-90%) must match MARQUEE_MOVE_FRACTION in spotify.js.
+   --marquee-offset and --marquee-duration are set by src/components/spotify-card.tsx.
+   The 35% movement phase (10%-45%, 55%-90%) must match MARQUEE_MOVE_FRACTION in src/lib/spotify.ts.
    Text is wrapped in a .marquee-inner span so the outer element's overflow: hidden
    clips the scrolling content (animating the outer element moves its clip rect too). */
 .spotify-title.marquee,

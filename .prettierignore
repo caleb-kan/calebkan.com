@@ -6,3 +6,9 @@ CLAUDE.md
 dist/
 node_modules/
 package-lock.json
+
+# Generated browser assets, types, and test output
+public/theme-boot.js
+worker-configuration.d.ts
+playwright-report/
+test-results/

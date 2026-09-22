@@ -1,3 +1,6 @@
+import { isAbortError, isRecord } from "./types";
+import type { ContributionsResponse, GitHubEnv } from "./types";
+
 const GITHUB_USERNAME = "caleb-kan";
 const GITHUB_USER_AGENT = "calebkan.com";
 const GITHUB_GRAPHQL_API = "https://api.github.com/graphql";
@@ -12,7 +15,7 @@ const HTTP_METHOD_NOT_ALLOWED = 405;
 const HTTP_INTERNAL_SERVER_ERROR = 500;
 const ALLOWED_METHOD = "GET";
 
-let cachedData = null;
+let cachedData: ContributionsResponse | null = null;
 let cacheExpiresAt = 0;
 
 const CONTRIBUTIONS_QUERY = `
@@ -32,7 +35,10 @@ query($username: String!) {
 }
 `;
 
-async function fetchWithTimeout(url, options) {
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit,
+): Promise<unknown> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
@@ -44,8 +50,8 @@ async function fetchWithTimeout(url, options) {
       throw new Error(`GitHub API failed: ${response.status}`);
     }
     // Keep the deadline active until the entire body has arrived.
-    return await response.json().catch((parseError) => {
-      if (parseError.name === "AbortError") throw parseError;
+    return await response.json().catch((parseError: unknown) => {
+      if (isAbortError(parseError)) throw parseError;
       throw new Error("GitHub API returned non-JSON response", {
         cause: parseError,
       });
@@ -55,7 +61,9 @@ async function fetchWithTimeout(url, options) {
   }
 }
 
-async function fetchContributions(env) {
+async function fetchContributions(
+  env: GitHubEnv,
+): Promise<ContributionsResponse> {
   const GITHUB_TOKEN = env.GITHUB_TOKEN;
   if (!GITHUB_TOKEN) {
     throw new Error("Missing GITHUB_TOKEN environment variable");
@@ -78,25 +86,45 @@ async function fetchContributions(env) {
     }),
   });
 
-  if (json.errors && json.errors.length > 0) {
-    const msg = json.errors[0].message || JSON.stringify(json.errors[0]);
+  if (!isRecord(json)) {
+    throw new Error("GitHub API returned an invalid response");
+  }
+
+  if (Array.isArray(json.errors) && json.errors.length > 0) {
+    const firstError: unknown = json.errors[0];
+    const msg =
+      (isRecord(firstError) && firstError.message) ||
+      JSON.stringify(firstError);
     throw new Error(`GitHub API error: ${msg}`);
   }
 
-  if (!json.data?.user) {
+  if (!isRecord(json.data) || !isRecord(json.data.user)) {
     throw new Error(
       `GitHub user "${GITHUB_USERNAME}" not found or not accessible`,
     );
   }
-  const calendar = json.data.user.contributionsCollection?.contributionCalendar;
-  if (!calendar) {
+  const collection = json.data.user.contributionsCollection;
+  const calendar = isRecord(collection) && collection.contributionCalendar;
+  if (!isRecord(calendar) || !Array.isArray(calendar.weeks)) {
     throw new Error("GitHub API response missing contribution calendar data");
   }
 
   // Transform to expected format: { contributions: [{ date, count }] }
-  const contributions = [];
-  for (const week of calendar.weeks) {
-    for (const day of week.contributionDays) {
+  const contributions: ContributionsResponse["contributions"] = [];
+  const weeks: unknown[] = calendar.weeks;
+  for (const week of weeks) {
+    if (!isRecord(week) || !Array.isArray(week.contributionDays)) {
+      throw new Error("GitHub API response has invalid contribution weeks");
+    }
+    const days: unknown[] = week.contributionDays;
+    for (const day of days) {
+      if (
+        !isRecord(day) ||
+        typeof day.date !== "string" ||
+        typeof day.contributionCount !== "number"
+      ) {
+        throw new Error("GitHub API response has invalid contribution days");
+      }
       contributions.push({
         date: day.date,
         count: day.contributionCount,
@@ -111,7 +139,10 @@ async function fetchContributions(env) {
   return data;
 }
 
-export default async function handler(request, env) {
+export default async function handler(
+  request: Request,
+  env: GitHubEnv,
+): Promise<Response> {
   if (request.method !== ALLOWED_METHOD) {
     return Response.json(
       { error: "Method not allowed" },

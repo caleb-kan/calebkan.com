@@ -1,5 +1,5 @@
-import githubContributions from "../api/github-contributions.js";
-import nowPlaying from "../api/now-playing.js";
+import githubContributions from "../api/github-contributions";
+import nowPlaying from "../api/now-playing";
 
 const APEX_HOST = "calebkan.com";
 const CANONICAL_ORIGIN = "https://www.calebkan.com";
@@ -21,7 +21,7 @@ const SECURITY_HEADERS = {
   "Content-Security-Policy": "frame-ancestors 'none'",
 };
 
-function withHeaders(response, isApi) {
+function withHeaders(response: Response, isApi: boolean): Response {
   const result = new Response(response.body, response);
   for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
     result.headers.set(name, value);
@@ -33,7 +33,11 @@ function withHeaders(response, isApi) {
   return result;
 }
 
-async function githubResponse(request, env, ctx) {
+async function githubResponse(
+  request: Request,
+  env: Env,
+  ctx: Pick<ExecutionContext, "waitUntil">,
+): Promise<Response> {
   if (request.method !== "GET") return githubContributions(request, env);
 
   // Query strings do not change this public endpoint. Normalize the key so
@@ -41,7 +45,7 @@ async function githubResponse(request, env, ctx) {
   const url = new URL(request.url);
   url.search = "";
   const key = new Request(url);
-  const cache = globalThis.caches?.default;
+  const cache = typeof caches === "undefined" ? undefined : caches.default;
   try {
     const cached = await cache?.match(key);
     if (cached) return cached;
@@ -63,7 +67,11 @@ async function githubResponse(request, env, ctx) {
 }
 
 export default {
-  async fetch(request, env, ctx) {
+  async fetch(
+    request: Request,
+    env: Env,
+    ctx: Pick<ExecutionContext, "waitUntil">,
+  ): Promise<Response> {
     const url = new URL(request.url);
     const isApi = url.pathname.startsWith(API_PREFIX);
     try {
@@ -72,12 +80,12 @@ export default {
         destination.pathname = url.pathname;
         destination.search = url.search;
         return withHeaders(
-          Response.redirect(destination, HTTP_PERMANENT_REDIRECT),
+          Response.redirect(destination.toString(), HTTP_PERMANENT_REDIRECT),
           isApi,
         );
       }
 
-      let response;
+      let response: Response;
       if (url.pathname === GITHUB_PATH) {
         response = await githubResponse(request, env, ctx);
       } else if (url.pathname === SPOTIFY_PATH) {
@@ -111,4 +119,4 @@ export default {
       );
     }
   },
-};
+} satisfies ExportedHandler<Env>;

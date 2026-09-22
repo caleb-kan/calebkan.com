@@ -1,11 +1,7 @@
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
-import { mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 import test from "node:test";
-import { buildAssets } from "../scripts/build-assets.mjs";
-import worker from "../worker/index.js";
+import type { TestContext } from "node:test";
+import worker from "../worker/index";
 
 const ORIGIN = "https://www.calebkan.com";
 const GITHUB_PATH = "/api/github-contributions";
@@ -48,7 +44,7 @@ function githubData(count = 3) {
   });
 }
 
-function assertHeaders(response, isApi = false) {
+function assertHeaders(response: Response, isApi = false) {
   for (const [name, expected] of Object.entries(SECURITY_HEADERS)) {
     assert.equal(response.headers.get(name), expected, name);
   }
@@ -62,26 +58,32 @@ function assertHeaders(response, isApi = false) {
 // A two-hour step expires both APIs' warm-instance state between tests while
 // keeping requests within a test on the same real Worker module instance.
 let testTime = Date.UTC(2026, 8, 21);
-function setup(t, fetcher = async () => githubData()) {
+function setup(
+  t: TestContext,
+  fetcher: (
+    url: RequestInfo | URL,
+    options?: RequestInit,
+  ) => Promise<Response> = async () => githubData(),
+) {
   testTime += 2 * 60 * 60 * 1000;
   t.mock.timers.enable({ apis: ["Date"], now: testTime });
   t.mock.method(globalThis, "fetch", fetcher);
   t.mock.method(console, "error", () => {});
-  const entries = new Map();
-  const reads = [];
-  const writes = [];
+  const entries = new Map<string, { response: Response; expiresAt: number }>();
+  const reads: string[] = [];
+  const writes: string[] = [];
   const cache = {
-    async match(key) {
+    async match(key: Request): Promise<Response | undefined> {
       reads.push(key.url);
       const entry = entries.get(key.url);
       return entry && entry.expiresAt > Date.now()
         ? entry.response.clone()
         : undefined;
     },
-    async put(key, response) {
+    async put(key: Request, response: Response): Promise<void> {
       writes.push(key.url);
       const seconds = Number(
-        response.headers.get("Cache-Control").match(/s-maxage=(\d+)/)?.[1],
+        response.headers.get("Cache-Control")?.match(/s-maxage=(\d+)/)?.[1],
       );
       entries.set(key.url, {
         response: response.clone(),
@@ -98,14 +100,21 @@ function setup(t, fetcher = async () => githubData()) {
     if (originalCaches) {
       Object.defineProperty(globalThis, "caches", originalCaches);
     } else {
-      delete globalThis.caches;
+      Reflect.deleteProperty(globalThis, "caches");
     }
   });
-  const pending = [];
-  const ctx = { waitUntil: (promise) => pending.push(promise) };
-  const env = {
+  const pending: Promise<unknown>[] = [];
+  const ctx: Pick<ExecutionContext, "waitUntil"> = {
+    waitUntil: (promise: Promise<unknown>) => {
+      pending.push(promise);
+    },
+  };
+  const env: Env = {
     ...SECRETS,
     ASSETS: {
+      connect() {
+        throw new Error("Unexpected static asset connection");
+      },
       async fetch() {
         throw new Error("Unexpected static asset request");
       },
@@ -117,7 +126,7 @@ function setup(t, fetcher = async () => githubData()) {
     entries,
     reads,
     writes,
-    fetch: (path, options) =>
+    fetch: (path: string, options?: RequestInit) =>
       worker.fetch(new Request(new URL(path, ORIGIN), options), env, ctx),
     flush: () => Promise.all(pending),
   };
@@ -125,13 +134,14 @@ function setup(t, fetcher = async () => githubData()) {
 
 test("static assets retain their bodies and headers with every security header", async (t) => {
   const app = setup(t);
-  app.env.ASSETS.fetch = async (request) => {
-    assert.equal(request.url, `${ORIGIN}/jemdoc.css?v=1`);
+  app.env.ASSETS.fetch = async (input) => {
+    const request = input instanceof Request ? input : new Request(input);
+    assert.equal(request.url, `${ORIGIN}/assets/main-test.css?v=1`);
     return new Response("body { color: red; }", {
       headers: { "Content-Type": "text/css", ETag: '"asset-version"' },
     });
   };
-  const response = await app.fetch("/jemdoc.css?v=1");
+  const response = await app.fetch("/assets/main-test.css?v=1");
   assert.equal(response.status, 200);
   assert.equal(await response.text(), "body { color: red; }");
   assert.equal(response.headers.get("Content-Type"), "text/css");
@@ -146,7 +156,8 @@ for (const [path, assetPath] of [
 ]) {
   test(`${path} resolves the intended HTML asset without dropping its query`, async (t) => {
     const app = setup(t);
-    app.env.ASSETS.fetch = async (request) => {
+    app.env.ASSETS.fetch = async (input) => {
+      const request = input instanceof Request ? input : new Request(input);
       assert.equal(request.url, `${ORIGIN}${assetPath}`);
       assert.equal(request.headers.get("If-None-Match"), '"previous-version"');
       return new Response("<html></html>", {
@@ -256,7 +267,7 @@ test("refilling edge cache cannot extend GitHub's warm-cache lifetime", async (t
   app.entries.clear();
   const warm = await app.fetch(GITHUB_PATH);
   await app.flush();
-  assert.match(warm.headers.get("Cache-Control"), /s-maxage=30/);
+  assert.match(warm.headers.get("Cache-Control") ?? "", /s-maxage=30/);
   assert.equal(calls, 1);
   t.mock.timers.tick(30001);
   const fresh = await app.fetch(GITHUB_PATH);
@@ -298,7 +309,7 @@ test("Spotify stays uncached and supplies headers on playback and errors", async
   for (const expectedStatus of [200, 200, 500]) {
     const response = await app.fetch(SPOTIFY_PATH);
     assert.equal(response.status, expectedStatus);
-    assert.match(response.headers.get("Cache-Control"), /no-store/);
+    assert.match(response.headers.get("Cache-Control") ?? "", /no-store/);
     assertHeaders(response, true);
   }
   assert.equal(playbackCalls, 3);
@@ -306,7 +317,7 @@ test("Spotify stays uncached and supplies headers on playback and errors", async
   assert.equal(app.writes.length, 0);
 });
 
-for (const operation of ["match", "put"]) {
+for (const operation of ["match", "put"] as const) {
   test(`GitHub remains available if edge cache ${operation} fails`, async (t) => {
     const app = setup(t);
     app.cache[operation] = async () => {
@@ -321,59 +332,3 @@ for (const operation of ["match", "put"]) {
     await app.flush();
   });
 }
-
-async function listFiles(directory, prefix = "") {
-  const files = [];
-  for (const entry of await readdir(directory, { withFileTypes: true })) {
-    const relative = `${prefix}${entry.name}`;
-    if (entry.isDirectory()) {
-      files.push(
-        ...(await listFiles(join(directory, entry.name), `${relative}/`)),
-      );
-    } else {
-      files.push(relative);
-    }
-  }
-  return files.sort();
-}
-
-test("the asset build publishes only public files and preserves callback CSP hashes", async (t) => {
-  const output = await mkdtemp(join(tmpdir(), "calebkan-assets-test-"));
-  t.after(() => rm(output, { recursive: true, force: true }));
-  await writeFile(
-    join(output, "stale-private-file.txt"),
-    "must not be published",
-  );
-  await buildAssets(output);
-  const expected = [
-    "callback.html",
-    "favicon/favicon.png",
-    "index.html",
-    "jemdoc.css",
-    "js/github-calendar.js",
-    "js/spotify.js",
-    "js/theme-boot.js",
-    "js/theme-toggle.js",
-  ];
-  assert.deepEqual(await listFiles(output), expected);
-  for (const file of expected) {
-    assert.deepEqual(
-      await readFile(join(output, file)),
-      await readFile(new URL(`../${file}`, import.meta.url)),
-      `${file} must remain byte-for-byte identical`,
-    );
-  }
-  const callback = await readFile(join(output, "callback.html"), "utf8");
-  const csp = callback.match(
-    /http-equiv="Content-Security-Policy"\s+content="([^"]+)"/,
-  )?.[1];
-  assert.ok(csp);
-  for (const tag of ["script", "style"]) {
-    const content = callback.match(
-      new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`),
-    )?.[1];
-    assert.ok(content, `Missing inline ${tag}`);
-    const hash = createHash("sha256").update(content).digest("base64");
-    assert.ok(csp.includes(`'sha256-${hash}'`), `${tag} CSP hash must match`);
-  }
-});
