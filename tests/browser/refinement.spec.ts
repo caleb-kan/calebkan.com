@@ -10,14 +10,22 @@ async function calendarGeometry(page: Page) {
   );
 }
 
-for (const width of [1440, 375, 320]) {
-  test(`email label shares the address baseline at ${width}px`, async ({
+for (const { width, font } of [
+  { width: 1440, font: "system-ui" },
+  { width: 375, font: "system-ui" },
+  { width: 320, font: "system-ui" },
+  { width: 320, font: "Verdana" },
+]) {
+  test(`email label shares the address baseline at ${width}px with ${font}`, async ({
     page,
   }) => {
     await page.setViewportSize({ width, height: 1000 });
     await mockServices(page);
     await page.goto("/");
-    await page.evaluate(() => document.fonts.ready);
+    await page.evaluate(async (family) => {
+      document.body.style.fontFamily = family;
+      await document.fonts.ready;
+    }, font);
     const baselines = await page
       .locator(".contact-line > *")
       .evaluateAll((elements) =>
@@ -159,46 +167,50 @@ test("Spotify text enlarges without overflowing the narrow player", async ({
   }
 });
 
-test("the enlarged scrolling control wraps between its words", async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 320, height: 1000 });
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  await mockServices(page, true);
-  await page.goto("/");
-  await page.evaluate(async () => {
-    document.documentElement.style.fontSize = "200%";
-    await new Promise<void>((resolve) =>
-      requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
-    );
-  });
-  const control = page.getByRole("button", {
-    name: "Pause text or resume text",
-  });
-  await expect(control).toBeVisible();
-  await control.click();
-  await expect(control).toHaveText("Resume text");
-  const label = await control.locator("span").evaluate((element) => {
-    const text = element.firstChild;
-    if (!text || text.nodeType !== Node.TEXT_NODE) {
-      throw new Error(
-        "The text-scrolling control must retain its visible label",
+for (const font of ["system-ui", "Verdana"]) {
+  test(`the enlarged scrolling control wraps between its words with ${font}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 320, height: 1000 });
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await mockServices(page, true);
+    await page.goto("/");
+    await page.evaluate(async (family) => {
+      document.body.style.fontFamily = family;
+      document.documentElement.style.fontSize = "200%";
+      await document.fonts.ready;
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
       );
-    }
-    const range = document.createRange();
-    range.setStart(text, 0);
-    range.setEnd(text, "Resume".length);
-    return {
-      wordLines: range.getClientRects().length,
-      label: element.getBoundingClientRect().toJSON(),
-      control: element.parentElement?.getBoundingClientRect().toJSON(),
-    };
+    }, font);
+    const control = page.getByRole("button", {
+      name: "Pause text or resume text",
+    });
+    await expect(control).toBeVisible();
+    await control.click();
+    await expect(control).toHaveText("Resume text");
+    const label = await control.locator("span").evaluate((element) => {
+      const text = element.firstChild;
+      if (!text || text.nodeType !== Node.TEXT_NODE) {
+        throw new Error(
+          "The text-scrolling control must retain its visible label",
+        );
+      }
+      const range = document.createRange();
+      range.setStart(text, 0);
+      range.setEnd(text, "Resume".length);
+      return {
+        wordLines: range.getClientRects().length,
+        label: element.getBoundingClientRect().toJSON(),
+        control: element.parentElement?.getBoundingClientRect().toJSON(),
+      };
+    });
+    expect(label.wordLines).toBe(1);
+    expect(label.control).toBeDefined();
+    expect(label.label.right).toBeLessThanOrEqual(label.control.right);
+    expect(label.control.height).toBeGreaterThanOrEqual(44);
   });
-  expect(label.wordLines).toBe(1);
-  expect(label.control).toBeDefined();
-  expect(label.label.right).toBeLessThanOrEqual(label.control.right);
-  expect(label.control.height).toBeGreaterThanOrEqual(44);
-});
+}
 
 for (const width of [320, 375]) {
   for (const textSize of ["100%", "200%"]) {

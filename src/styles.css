@@ -683,6 +683,7 @@ html.dark .card-spotify {
 
 .spotify-text-toggle {
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   gap: 6px;
@@ -720,7 +721,7 @@ html.dark .card-spotify {
 
 .spotify-text-toggle span {
   min-width: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
 }
 
 @keyframes marquee {
@@ -824,8 +825,12 @@ html.dark .card-spotify {
   }
 
   .card-main {
-    --card-padding: 64px 24px 28px;
+    --card-padding: 64px 20px 28px;
     --toggle-inset: 16px;
+  }
+
+  .contact-line {
+    column-gap: 8px;
   }
 
   .card-spotify {
