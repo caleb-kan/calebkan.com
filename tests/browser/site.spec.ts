@@ -48,7 +48,7 @@ for (const theme of ["dark", "light"]) {
         "naturalWidth",
         1,
       );
-      // Isolate theme geometry from the separate network-loaded icon fonts.
+      // Wait for the self-hosted heading font before comparing theme geometry.
       await page.evaluate(() => document.fonts.ready);
       const geometry = await page.evaluate(() => {
         const main = document
@@ -60,6 +60,9 @@ for (const theme of ["dark", "light"]) {
         return {
           overflow: document.documentElement.scrollWidth > window.innerWidth,
           stacked: spotify.top >= main.bottom,
+          spotifyWidth: spotify.width,
+          spotifyCenter: spotify.x + spotify.width / 2,
+          mainCenter: main.x + main.width / 2,
           main: {
             x: main.x,
             y: main.y,
@@ -78,7 +81,9 @@ for (const theme of ["dark", "light"]) {
         };
       });
       expect(geometry.overflow).toBe(false);
-      expect(geometry.stacked).toBe(width <= 1100);
+      expect(geometry.stacked).toBe(true);
+      expect(geometry.spotifyWidth).toBe(geometry.main.width);
+      expect(geometry.spotifyCenter).toBe(geometry.mainCenter);
       expect(geometry.albumWidth).toBe(width <= 600 ? 120 : 160);
       expect(geometry.opacity).toBe("1");
       expect(geometry.backdrop).toContain("blur(16px)");
@@ -185,6 +190,8 @@ test("unsafe playback URLs are inert and broken art falls back", async ({
 test("long tracks scroll together and reduced motion disables marquee", async ({
   page,
 }) => {
+  await page.setViewportSize({ width: 375, height: 1000 });
+  await page.emulateMedia({ reducedMotion: "no-preference" });
   await mockServices(page);
   await page.route("**/api/now-playing", (route) =>
     route.fulfill({
@@ -215,18 +222,140 @@ test("long tracks scroll together and reduced motion disables marquee", async ({
   await expect(page.locator("#spotify-title")).toHaveClass(/marquee/);
 });
 
+test("text scrolling can be paused persistently and resumed across track updates", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 1000 });
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await mockServices(page);
+  let track = {
+    ...playing,
+    title: "A very long track title that overflows the narrow Spotify player",
+    artist: "A very long artist name that also overflows the Spotify player",
+  };
+  await page.route("**/api/now-playing", (route) =>
+    route.fulfill({ json: track }),
+  );
+  await page.goto("/");
+  const control = page.getByRole("button", {
+    name: "Pause text or resume text",
+  });
+  await expect(control).toBeVisible();
+  await expect(control).toHaveAttribute("aria-pressed", "false");
+  await expect(control).toHaveText("Pause text");
+  await control.click();
+  await expect(control).toHaveAttribute("aria-pressed", "true");
+  await expect(control).toHaveText("Resume text");
+  await page.getByRole("button", { name: "Dark mode" }).focus();
+  const pausedTimes = await page
+    .locator(".marquee-inner")
+    .evaluateAll((spans) =>
+      spans.map((span) => {
+        const animation = span.getAnimations()[0];
+        return { state: animation.playState, time: animation.currentTime };
+      }),
+    );
+  expect(pausedTimes).toHaveLength(2);
+  expect(pausedTimes.every((animation) => animation.state === "paused")).toBe(
+    true,
+  );
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      ),
+  );
+  expect(
+    await page.locator(".marquee-inner").evaluateAll((spans) =>
+      spans.map((span) => {
+        const animation = span.getAnimations()[0];
+        return { state: animation.playState, time: animation.currentTime };
+      }),
+    ),
+  ).toEqual(pausedTimes);
+
+  track = {
+    ...track,
+    title: "Another very long title that overflows the narrow Spotify player",
+    songUrl: "https://open.spotify.com/track/next-review-track",
+  };
+  await expect(page.locator("#spotify-title")).toHaveText(track.title);
+  await expect(control).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("#spotify-title .marquee-inner")).toHaveCSS(
+    "animation-play-state",
+    "paused",
+  );
+  await control.click();
+  await expect(control).toHaveAttribute("aria-pressed", "false");
+  await expect(control).toHaveText("Pause text");
+  await expect(page.locator("#spotify-title .marquee-inner")).toHaveCSS(
+    "animation-play-state",
+    "running",
+  );
+});
+
+for (const change of [
+  "resize",
+  "reduced motion",
+  "short track",
+  "inert track",
+]) {
+  test(`scrolling control rescues focus when ${change} removes it`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 375, height: 1000 });
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await mockServices(page);
+    let track = {
+      ...playing,
+      title: "Long title that overflows the narrow player",
+    };
+    await page.route("**/api/now-playing", (route) =>
+      route.fulfill({ json: track }),
+    );
+    await page.goto("/");
+    const control = page.getByRole("button", {
+      name: "Pause text or resume text",
+    });
+    await expect(control).toBeVisible();
+    await control.focus();
+    await expect(control).toBeFocused();
+
+    if (change === "resize") {
+      await page.setViewportSize({ width: 1100, height: 1000 });
+    } else if (change === "reduced motion") {
+      await page.emulateMedia({ reducedMotion: "reduce" });
+    } else {
+      track = {
+        ...track,
+        title: "Short",
+        artist: "Artist",
+        songUrl:
+          change === "inert track"
+            ? "javascript:alert(1)"
+            : "https://open.spotify.com/track/short-review-track",
+      };
+      await expect(page.locator("#spotify-title")).toHaveText(track.title);
+    }
+    await expect(control).toHaveCount(0);
+    await expect(
+      page.locator(change === "inert track" ? "#page-title" : "#spotify-title"),
+    ).toBeFocused();
+  });
+}
+
 test("Spotify measures long titles when its stylesheet arrives after hydration", async ({
   page,
 }) => {
-  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.setViewportSize({ width: 375, height: 1000 });
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await mockServices(page);
   await page.route("**/api/now-playing", (route) =>
     route.fulfill({
       json: {
         ...playing,
-        // Wide enough to overflow the side card, short enough to fit the
-        // stacked card with either macOS or Linux system-font metrics.
+        // Overflow the narrow player's metadata column while fitting the
+        // expanded player with either macOS or Linux system-font metrics.
         title: "A long track title that overflows the narrow Spotify card",
         artist: "A very long artist name that also overflows the Spotify card",
       },

@@ -9,6 +9,9 @@ import {
 } from "./spotify";
 
 const API_URL = "/api/now-playing";
+const HTTP_TOO_MANY_REQUESTS = 429;
+const MAX_RETRY_AFTER_SECONDS = 3600;
+const MS_PER_S = 1000;
 
 interface ScheduledTask {
   cancel(): void;
@@ -47,6 +50,7 @@ export function createSpotifyPoller(
   let inFlight = false;
   let hidden = true;
   let consecutiveErrors = 0;
+  let retryAt = 0;
   let resumedFromHidden = false;
   let nextPoll: ScheduledTask | null = null;
   let requestTimeout: ScheduledTask | null = null;
@@ -67,6 +71,18 @@ export function createSpotifyPoller(
       if (!response.ok) {
         // Release the unused body before clearing the request deadline.
         controller.abort();
+        if (response.status === HTTP_TOO_MANY_REQUESTS) {
+          const header = response.headers.get("Retry-After");
+          const seconds =
+            header && /^\d+$/.test(header.trim()) ? Number(header) : NaN;
+          if (Number.isSafeInteger(seconds) && seconds > 0) {
+            retryAt = Math.max(
+              retryAt,
+              runtime.now() +
+                Math.min(seconds, MAX_RETRY_AFTER_SECONDS) * MS_PER_S,
+            );
+          }
+        }
         throw new Error(`Spotify returned HTTP ${response.status}`);
       }
       // The deadline includes body consumption, which can stall after headers arrive.
@@ -78,6 +94,7 @@ export function createSpotifyPoller(
       });
       const data = parseSpotifyData(json);
       consecutiveErrors = 0;
+      retryAt = 0;
       return data;
     } catch (error) {
       if (disposed) return null;
@@ -104,9 +121,21 @@ export function createSpotifyPoller(
     }
   }
 
+  function schedulePoll(delay: number) {
+    nextPoll = runtime.schedule(() => {
+      nextPoll = null;
+      void pollOnce();
+    }, delay);
+  }
+
   async function pollOnce(): Promise<void> {
     if (!active || inFlight || disposed) return;
     const started = runtime.now();
+    // Visibility changes may cancel the timer, but cannot bypass its cooldown.
+    if (retryAt > started) {
+      schedulePoll(retryAt - started);
+      return;
+    }
     inFlight = true;
     try {
       const data = await fetchNowPlaying();
@@ -128,11 +157,10 @@ export function createSpotifyPoller(
               : POLL_INTERVAL_ACTIVE;
         if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS)
           resumedFromHidden = false;
-        const delay = Math.max(0, interval - (runtime.now() - started));
-        nextPoll = runtime.schedule(() => {
-          nextPoll = null;
-          void pollOnce();
-        }, delay);
+        const now = runtime.now();
+        // Retry-After begins when response headers arrive, not at request start.
+        const delay = Math.max(0, interval - (now - started), retryAt - now);
+        schedulePoll(delay);
       }
     }
   }

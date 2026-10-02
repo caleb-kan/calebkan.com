@@ -17,6 +17,7 @@ const ALLOWED_METHOD = "GET";
 
 let cachedData: ContributionsResponse | null = null;
 let cacheExpiresAt = 0;
+let contributionsRequest: Promise<ContributionsResponse> | null = null;
 
 const CONTRIBUTIONS_QUERY = `
 query($username: String!) {
@@ -75,11 +76,25 @@ async function fetchContributions(
   if (cachedData && now < cacheExpiresAt) {
     return cachedData;
   }
+  if (contributionsRequest) return contributionsRequest;
 
+  const pending = fetchFreshContributions(GITHUB_TOKEN, now);
+  contributionsRequest = pending;
+  try {
+    return await pending;
+  } finally {
+    if (contributionsRequest === pending) contributionsRequest = null;
+  }
+}
+
+async function fetchFreshContributions(
+  token: string,
+  requestedAt: number,
+): Promise<ContributionsResponse> {
   const json = await fetchWithTimeout(GITHUB_GRAPHQL_API, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${GITHUB_TOKEN}`,
+      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
       "User-Agent": GITHUB_USER_AGENT,
     },
@@ -137,7 +152,7 @@ async function fetchContributions(
 
   const data = { contributions };
   cachedData = data;
-  cacheExpiresAt = now + CACHE_DURATION_SECONDS * MS_PER_S;
+  cacheExpiresAt = requestedAt + CACHE_DURATION_SECONDS * MS_PER_S;
 
   return data;
 }

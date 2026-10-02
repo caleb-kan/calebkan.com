@@ -9,6 +9,8 @@ const MS_PER_S = 1000;
 const SECONDS_PER_MINUTE = 60;
 const TOKEN_REFRESH_MARGIN_MS = SECONDS_PER_MINUTE * MS_PER_S; // Re-fetch access token 60s before expiry to avoid clock-skew failures
 const DEFAULT_TOKEN_EXPIRY_S = 3600;
+const DEFAULT_RETRY_AFTER_SECONDS = 30;
+const MAX_RETRY_AFTER_SECONDS = 3600;
 const ALBUM_ART_TARGET_PX = 300; // Spotify medium size; close to 2x the 160px CSS display size for retina clarity
 const FALLBACK_TEXT = "Unknown";
 const HTTP_OK = 200;
@@ -16,16 +18,39 @@ const HTTP_NO_CONTENT = 204;
 const HTTP_CLIENT_ERROR_MIN = 400;
 const HTTP_UNAUTHORIZED = 401;
 const HTTP_METHOD_NOT_ALLOWED = 405;
+const HTTP_TOO_MANY_REQUESTS = 429;
 const HTTP_INTERNAL_SERVER_ERROR = 500;
 const ALLOWED_METHOD = "GET";
 
 let cachedToken: string | null = null;
 let tokenExpiresAt = 0;
+let tokenRequest: Promise<string> | null = null;
+// Coordinate upstream backoff across visitors without caching playback responses.
+let retryAt = 0;
+
+class SpotifyRateLimitError extends Error {
+  constructor(readonly retryAfterSeconds: number) {
+    super("Spotify upstream rate limit");
+  }
+}
+
+function cooldownRemainingSeconds(): number {
+  return Math.max(0, Math.ceil((retryAt - Date.now()) / MS_PER_S));
+}
+
+function parseRetryAfterSeconds(value: string | null): number {
+  const seconds = value && /^\d+$/.test(value.trim()) ? Number(value) : NaN;
+  return Number.isSafeInteger(seconds) && seconds > 0
+    ? Math.min(seconds, MAX_RETRY_AFTER_SECONDS)
+    : DEFAULT_RETRY_AFTER_SECONDS;
+}
 
 async function fetchWithTimeout(
   url: string,
   options: RequestInit,
 ): Promise<{ response: Response; data: unknown }> {
+  const remaining = cooldownRemainingSeconds();
+  if (remaining > 0) throw new SpotifyRateLimitError(remaining);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
@@ -36,6 +61,13 @@ async function fetchWithTimeout(
     // Release ignored error bodies before clearing the deadline or retrying a
     // 401. Aborting preserves the status without awaiting stream cancellation.
     if (!response.ok) controller.abort();
+    if (response.status === HTTP_TOO_MANY_REQUESTS) {
+      const seconds = parseRetryAfterSeconds(
+        response.headers.get("Retry-After"),
+      );
+      retryAt = Math.max(retryAt, Date.now() + seconds * MS_PER_S);
+      throw new SpotifyRateLimitError(cooldownRemainingSeconds());
+    }
     // Read successful JSON bodies inside the deadline. Leave 204 responses
     // unparsed so idle playback keeps its existing behavior.
     const data: unknown =
@@ -67,8 +99,29 @@ async function getAccessToken(env: SpotifyEnv): Promise<string> {
   if (cachedToken && now < tokenExpiresAt) {
     return cachedToken;
   }
+  if (tokenRequest) return tokenRequest;
 
-  const basic = btoa(`${CLIENT_ID}:${CLIENT_SECRET}`);
+  const pending = refreshAccessToken(
+    CLIENT_ID,
+    CLIENT_SECRET,
+    REFRESH_TOKEN,
+    now,
+  );
+  tokenRequest = pending;
+  try {
+    return await pending;
+  } finally {
+    if (tokenRequest === pending) tokenRequest = null;
+  }
+}
+
+async function refreshAccessToken(
+  clientId: string,
+  clientSecret: string,
+  refreshToken: string,
+  requestedAt: number,
+): Promise<string> {
+  const basic = btoa(`${clientId}:${clientSecret}`);
 
   const { response, data } = await fetchWithTimeout(TOKEN_ENDPOINT, {
     method: "POST",
@@ -78,7 +131,7 @@ async function getAccessToken(env: SpotifyEnv): Promise<string> {
     },
     body: new URLSearchParams({
       grant_type: "refresh_token",
-      refresh_token: REFRESH_TOKEN,
+      refresh_token: refreshToken,
     }),
   });
 
@@ -103,7 +156,8 @@ async function getAccessToken(env: SpotifyEnv): Promise<string> {
 
   cachedToken = data.access_token;
   const expiresInSeconds = Number(data.expires_in) || DEFAULT_TOKEN_EXPIRY_S;
-  tokenExpiresAt = now + expiresInSeconds * MS_PER_S - TOKEN_REFRESH_MARGIN_MS;
+  tokenExpiresAt =
+    requestedAt + expiresInSeconds * MS_PER_S - TOKEN_REFRESH_MARGIN_MS;
 
   return cachedToken;
 }
@@ -264,11 +318,16 @@ export default async function handler(
     return Response.json(nowPlaying, { status: HTTP_OK, headers });
   } catch (error) {
     console.error("Spotify API error:", error);
+    const rateLimited = error instanceof SpotifyRateLimitError;
     return Response.json(
       { error: "Failed to fetch now playing data" },
       {
-        status: HTTP_INTERNAL_SERVER_ERROR,
-        headers,
+        status: rateLimited
+          ? HTTP_TOO_MANY_REQUESTS
+          : HTTP_INTERNAL_SERVER_ERROR,
+        headers: rateLimited
+          ? { ...headers, "Retry-After": String(error.retryAfterSeconds) }
+          : headers,
       },
     );
   }

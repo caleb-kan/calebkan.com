@@ -173,6 +173,189 @@ test("GitHub failures return a generic error without public caching", async (t) 
   });
 });
 
+test("simultaneous GitHub cache misses share one upstream request", async (t) => {
+  let calls = 0;
+  const delayed = delayedResponse();
+  const handler = await loadHandler("github-contributions", t, async () => {
+    calls++;
+    return delayed.promise;
+  });
+  const pending = Array.from({ length: 12 }, () =>
+    handler(request("github-contributions"), testEnv),
+  );
+  await setImmediate();
+  assert.equal(calls, 1);
+  delayed.resolve(json(calendar));
+  for (const response of await Promise.all(pending)) {
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), {
+      contributions: [{ date: "2026-09-16", count: 3 }],
+    });
+  }
+});
+
+test("a failed shared GitHub request clears before the next attempt", async (t) => {
+  let calls = 0;
+  const delayed = delayedResponse();
+  const handler = await loadHandler("github-contributions", t, async () => {
+    return ++calls === 1 ? delayed.promise : json(calendar);
+  });
+  const pending = [
+    handler(request("github-contributions"), testEnv),
+    handler(request("github-contributions"), testEnv),
+  ];
+  await setImmediate();
+  assert.equal(calls, 1);
+  delayed.resolve(new Response(null, { status: 503 }));
+  for (const response of await Promise.all(pending)) {
+    assert.equal(response.status, 500);
+  }
+  const recovered = await handler(request("github-contributions"), testEnv);
+  assert.equal(recovered.status, 200);
+  assert.equal(calls, 2);
+});
+
+for (const expired of [false, true]) {
+  test(`simultaneous Spotify requests share one ${expired ? "expired" : "cold"} token refresh`, async (t) => {
+    t.mock.timers.enable({
+      apis: ["Date", "setTimeout"],
+      now: Date.UTC(2026, 9, 2),
+    });
+    let tokenCalls = 0;
+    let playbackCalls = 0;
+    const delayed = delayedResponse();
+    const expectedTokenCalls = expired ? 2 : 1;
+    const handler = await loadHandler("now-playing", t, async (url) => {
+      if (url === "https://accounts.spotify.com/api/token") {
+        return ++tokenCalls === expectedTokenCalls ? delayed.promise : token();
+      }
+      playbackCalls++;
+      return new Response(null, { status: 204 });
+    });
+    if (expired) {
+      await handler(request("now-playing"), testEnv);
+      t.mock.timers.tick(3600001);
+    }
+    const pending = Array.from({ length: 12 }, () =>
+      handler(request("now-playing"), testEnv),
+    );
+    await setImmediate();
+    assert.equal(tokenCalls, expectedTokenCalls);
+    delayed.resolve(token());
+    const responses = await Promise.all(pending);
+    assert.equal(playbackCalls, expired ? 13 : 12);
+    for (const response of responses) assert.equal(response.status, 200);
+  });
+}
+
+test("a failed shared Spotify token refresh clears before the next attempt", async (t) => {
+  let tokenCalls = 0;
+  const delayed = delayedResponse();
+  const handler = await loadHandler("now-playing", t, async (url) => {
+    if (url === "https://accounts.spotify.com/api/token") {
+      return ++tokenCalls === 1 ? delayed.promise : token();
+    }
+    return new Response(null, { status: 204 });
+  });
+  const pending = [
+    handler(request("now-playing"), testEnv),
+    handler(request("now-playing"), testEnv),
+  ];
+  await setImmediate();
+  assert.equal(tokenCalls, 1);
+  delayed.resolve(new Response(null, { status: 503 }));
+  for (const response of await Promise.all(pending)) {
+    assert.equal(response.status, 500);
+  }
+  const recovered = await handler(request("now-playing"), testEnv);
+  assert.equal(recovered.status, 200);
+  assert.equal(tokenCalls, 2);
+});
+
+for (const endpoint of ["token", "playback"]) {
+  test(`Spotify respects ${endpoint} Retry-After and recovers after the cooldown`, async (t) => {
+    t.mock.timers.enable({
+      apis: ["Date", "setTimeout"],
+      now: Date.UTC(2026, 9, 2),
+    });
+    let calls = 0;
+    let limited = true;
+    const handler = await loadHandler(
+      "now-playing",
+      t,
+      async (url, options) => {
+        calls++;
+        const isToken = url === "https://accounts.spotify.com/api/token";
+        if (limited && isToken === (endpoint === "token")) {
+          const signal = options?.signal;
+          assert.ok(signal);
+          return new Response(
+            new ReadableStream({
+              start(controller) {
+                signal.addEventListener(
+                  "abort",
+                  () =>
+                    controller.error(new DOMException("Aborted", "AbortError")),
+                  { once: true },
+                );
+              },
+            }),
+            { status: 429, headers: { "Retry-After": "120" } },
+          );
+        }
+        return isToken ? token() : new Response(null, { status: 204 });
+      },
+    );
+    const first = await handler(request("now-playing"), testEnv);
+    assert.equal(first.status, 429);
+    assert.equal(first.headers.get("Retry-After"), "120");
+    assert.match(first.headers.get("Cache-Control") ?? "", /no-store/);
+    assert.deepEqual(await first.json(), {
+      error: "Failed to fetch now playing data",
+    });
+    const initialCalls = calls;
+    const waiting = await handler(request("now-playing"), testEnv);
+    assert.equal(waiting.status, 429);
+    assert.equal(waiting.headers.get("Retry-After"), "120");
+    t.mock.timers.tick(119999);
+    const lastSecond = await handler(request("now-playing"), testEnv);
+    assert.equal(lastSecond.status, 429);
+    assert.equal(lastSecond.headers.get("Retry-After"), "1");
+    assert.equal(
+      calls,
+      initialCalls,
+      "Cooldown must suppress upstream requests",
+    );
+    t.mock.timers.tick(1);
+    limited = false;
+    const recovered = await handler(request("now-playing"), testEnv);
+    assert.equal(recovered.status, 200);
+    assert.equal(recovered.headers.get("Retry-After"), null);
+    assert.ok(calls > initialCalls);
+  });
+}
+
+for (const [header, expected] of [
+  [null, "30"],
+  ["invalid", "30"],
+  ["-2", "30"],
+  ["999999", "3600"],
+] as const) {
+  test(`Spotify bounds Retry-After ${JSON.stringify(header)} to ${expected} seconds`, async (t) => {
+    t.mock.timers.enable({ apis: ["Date"], now: Date.UTC(2026, 9, 2) });
+    const handler = await loadHandler("now-playing", t, async () => {
+      return new Response(null, {
+        status: 429,
+        headers: header === null ? undefined : { "Retry-After": header },
+      });
+    });
+    const response = await handler(request("now-playing"), testEnv);
+    assert.equal(response.status, 429);
+    assert.equal(response.headers.get("Retry-After"), expected);
+    assert.match(response.headers.get("Cache-Control") ?? "", /no-store/);
+  });
+}
+
 test("Spotify refreshes a rejected token once and preserves track and image selection", async (t) => {
   const queue = [
     token,

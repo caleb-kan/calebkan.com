@@ -16,9 +16,23 @@ interface CalendarGraphicProps {
 
 export function CalendarGraphic({ cells, isDark }: CalendarGraphicProps) {
   const { colors, stroke } = getCalendarColors(isDark);
+  const total = cells.reduce((sum, cell) => sum + cell.count, 0);
+  const activeDays = cells.filter((cell) => cell.count > 0).length;
+  const firstDate = cells.at(0)?.date;
+  const lastDate = cells.at(-1)?.date;
+  const summary =
+    firstDate && lastDate
+      ? `${total.toLocaleString("en-US")} ${total === 1 ? "contribution" : "contributions"} across ${activeDays} active ${activeDays === 1 ? "day" : "days"}, from ${firstDate} to ${lastDate}.`
+      : "No contribution data available.";
   return (
-    <svg viewBox={CALENDAR_VIEW_BOX} role="img" aria-labelledby="gh-cal-title">
+    <svg
+      viewBox={CALENDAR_VIEW_BOX}
+      role="img"
+      aria-labelledby="gh-cal-title"
+      aria-describedby="gh-cal-description"
+    >
       <title id="gh-cal-title">GitHub contribution calendar</title>
+      <desc id="gh-cal-description">{summary}</desc>
       {cells.map((cell) => (
         <rect
           key={cell.date}

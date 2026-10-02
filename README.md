@@ -29,6 +29,9 @@ npm run build
 npm run preview
 ```
 
+Restart the preview after rebuilding so the local Worker loads the new asset
+manifest. Development mode updates automatically.
+
 ## Architecture
 
 - `src/app.tsx` and `src/components/` define the React interface. Vite renders
@@ -39,6 +42,9 @@ npm run preview
   the saved theme before styles load.
 - `src/styles.css` preserves the design and uses Tailwind utilities through
   `@apply`. Tailwind Preflight is omitted to retain existing browser defaults.
+- Geist is self-hosted under `public/fonts` with its license. Font Awesome
+  icons render as React SVGs with bundled CSS, without external icon fonts or
+  runtime style injection.
 - `api/*.ts` implement the upstream integrations. `worker/index.ts` routes
   requests and applies security headers and API CORS.
 - `callback.html` uses `src/callback.ts` and `src/callback.css` for Spotify
@@ -121,6 +127,10 @@ API). GitHub responses are cached for up to 60 seconds in warm Worker instances
 and the Cloudflare data center, without extending their remaining lifetime.
 Spotify responses are never cached. Worker logs redact query strings to avoid
 recording Spotify authorization codes.
+
+Concurrent GitHub cache misses and Spotify token refreshes share their upstream
+request within each warm Worker instance. Spotify rate limits trigger a validated
+cooldown and return `429` with `Retry-After`, without caching playback data.
 
 **Under Attack Mode remains enabled** on the custom domains, with verification
 on the canonical `www` host. Browsers may see a security verification page, and

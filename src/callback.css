@@ -9,8 +9,13 @@ body {
   margin: 0;
 }
 .container {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 40rem;
+  min-width: 0;
   text-align: center;
-  padding: 2rem;
+  padding: clamp(1rem, 5vw, 2rem);
+  overflow-wrap: anywhere;
 }
 code {
   padding: 0.5rem 1rem;
