@@ -246,19 +246,26 @@ test("text scrolling can be paused persistently and resumed across track updates
   await control.click();
   await expect(control).toHaveAttribute("aria-pressed", "true");
   await expect(control).toHaveText("Resume text");
-  await page.getByRole("button", { name: "Dark mode" }).focus();
   const pausedTimes = await page
     .locator(".marquee-inner")
-    .evaluateAll((spans) =>
-      spans.map((span) => {
-        const animation = span.getAnimations()[0];
-        return { state: animation.playState, time: animation.currentTime };
-      }),
-    );
+    .evaluateAll(async (spans) => {
+      const animations = spans.map((span) => span.getAnimations()[0]);
+      // A pending pause can report "paused" before the compositor has fixed
+      // its hold time. Wait for suspension before measuring persistence.
+      await Promise.all(animations.map((animation) => animation.ready));
+      return animations.map((animation) => ({
+        state: animation.playState,
+        time: animation.currentTime,
+        pending: animation.pending,
+      }));
+    });
   expect(pausedTimes).toHaveLength(2);
-  expect(pausedTimes.every((animation) => animation.state === "paused")).toBe(
-    true,
-  );
+  expect(
+    pausedTimes.every(
+      (animation) => animation.state === "paused" && !animation.pending,
+    ),
+  ).toBe(true);
+  await page.getByRole("button", { name: "Dark mode" }).focus();
   await page.evaluate(
     () =>
       new Promise<void>((resolve) =>
@@ -269,7 +276,11 @@ test("text scrolling can be paused persistently and resumed across track updates
     await page.locator(".marquee-inner").evaluateAll((spans) =>
       spans.map((span) => {
         const animation = span.getAnimations()[0];
-        return { state: animation.playState, time: animation.currentTime };
+        return {
+          state: animation.playState,
+          time: animation.currentTime,
+          pending: animation.pending,
+        };
       }),
     ),
   ).toEqual(pausedTimes);
