@@ -1,4 +1,7 @@
+import { faGithub, faLinkedinIn } from "@fortawesome/free-brands-svg-icons";
+import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
 import { GithubCalendar } from "./components/github-calendar";
+import { Icon } from "./components/icon";
 import { SpotifyCard } from "./components/spotify-card";
 import { ThemeToggle } from "./components/theme-toggle";
 
@@ -11,8 +14,8 @@ export function App() {
           <h1 id="page-title" tabIndex={-1}>
             Caleb Kan
           </h1>
-          <p>
-            <strong>email</strong>{" "}
+          <p className="contact-line">
+            <span className="contact-label">Email</span>{" "}
             <a
               href="mailto:calebkan1106@gmail.com"
               aria-label="Email calebkan1106@gmail.com"
@@ -28,7 +31,9 @@ export function App() {
               aria-label="GitHub"
               title="GitHub"
             >
-              <i className="fa-brands fa-github" aria-hidden="true" />
+              <Icon icon={faGithub} className="social-icon" />
+              <span>GitHub</span>
+              <Icon icon={faArrowUpRightFromSquare} className="social-arrow" />
             </a>
             <a
               href="https://www.linkedin.com/in/caleb-kan"
@@ -37,10 +42,18 @@ export function App() {
               aria-label="LinkedIn"
               title="LinkedIn"
             >
-              <i className="fa-brands fa-linkedin-in" aria-hidden="true" />
+              <Icon icon={faLinkedinIn} className="social-icon" />
+              <span>LinkedIn</span>
+              <Icon icon={faArrowUpRightFromSquare} className="social-arrow" />
             </a>
           </nav>
-          <GithubCalendar />
+          <section className="activity" aria-labelledby="activity-title">
+            <div className="activity-header">
+              <h2 id="activity-title">GitHub activity</h2>
+              <span>Past year</span>
+            </div>
+            <GithubCalendar />
+          </section>
         </div>
       </main>
       <SpotifyCard />

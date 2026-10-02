@@ -2,9 +2,21 @@ import { expect, test } from "@playwright/test";
 import { mockServices } from "./fixtures";
 
 const MINIMUM_TEXT_CONTRAST = 4.5;
+const MINIMUM_GRAPHIC_CONTRAST = 3;
 const GRADIENT_SAMPLE_TIMES = [0, 5000, 10000, 15000];
 const TEXT_TARGETS = [
   { name: "Email link", selector: 'a[href^="mailto:"]' },
+  { name: "Contact label", selector: ".contact-label" },
+  {
+    name: "GitHub link",
+    selector: '.social-links a[aria-label="GitHub"] span',
+  },
+  {
+    name: "LinkedIn link",
+    selector: '.social-links a[aria-label="LinkedIn"] span',
+  },
+  { name: "Activity heading", selector: "#activity-title" },
+  { name: "Activity period", selector: ".activity-header > span" },
   { name: "Spotify title", selector: "#spotify-title" },
   { name: "Spotify artist", selector: "#spotify-artist" },
   { name: "Spotify heading", selector: "#spotify-heading span" },
@@ -134,9 +146,25 @@ for (const theme of ["light", "dark"]) {
           { time, targets: TEXT_TARGETS },
         );
 
-        const screenshot = await page.screenshot({ scale: "css" });
+        const clip = await page
+          .locator(".card-main, .card-spotify")
+          .evaluateAll((cards) => {
+            const bounds = cards.map((card) => card.getBoundingClientRect());
+            const x = Math.floor(
+              Math.min(...bounds.map((bound) => bound.left)),
+            );
+            const y = Math.floor(Math.min(...bounds.map((bound) => bound.top)));
+            const right = Math.ceil(
+              Math.max(...bounds.map((bound) => bound.right)),
+            );
+            const bottom = Math.ceil(
+              Math.max(...bounds.map((bound) => bound.bottom)),
+            );
+            return { x, y, width: right - x, height: bottom - y };
+          });
+        const screenshot = await page.screenshot({ scale: "css", clip });
         const colors = await page.evaluate(
-          async ({ bytes, samples }) => {
+          async ({ bytes, samples, clip }) => {
             const bitmap = await createImageBitmap(
               new Blob([new Uint8Array(bytes)], { type: "image/png" }),
             );
@@ -148,17 +176,14 @@ for (const theme of ["light", "dark"]) {
               throw new Error("Canvas is required to sample screenshots");
             context.drawImage(bitmap, 0, 0);
             bitmap.close();
-            return samples.map((sample) => {
-              if (
-                sample.x < 0 ||
-                sample.y < 0 ||
-                sample.x >= canvas.width ||
-                sample.y >= canvas.height
-              ) {
+            const text = samples.map((sample) => {
+              const x = sample.x - clip.x;
+              const y = sample.y - clip.y;
+              if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) {
                 throw new Error(`${sample.name} must be inside the screenshot`);
               }
               const background = Array.from(
-                context.getImageData(sample.x, sample.y, 1, 1).data,
+                context.getImageData(x, y, 1, 1).data,
               ).slice(0, 3);
               const element = document.querySelector<HTMLElement>(
                 sample.selector,
@@ -175,11 +200,36 @@ for (const theme of ["light", "dark"]) {
               );
               return { name: sample.name, foreground, background };
             });
+            const progress = document.querySelector(
+              ".spotify-progress-container",
+            );
+            if (!progress) throw new Error("The playback progress must exist");
+            const bounds = progress.getBoundingClientRect();
+            const y = Math.floor(bounds.top + bounds.height / 2) - clip.y;
+            // The fixture is just past one-sixth complete. Sample safely within
+            // the filled and unfilled portions of its three-pixel track.
+            const foreground = Array.from(
+              context.getImageData(
+                Math.floor(bounds.left + bounds.width * 0.05) - clip.x,
+                y,
+                1,
+                1,
+              ).data,
+            ).slice(0, 3);
+            const background = Array.from(
+              context.getImageData(
+                Math.floor(bounds.left + bounds.width * 0.9) - clip.x,
+                y,
+                1,
+                1,
+              ).data,
+            ).slice(0, 3);
+            return { text, progress: { foreground, background } };
           },
-          { bytes: Array.from(screenshot), samples },
+          { bytes: Array.from(screenshot), samples, clip },
         );
 
-        for (const { name, foreground, background } of colors) {
+        for (const { name, foreground, background } of colors.text) {
           const foregroundLuminance = luminance(foreground);
           const backgroundLuminance = luminance(background);
           const ratio =
@@ -192,6 +242,17 @@ for (const theme of ["light", "dark"]) {
             )
             .toBeGreaterThanOrEqual(MINIMUM_TEXT_CONTRAST);
         }
+        const fillLuminance = luminance(colors.progress.foreground);
+        const trackLuminance = luminance(colors.progress.background);
+        const progressContrast =
+          (Math.max(fillLuminance, trackLuminance) + 0.05) /
+          (Math.min(fillLuminance, trackLuminance) + 0.05);
+        expect
+          .soft(
+            progressContrast,
+            `Progress fill: ${progressContrast.toFixed(2)}:1 at gradient time ${time / 1000}s`,
+          )
+          .toBeGreaterThanOrEqual(MINIMUM_GRAPHIC_CONTRAST);
       }
     });
   }

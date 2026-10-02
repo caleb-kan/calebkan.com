@@ -349,6 +349,111 @@ test("Spotify releases failed response bodies while preserving its track and HTT
   assert.equal(harness.nextDelay(), POLL_INTERVAL_ACTIVE);
 });
 
+test("Spotify Retry-After starts at response time and preserves playback through recovery", async (t) => {
+  t.mock.method(console, "warn", () => {});
+  let limited = false;
+  let releasedBodies = 0;
+  const harness = pollerHarness(async (signal) => {
+    if (!limited) return Response.json(playing);
+    harness.advance(400);
+    return new Response(
+      new ReadableStream({
+        start(controller) {
+          signal.addEventListener(
+            "abort",
+            () => {
+              releasedBodies++;
+              controller.error(new DOMException("Aborted", "AbortError"));
+            },
+            { once: true },
+          );
+        },
+      }),
+      { status: 429, headers: { "Retry-After": "120" } },
+    );
+  });
+  t.after(() => harness.poller.dispose());
+  await harness.start();
+  limited = true;
+  await harness.runNext();
+  assert.equal(harness.nextDelay(), 120000);
+  assert.equal(releasedBodies, 1);
+  assert.equal(harness.received.length, 1);
+  limited = false;
+  await harness.runNext();
+  assert.equal(harness.received.length, 2);
+  assert.equal(harness.nextDelay(), POLL_INTERVAL_ACTIVE);
+});
+
+test("Spotify visibility resumption respects cooldown and retains the resume flag", async (t) => {
+  t.mock.method(console, "warn", () => {});
+  let limited = true;
+  const harness = pollerHarness(async () =>
+    limited
+      ? new Response(null, { status: 429, headers: { "Retry-After": "120" } })
+      : Response.json(playing),
+  );
+  t.after(() => harness.poller.dispose());
+  await harness.start();
+  harness.poller.stop();
+  assert.equal(harness.timers.size, 0);
+  harness.advance(60000);
+  harness.poller.start(true);
+  await setImmediate();
+  assert.equal(harness.requests(), 1);
+  assert.equal(harness.nextDelay(), 60000);
+  limited = false;
+  await harness.runNext();
+  assert.equal(harness.requests(), 2);
+  assert.equal(harness.received.at(-1)?.resumed, true);
+  assert.equal(harness.nextDelay(), POLL_INTERVAL_ACTIVE);
+  harness.poller.dispose();
+  assert.equal(harness.timers.size, 0);
+});
+
+test("Spotify resumes immediately when a cooldown expired while hidden", async (t) => {
+  t.mock.method(console, "warn", () => {});
+  let limited = true;
+  const harness = pollerHarness(async () =>
+    limited
+      ? new Response(null, { status: 429, headers: { "Retry-After": "120" } })
+      : Response.json(playing),
+  );
+  t.after(() => harness.poller.dispose());
+  await harness.start();
+  harness.poller.stop();
+  harness.advance(120001);
+  limited = false;
+  harness.poller.start(true);
+  await setImmediate();
+  assert.equal(harness.requests(), 2);
+  assert.equal(harness.received.at(-1)?.resumed, true);
+  assert.equal(harness.nextDelay(), POLL_INTERVAL_ACTIVE);
+});
+
+for (const [status, header, expected] of [
+  [429, null, POLL_INTERVAL_IDLE],
+  [429, "invalid", POLL_INTERVAL_IDLE],
+  [429, "-2", POLL_INTERVAL_IDLE],
+  [429, "1.5", POLL_INTERVAL_IDLE],
+  [429, "999999", 3600000],
+  [503, "120", POLL_INTERVAL_IDLE],
+] as const) {
+  test(`Spotify validates Retry-After ${JSON.stringify(header)} on HTTP ${status}`, async (t) => {
+    t.mock.method(console, "warn", () => {});
+    const harness = pollerHarness(
+      async () =>
+        new Response(null, {
+          status,
+          headers: header === null ? undefined : { "Retry-After": header },
+        }),
+    );
+    t.after(() => harness.poller.dispose());
+    await harness.start();
+    assert.equal(harness.nextDelay(), expected);
+  });
+}
+
 test("Spotify's timeout covers a stalled JSON body and does not count as a persistent error", async () => {
   const harness = pollerHarness(
     async (signal) =>

@@ -7,7 +7,10 @@ import {
   type CSSProperties,
   type RefObject,
 } from "react";
+import { faSpotify } from "@fortawesome/free-brands-svg-icons";
+import { faPause, faPlay } from "@fortawesome/free-solid-svg-icons";
 import { createSpotifyPoller } from "../lib/spotify-poller";
+import { Icon } from "./icon";
 import {
   INITIAL_SPOTIFY_STATE,
   PLACEHOLDER_IMAGE,
@@ -63,14 +66,18 @@ function useMarquee(
   trackId: string | null,
   titleRef: RefObject<HTMLAnchorElement | null>,
   artistRef: RefObject<HTMLParagraphElement | null>,
+  controlRef: RefObject<HTMLButtonElement | null>,
 ): MarqueeLayout {
   const [layout, setLayout] = useState(INITIAL_MARQUEE);
 
   useLayoutEffect(() => {
-    setLayout(INITIAL_MARQUEE);
-    if (hidden) return;
+    if (hidden) {
+      setLayout(INITIAL_MARQUEE);
+      return;
+    }
     let frame: number | null = null;
     let resizeTimer: ReturnType<typeof setTimeout> | null = null;
+    let firstMeasurement = true;
     const media = window.matchMedia(REDUCED_MOTION_QUERY);
 
     function measure() {
@@ -80,12 +87,37 @@ function useMarquee(
       if (!title || !artist) return;
       const titleOverflow = media.matches ? 0 : overflowPixels(title);
       const artistOverflow = media.matches ? 0 : overflowPixels(artist);
-      setLayout((previous) => ({
-        title: titleOverflow,
-        artist: artistOverflow,
-        duration: marqueeDuration(titleOverflow, artistOverflow),
-        generation: previous.generation + 1,
-      }));
+      const duration = marqueeDuration(titleOverflow, artistOverflow);
+      const restart = firstMeasurement;
+      firstMeasurement = false;
+      // Move focus before a resize, track change, or motion preference removes
+      // the scrolling control. An inert title cannot receive keyboard focus.
+      if (
+        titleOverflow === 0 &&
+        artistOverflow === 0 &&
+        controlRef.current === document.activeElement
+      ) {
+        if (title.hasAttribute("href")) title.focus();
+        else document.getElementById("page-title")?.focus();
+      }
+      setLayout((previous) => {
+        // ResizeObserver also reports unchanged boxes after a span mounts.
+        // Preserve its animation instance, including a user's paused position.
+        if (
+          !restart &&
+          previous.title === titleOverflow &&
+          previous.artist === artistOverflow &&
+          previous.duration === duration
+        ) {
+          return previous;
+        }
+        return {
+          title: titleOverflow,
+          artist: artistOverflow,
+          duration,
+          generation: previous.generation + 1,
+        };
+      });
     }
 
     function schedule() {
@@ -120,7 +152,7 @@ function useMarquee(
       document.removeEventListener("visibilitychange", visibility);
       media.removeEventListener("change", schedule);
     };
-  }, [hidden, trackId, titleRef, artistRef]);
+  }, [hidden, trackId, titleRef, artistRef, controlRef]);
 
   return layout;
 }
@@ -193,7 +225,16 @@ export function SpotifyCard() {
   const cardRef = useRef<HTMLElement>(null);
   const titleRef = useRef<HTMLAnchorElement>(null);
   const artistRef = useRef<HTMLParagraphElement>(null);
-  const marquee = useMarquee(state.hidden, state.trackId, titleRef, artistRef);
+  const textControlRef = useRef<HTMLButtonElement>(null);
+  const [textPaused, setTextPaused] = useState(false);
+  const marquee = useMarquee(
+    state.hidden,
+    state.trackId,
+    titleRef,
+    artistRef,
+    textControlRef,
+  );
+  const hasMarquee = marquee.title > 0 || marquee.artist > 0;
 
   useEffect(() => {
     const poller = createSpotifyPoller((data, resumed) => {
@@ -231,8 +272,8 @@ export function SpotifyCard() {
       hidden={state.hidden}
     >
       <h2 id="spotify-heading" className="spotify-header">
-        <i className="fa-brands fa-spotify" aria-hidden="true" />
-        <span>Now Playing</span>
+        <Icon icon={faSpotify} className="spotify-icon" />
+        <span>Now playing</span>
       </h2>
       <div className="spotify-content">
         <img
@@ -242,6 +283,7 @@ export function SpotifyCard() {
           width={ALBUM_ART_SIZE}
           height={ALBUM_ART_SIZE}
           className="spotify-album-art"
+          fetchPriority="high"
           onError={(event) => {
             const url = event.currentTarget.getAttribute("src");
             if (url && url !== PLACEHOLDER_IMAGE) {
@@ -250,7 +292,10 @@ export function SpotifyCard() {
             }
           }}
         />
-        <div className="spotify-info" aria-live="polite">
+        <div
+          className={`spotify-info${textPaused ? " is-text-paused" : ""}`}
+          aria-live="polite"
+        >
           <a
             ref={titleRef}
             id="spotify-title"
@@ -285,6 +330,21 @@ export function SpotifyCard() {
               track?.artist
             )}
           </p>
+          {hasMarquee && (
+            <button
+              ref={textControlRef}
+              id="spotify-text-toggle"
+              className="spotify-text-toggle"
+              type="button"
+              aria-label="Pause text or resume text"
+              aria-pressed={textPaused}
+              aria-controls="spotify-title spotify-artist"
+              onClick={() => setTextPaused((paused) => !paused)}
+            >
+              <Icon icon={textPaused ? faPlay : faPause} />
+              <span>{textPaused ? "Resume text" : "Pause text"}</span>
+            </button>
+          )}
         </div>
       </div>
       <SpotifyProgress sample={state.sample} />

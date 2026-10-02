@@ -22,10 +22,12 @@ test("only browser assets are published, with no source files or credentials", a
   for (const file of files) {
     assert.match(
       file,
-      /^dist\/client\/(?:index\.html|callback\.html|theme-boot\.js|favicon\/favicon\.png|assets\/[\w-]+\.(?:js|css|png)|\.assetsignore)$/,
+      /^dist\/client\/(?:index\.html|callback\.html|theme-boot\.js|favicon\/favicon\.png|fonts\/(?:geist\.woff2|OFL\.txt)|assets\/[\w-]+\.(?:js|css|png)|\.assetsignore)$/,
     );
   }
   assert.ok(files.includes("dist/client/favicon/favicon.png"));
+  assert.ok(files.includes("dist/client/fonts/geist.woff2"));
+  assert.ok(files.includes("dist/client/fonts/OFL.txt"));
   const config = JSON.parse(
     await readFile("dist/calebkan_com/wrangler.json", "utf8"),
   );
@@ -46,6 +48,9 @@ test("prerendered content, metadata, strict CSP, and synchronous boot survive th
     /<link rel="canonical" href="https:\/\/www.calebkan.com\/"/,
   );
   assert.match(html, /script-src 'self';/);
+  assert.match(html, /style-src 'self'; font-src 'self';/);
+  assert.doesNotMatch(html, /cdnjs\.cloudflare\.com|<style/);
+  assert.match(html, /<svg[^>]+data-icon="github"/);
   assert.doesNotMatch(
     html,
     /unsafe-inline|unsafe-eval|nonce-|localhost|@vite|\/src\//,

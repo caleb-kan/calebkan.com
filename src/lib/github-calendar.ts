@@ -59,6 +59,7 @@ const DEFAULT_QUARTILES: Quartiles = [0, 1, 3, 6];
 
 export interface CalendarCell {
   date: string;
+  count: number;
   x: number;
   y: number;
   level: ContributionLevel;
@@ -141,6 +142,7 @@ export function buildCalendarCells(
       const noun = count === 1 ? "contribution" : "contributions";
       cells.push({
         date,
+        count,
         x: week * (CELL_SIZE + CELL_GAP),
         y: day * (CELL_SIZE + CELL_GAP),
         level: getContributionLevel(count, quartiles),
@@ -267,6 +269,7 @@ export function startCalendarPolling({
       if (disposed) return;
       if (isAbortError(error)) {
         console.warn("GitHub calendar: fetch timed out");
+        if (!hasRendered) onError();
         return;
       }
       consecutiveErrors++;

@@ -237,6 +237,34 @@ test("calendar aborts stalled response bodies without escalating timeout errors"
     await page.tick(CALENDAR_POLL_INTERVAL - 5000);
   }
   assert.equal(page.requests(), 7);
+  assert.equal(page.errors(), 6);
+});
+
+test("calendar timeout preserves an existing render and recovers on the next poll", async (t) => {
+  let stall = false;
+  const page = await calendarPage(t, async (_url, options) => {
+    if (!stall) return Response.json({ contributions: [] });
+    return new Response(
+      new ReadableStream({
+        start(controller) {
+          options?.signal?.addEventListener(
+            "abort",
+            () => controller.error(new DOMException("Aborted", "AbortError")),
+            { once: true },
+          );
+        },
+      }),
+    );
+  });
+  const cells = page.cells();
+  stall = true;
+  await page.tick(CALENDAR_POLL_INTERVAL);
+  await page.tick(5000);
+  assert.equal(page.cells(), cells);
+  assert.equal(page.errors(), 0);
+  stall = false;
+  await page.tick(CALENDAR_POLL_INTERVAL - 5000);
+  assert.equal(page.requests(), 3);
   assert.equal(page.errors(), 0);
 });
 
@@ -302,6 +330,7 @@ test("React calendar preserves the reserved wrapper, SVG geometry, tooltips, and
   );
   assert.equal(cells.length, 371);
   assert.equal(cells.at(-1)?.title, "1 contribution on 2026-09-19");
+  assert.equal(cells.at(-1)?.count, 1);
   assert.equal(cells.at(-1)?.x, 728);
   assert.equal(cells.at(-1)?.y, 84);
   for (const [isDark, zeroColor, stroke] of [
@@ -313,6 +342,12 @@ test("React calendar preserves the reserved wrapper, SVG geometry, tooltips, and
     );
     assert.ok(html.includes('viewBox="-2 -2 743 99"'));
     assert.ok(html.includes('role="img" aria-labelledby="gh-cal-title"'));
+    assert.ok(html.includes('aria-describedby="gh-cal-description"'));
+    assert.ok(
+      html.includes(
+        "1 contribution across 1 active day, from 2025-09-14 to 2026-09-19.",
+      ),
+    );
     assert.ok(
       html.includes('<title id="gh-cal-title">GitHub contribution calendar'),
     );

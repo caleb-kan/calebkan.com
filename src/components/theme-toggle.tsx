@@ -1,5 +1,6 @@
 import { useLayoutEffect, useState } from "react";
 import { applyTheme, STORAGE_KEY } from "../lib/theme";
+import { Icon } from "./icon";
 
 export function ThemeToggle() {
   // Match prerendered HTML on the first render, then adopt the boot decision
@@ -29,9 +30,10 @@ export function ThemeToggle() {
       title={isDark ? "Switch to light mode" : "Switch to dark mode"}
       onClick={toggleTheme}
     >
-      <i className="fa-solid fa-sun icon sun" aria-hidden="true" />
-      <i className="fa-solid fa-moon icon moon" aria-hidden="true" />
+      <Icon icon={faSun} className="icon sun" />
+      <Icon icon={faMoon} className="icon moon" />
       <span className="thumb" aria-hidden="true" />
     </button>
   );
 }
+import { faMoon, faSun } from "@fortawesome/free-solid-svg-icons";
