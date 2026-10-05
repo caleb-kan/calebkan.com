@@ -120,8 +120,7 @@
   --spotify-font-size-artist: 0.875rem;
   --spotify-title-gap: 4px;
   --spotify-header-gap: 8px;
-  --spotify-header-margin-bottom: 12px;
-  --spotify-progress-margin-top: 24px;
+  --spotify-section-gap: 16px;
 
   /* Body typography */
   --body-line-height: 1.5;
@@ -435,7 +434,6 @@ html.dark .theme-toggle .moon {
   text-align: left;
   min-width: 0;
   --card-padding: 28px 32px;
-  --spotify-progress-margin-top: 16px;
   --progress-track-height: 3px;
 }
 
@@ -580,14 +578,11 @@ html.dark .card-spotify {
  */
 .spotify-header {
   @apply flex items-center;
-  grid-column: 2;
-  grid-row: 1;
   justify-content: flex-start;
-  align-self: end;
   width: 100%;
   flex-wrap: wrap;
   gap: var(--spotify-header-gap);
-  margin: 0 0 var(--spotify-header-margin-bottom);
+  margin: 0;
   font-size: var(--spotify-font-size-label);
   font-weight: 500;
   color: var(--text-secondary);
@@ -595,17 +590,25 @@ html.dark .card-spotify {
 }
 
 .spotify-header .spotify-icon {
+  --fa-width: 1em;
+  flex-shrink: 0;
   font-size: var(--spotify-icon-size);
   color: var(--spotify-green);
 }
 
-.spotify-content {
-  display: contents;
+.spotify-details {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spotify-section-gap);
+  width: 100%;
+  min-width: 0;
 }
 
 .spotify-album-art {
   grid-column: 1;
-  grid-row: 1 / 4;
+  grid-row: 1;
   width: var(--album-art-size);
   height: var(--album-art-size);
   border-radius: var(--radius-album-art);
@@ -614,9 +617,6 @@ html.dark .card-spotify {
 }
 
 .spotify-info {
-  grid-column: 2;
-  grid-row: 2;
-  align-self: start;
   width: 100%;
   min-width: 0;
   text-align: left;
@@ -740,14 +740,10 @@ html.dark .card-spotify {
 }
 
 .spotify-progress-container {
-  grid-column: 2;
-  grid-row: 3;
-  align-self: start;
   width: 100%;
   height: var(--progress-track-height);
   background: var(--progress-track-bg);
   border-radius: var(--radius-pill);
-  margin-top: var(--spotify-progress-margin-top);
   overflow: hidden;
   transition: background-color var(--transition-theme);
 }
