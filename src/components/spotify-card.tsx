@@ -271,27 +271,27 @@ export function SpotifyCard() {
       aria-labelledby="spotify-heading"
       hidden={state.hidden}
     >
-      <h2 id="spotify-heading" className="spotify-header">
-        <Icon icon={faSpotify} className="spotify-icon" />
-        <span>Now playing</span>
-      </h2>
-      <div className="spotify-content">
-        <img
-          id="spotify-album-art"
-          src={track?.artUrl ?? PLACEHOLDER_IMAGE}
-          alt={track?.artAlt ?? ""}
-          width={ALBUM_ART_SIZE}
-          height={ALBUM_ART_SIZE}
-          className="spotify-album-art"
-          fetchPriority="high"
-          onError={(event) => {
-            const url = event.currentTarget.getAttribute("src");
-            if (url && url !== PLACEHOLDER_IMAGE) {
-              console.warn("spotify: album art failed to load:", url);
-              dispatch({ type: "art-error", url });
-            }
-          }}
-        />
+      <img
+        id="spotify-album-art"
+        src={track?.artUrl ?? PLACEHOLDER_IMAGE}
+        alt={track?.artAlt ?? ""}
+        width={ALBUM_ART_SIZE}
+        height={ALBUM_ART_SIZE}
+        className="spotify-album-art"
+        fetchPriority="high"
+        onError={(event) => {
+          const url = event.currentTarget.getAttribute("src");
+          if (url && url !== PLACEHOLDER_IMAGE) {
+            console.warn("spotify: album art failed to load:", url);
+            dispatch({ type: "art-error", url });
+          }
+        }}
+      />
+      <div className="spotify-details">
+        <h2 id="spotify-heading" className="spotify-header">
+          <Icon icon={faSpotify} className="spotify-icon" />
+          <span>Now playing</span>
+        </h2>
         <div
           className={`spotify-info${textPaused ? " is-text-paused" : ""}`}
           aria-live="polite"
@@ -346,8 +346,8 @@ export function SpotifyCard() {
             </button>
           )}
         </div>
+        <SpotifyProgress sample={state.sample} />
       </div>
-      <SpotifyProgress sample={state.sample} />
     </section>
   );
 }
