@@ -297,6 +297,26 @@ test("GitHub upstream failures have headers and never enter edge cache", async (
   assert.equal(app.writes.length, 0);
 });
 
+test("invalid GitHub days never enter edge cache and allow a fresh retry", async (t) => {
+  let calls = 0;
+  const app = setup(t, async () => githubData(++calls === 1 ? -1 : 3));
+  const rejected = await app.fetch(GITHUB_PATH);
+  assert.equal(rejected.status, 500);
+  assert.equal(rejected.headers.get("Cache-Control"), "no-store");
+  assertHeaders(rejected, true);
+  await app.flush();
+  assert.equal(app.writes.length, 0);
+
+  const recovered = await app.fetch(GITHUB_PATH);
+  assert.equal(recovered.status, 200);
+  assert.deepEqual(await recovered.json(), {
+    contributions: [{ date: "2026-09-21", count: 3 }],
+  });
+  await app.flush();
+  assert.equal(calls, 2);
+  assert.equal(app.writes.length, 1);
+});
+
 test("Spotify stays uncached and supplies headers on playback and errors", async (t) => {
   let playbackCalls = 0;
   const app = setup(t, async (url) => {

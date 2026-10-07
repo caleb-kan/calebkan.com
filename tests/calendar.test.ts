@@ -303,6 +303,37 @@ test("calendar rejects malformed payloads and invalid contribution values", () =
   }
 });
 
+test("calendar rejects impossible dates and duplicate daily counts", () => {
+  for (const date of [
+    "2026-02-29",
+    "2026-02-30",
+    "2026-04-31",
+    "2026-00-01",
+    "2026-13-01",
+    "2026-01-00",
+  ]) {
+    assert.throws(
+      () => parseCalendarData({ contributions: [{ date, count: 1 }] }),
+      /unexpected contribution data/,
+      date,
+    );
+  }
+  assert.throws(
+    () =>
+      parseCalendarData({
+        contributions: [
+          { date: "2026-09-19", count: 1 },
+          { date: "2026-09-19", count: 2 },
+        ],
+      }),
+    /unexpected contribution data/,
+  );
+  assert.deepEqual(
+    parseCalendarData({ contributions: [{ date: "2024-02-29", count: 1 }] }),
+    { contributions: [{ date: "2024-02-29", count: 1 }] },
+  );
+});
+
 test("calendar quartiles retain GitHub palette levels and strictly increasing thresholds", () => {
   assert.deepEqual(calculateQuartiles({ contributions: [] }), [0, 1, 3, 6]);
   const quartiles = calculateQuartiles({

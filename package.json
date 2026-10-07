@@ -40,5 +40,10 @@
     "@fortawesome/react-fontawesome": "3.5.0",
     "react": "19.3.0",
     "react-dom": "19.3.0"
+  },
+  "overrides": {
+    "miniflare": {
+      "sharp": "0.35.5"
+    }
   }
 }

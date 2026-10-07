@@ -172,8 +172,10 @@ function pickAlbumImage(value: unknown): string {
     if (
       !isRecord(img) ||
       typeof img.width !== "number" ||
+      !Number.isFinite(img.width) ||
       img.width <= 0 ||
-      typeof img.url !== "string"
+      typeof img.url !== "string" ||
+      !img.url.trim()
     )
       continue;
     if (img.width >= ALBUM_ART_TARGET_PX) {
@@ -189,7 +191,7 @@ function pickAlbumImage(value: unknown): string {
     (bestFit || largest)?.url ||
     images.find(
       (img): img is Record<string, unknown> & { url: string } =>
-        isRecord(img) && typeof img.url === "string",
+        isRecord(img) && typeof img.url === "string" && !!img.url.trim(),
     )?.url ||
     ""
   );
@@ -203,9 +205,9 @@ function optionalString(value: unknown): string | undefined {
   return value;
 }
 
-function optionalNumber(value: unknown): number | undefined {
+function optionalMilliseconds(value: unknown): number | undefined {
   if (value == null) return undefined;
-  if (typeof value !== "number") {
+  if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 0) {
     throw new Error("Spotify response contains an invalid numeric field");
   }
   return value;
@@ -252,7 +254,7 @@ async function getNowPlaying(env: SpotifyEnv): Promise<NowPlayingResponse> {
     throw new Error(`Spotify API error: ${response.status}`);
   }
 
-  if (!isRecord(data)) {
+  if (!isRecord(data) || typeof data.is_playing !== "boolean") {
     throw new Error("Spotify API returned an invalid response");
   }
 
@@ -285,14 +287,14 @@ async function getNowPlaying(env: SpotifyEnv): Promise<NowPlayingResponse> {
   }
 
   return {
-    isPlaying: data.is_playing === true,
+    isPlaying: data.is_playing,
     title: optionalString(item.name) || FALLBACK_TEXT,
     artist: artist || FALLBACK_TEXT,
     album: optionalString(album?.name) || FALLBACK_TEXT,
     albumArt: pickAlbumImage(album?.images),
     songUrl: optionalString(externalUrls?.spotify) || "",
-    progress: optionalNumber(data.progress_ms) ?? 0,
-    duration: optionalNumber(item.duration_ms) ?? 0,
+    progress: optionalMilliseconds(data.progress_ms) ?? 0,
+    duration: optionalMilliseconds(item.duration_ms) ?? 0,
   };
 }
 

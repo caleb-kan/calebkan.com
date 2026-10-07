@@ -67,6 +67,8 @@ test("callback uses same-origin compiled assets and no executable inline code", 
   const html = await readFile(`${publicDirectory}/callback.html`, "utf8");
   assert.match(html, /default-src 'none'; script-src 'self'; style-src 'self'/);
   assert.match(html, /name="robots" content="noindex, nofollow"/);
+  assert.match(html, /name="referrer" content="no-referrer"/);
+  assert.ok(html.indexOf('name="referrer"') < html.indexOf("<link"));
   assert.doesNotMatch(html, /<style|unsafe-inline/);
   for (const match of html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)) {
     assert.equal(match[1].trim(), "");

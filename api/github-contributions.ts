@@ -36,6 +36,14 @@ query($username: String!) {
 }
 `;
 
+function isCalendarDate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return (
+    Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value
+  );
+}
+
 async function fetchWithTimeout(
   url: string,
   options: RequestInit,
@@ -129,6 +137,7 @@ async function fetchFreshContributions(
 
   // Transform to expected format: { contributions: [{ date, count }] }
   const contributions: ContributionsResponse["contributions"] = [];
+  const seenDates = new Set<string>();
   const weeks: unknown[] = calendar.weeks;
   for (const week of weeks) {
     if (!isRecord(week) || !Array.isArray(week.contributionDays)) {
@@ -139,10 +148,15 @@ async function fetchFreshContributions(
       if (
         !isRecord(day) ||
         typeof day.date !== "string" ||
-        typeof day.contributionCount !== "number"
+        !isCalendarDate(day.date) ||
+        seenDates.has(day.date) ||
+        typeof day.contributionCount !== "number" ||
+        !Number.isSafeInteger(day.contributionCount) ||
+        day.contributionCount < 0
       ) {
         throw new Error("GitHub API response has invalid contribution days");
       }
+      seenDates.add(day.date);
       contributions.push({
         date: day.date,
         count: day.contributionCount,
