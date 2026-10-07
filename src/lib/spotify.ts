@@ -100,14 +100,15 @@ export function progressPosition(
   progress: number,
   duration: number,
 ): ProgressPosition {
-  const fraction = duration > 0 ? Math.min(progress / duration, 1) : 0;
+  const elapsed = Math.max(0, Math.min(progress, duration));
+  const fraction = duration > 0 ? elapsed / duration : 0;
   const percentage = Math.round(fraction * PERCENT);
   return {
     fraction,
     percentage,
     text:
       duration > 0
-        ? `${formatTime(progress)} of ${formatTime(duration)}`
+        ? `${formatTime(elapsed)} of ${formatTime(duration)}`
         : `${percentage}%`,
   };
 }
@@ -177,25 +178,37 @@ export function spotifyReducer(
   const { data, resumed } = action;
   if (!data.isPlaying)
     return { ...state, hidden: true, trackId: null, sample: null };
-  const trackId = data.songUrl || `${data.title}-${data.artist}`;
+  const trackId = data.songUrl || JSON.stringify([data.title, data.artist]);
   const isNewTrack = trackId !== state.trackId;
   const safeArt = isSafeImageUrl(data.albumArt);
+  const title = data.title || "Unknown";
+  const artist = data.artist || "Unknown";
+  const songUrl = isSafeSongUrl(data.songUrl) ? data.songUrl : undefined;
+  const artAlt = data.album ? `${data.album} album art` : "Album art";
+  const failedArtUrl =
+    !isNewTrack && safeArt && data.albumArt === state.track?.failedArtUrl
+      ? data.albumArt
+      : null;
+  const artUrl = safeArt && !failedArtUrl ? data.albumArt : PLACEHOLDER_IMAGE;
   let track = state.track;
-  if (isNewTrack || !track) {
-    track = {
-      title: data.title || "Unknown",
-      artist: data.artist || "Unknown",
-      songUrl: isSafeSongUrl(data.songUrl) ? data.songUrl : undefined,
-      artUrl: safeArt ? data.albumArt : PLACEHOLDER_IMAGE,
-      artAlt: data.album ? `${data.album} album art` : "Album art",
-      failedArtUrl: null,
-    };
-  } else if (
-    track.artUrl === PLACEHOLDER_IMAGE &&
-    safeArt &&
-    data.albumArt !== track.failedArtUrl
+  if (
+    isNewTrack ||
+    !track ||
+    track.title !== title ||
+    track.artist !== artist ||
+    track.songUrl !== songUrl ||
+    track.artUrl !== artUrl ||
+    track.artAlt !== artAlt ||
+    track.failedArtUrl !== failedArtUrl
   ) {
-    track = { ...track, artUrl: data.albumArt, failedArtUrl: null };
+    track = {
+      title,
+      artist,
+      songUrl,
+      artUrl,
+      artAlt,
+      failedArtUrl,
+    };
   }
   return {
     hidden: false,

@@ -151,6 +151,79 @@ test("Spotify formats progress and keeps a shared marquee movement speed", () =>
   assert.equal(marqueeDuration(50, 105), "10s");
 });
 
+test("Spotify progress announcements stay within the track duration", () => {
+  assert.deepEqual(progressPosition(200000, 180000), {
+    fraction: 1,
+    percentage: 100,
+    text: "3:00 of 3:00",
+  });
+  assert.deepEqual(progressPosition(-1000, 180000), {
+    fraction: 0,
+    percentage: 0,
+    text: "0:00 of 3:00",
+  });
+});
+
+test("Spotify refreshes same-track metadata after an incomplete playback response", () => {
+  const incomplete = spotifyReducer(INITIAL_SPOTIFY_STATE, {
+    type: "playback",
+    data: { ...playing, title: "", artist: "", album: "", albumArt: "" },
+    resumed: false,
+  });
+  const recovered = spotifyReducer(incomplete, {
+    type: "playback",
+    data: playing,
+    resumed: false,
+  });
+  assert.equal(recovered.track?.title, playing.title);
+  assert.equal(recovered.track?.artist, playing.artist);
+  assert.equal(recovered.track?.artAlt, `${playing.album} album art`);
+  assert.equal(recovered.track?.artUrl, playing.albumArt);
+  assert.equal(recovered.sample?.instant, false);
+
+  const revised = spotifyReducer(recovered, {
+    type: "playback",
+    data: {
+      ...playing,
+      title: "A revised title",
+      artist: "A revised artist",
+      album: "A revised album",
+      albumArt: "https://i.scdn.co/image/revised",
+    },
+    resumed: false,
+  });
+  assert.equal(revised.track?.title, "A revised title");
+  assert.equal(revised.track?.artist, "A revised artist");
+  assert.equal(revised.track?.artAlt, "A revised album album art");
+  assert.equal(revised.track?.artUrl, "https://i.scdn.co/image/revised");
+  assert.equal(revised.trackId, recovered.trackId);
+  assert.equal(revised.sample?.instant, false);
+  const unchanged = spotifyReducer(recovered, {
+    type: "playback",
+    data: { ...playing, progress: playing.progress + 1000 },
+    resumed: false,
+  });
+  assert.equal(unchanged.track, recovered.track);
+});
+
+test("Spotify distinguishes local track names containing separators", () => {
+  const first = spotifyReducer(INITIAL_SPOTIFY_STATE, {
+    type: "playback",
+    data: { ...playing, songUrl: "", title: "A-B", artist: "C" },
+    resumed: false,
+  });
+  const next = spotifyReducer(first, {
+    type: "playback",
+    data: { ...playing, songUrl: "", title: "A", artist: "B-C", progress: 0 },
+    resumed: false,
+  });
+  assert.notEqual(next.trackId, first.trackId);
+  assert.equal(next.sample?.instant, true);
+  assert.equal(next.track?.songUrl, undefined);
+  assert.equal(next.track?.title, "A");
+  assert.equal(next.track?.artist, "B-C");
+});
+
 test("Spotify keeps failed art on a placeholder until its URL or track changes", () => {
   const first = spotifyReducer(INITIAL_SPOTIFY_STATE, {
     type: "playback",
@@ -171,6 +244,14 @@ test("Spotify keeps failed art on a placeholder until its URL or track changes",
   });
   assert.equal(same.track?.artUrl, PLACEHOLDER_IMAGE);
   assert.equal(same.sample?.instant, false);
+  const metadataUpdate = spotifyReducer(same, {
+    type: "playback",
+    data: { ...playing, title: "An updated title" },
+    resumed: false,
+  });
+  assert.equal(metadataUpdate.track?.title, "An updated title");
+  assert.equal(metadataUpdate.track?.artUrl, PLACEHOLDER_IMAGE);
+  assert.equal(metadataUpdate.track?.failedArtUrl, playing.albumArt);
   const updated = spotifyReducer(same, {
     type: "playback",
     data: { ...playing, albumArt: "https://i.scdn.co/image/new" },

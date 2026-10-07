@@ -112,6 +112,14 @@ Update a secret without printing it using `npx wrangler secret put NAME`.
 To roll back, use the Worker's **Deployments** page in Cloudflare or
 `npx wrangler rollback`.
 
+Spotify refresh tokens expire six months after authorization; refreshing an
+access token does not extend that lifetime. If Spotify returns `invalid_grant`,
+reauthorize the app and replace `SPOTIFY_REFRESH_TOKEN` securely with
+`npx wrangler secret put SPOTIFY_REFRESH_TOKEN`. Replace the local `.dev.vars`
+value separately. A rotated refresh token also needs a secret update; the
+Worker reports rotation without logging the token. See Spotify's
+[refresh-token lifecycle](https://developer.spotify.com/documentation/web-api/tutorials/refreshing-tokens).
+
 ## Cloudflare Settings to Preserve
 
 The zone's **Canonical host redirect** Single Redirect must run before the

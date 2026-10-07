@@ -173,6 +173,89 @@ test("GitHub failures return a generic error without public caching", async (t) 
   });
 });
 
+for (const [label, days] of [
+  ["negative counts", [{ date: "2026-09-16", contributionCount: -1 }]],
+  ["fractional counts", [{ date: "2026-09-16", contributionCount: 1.5 }]],
+  [
+    "unsafe counts",
+    [{ date: "2026-09-16", contributionCount: Number.MAX_SAFE_INTEGER + 1 }],
+  ],
+  ["invalid date formats", [{ date: "September 16", contributionCount: 3 }]],
+  ["impossible dates", [{ date: "2026-02-30", contributionCount: 3 }]],
+  [
+    "duplicate dates",
+    [
+      { date: "2026-09-16", contributionCount: 3 },
+      { date: "2026-09-16", contributionCount: 9 },
+    ],
+  ],
+] as const) {
+  test(`GitHub rejects ${label} without caching them and recovers on the next request`, async (t) => {
+    let calls = 0;
+    const handler = await loadHandler("github-contributions", t, async () => {
+      calls++;
+      return json(
+        calls === 1
+          ? {
+              data: {
+                user: {
+                  contributionsCollection: {
+                    contributionCalendar: {
+                      weeks: [{ contributionDays: days }],
+                    },
+                  },
+                },
+              },
+            }
+          : calendar,
+      );
+    });
+    const rejected = await handler(request("github-contributions"), testEnv);
+    assert.equal(rejected.status, 500);
+    assert.equal(rejected.headers.get("Cache-Control"), "no-store");
+    assert.deepEqual(await rejected.json(), {
+      error: "Failed to fetch contributions",
+    });
+    const recovered = await handler(request("github-contributions"), testEnv);
+    assert.equal(recovered.status, 200);
+    assert.equal(
+      calls,
+      2,
+      "The invalid response must not enter the warm cache",
+    );
+    assert.deepEqual(await recovered.json(), {
+      contributions: [{ date: "2026-09-16", count: 3 }],
+    });
+  });
+}
+
+test("GitHub preserves valid leap dates and zero contribution counts", async (t) => {
+  const handler = await loadHandler("github-contributions", t, async () =>
+    json({
+      data: {
+        user: {
+          contributionsCollection: {
+            contributionCalendar: {
+              weeks: [
+                {
+                  contributionDays: [
+                    { date: "2024-02-29", contributionCount: 0 },
+                  ],
+                },
+              ],
+            },
+          },
+        },
+      },
+    }),
+  );
+  const response = await handler(request("github-contributions"), testEnv);
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), {
+    contributions: [{ date: "2024-02-29", count: 0 }],
+  });
+});
+
 test("simultaneous GitHub cache misses share one upstream request", async (t) => {
   let calls = 0;
   const delayed = delayedResponse();
@@ -528,7 +611,65 @@ test("Spotify preserves optional track defaults and paused playback", async (t) 
   });
 });
 
+for (const [label, payload] of [
+  ["an invalid playback flag", { ...track, is_playing: "true" }],
+  ["a missing playback flag", { ...track, is_playing: undefined }],
+  ["negative progress", { ...track, progress_ms: -1 }],
+  [
+    "fractional duration",
+    { ...track, item: { ...track.item, duration_ms: 1.5 } },
+  ],
+] as const) {
+  test(`Spotify rejects ${label} instead of returning corrupt playback`, async (t) => {
+    const queue = [token, () => json(payload)];
+    const handler = await loadHandler("now-playing", t, async () =>
+      nextResponse(queue),
+    );
+    const response = await handler(request("now-playing"), testEnv);
+    assert.equal(response.status, 500);
+    assert.match(response.headers.get("Cache-Control") ?? "", /no-store/);
+    assert.deepEqual(await response.json(), {
+      error: "Failed to fetch now playing data",
+    });
+  });
+}
+
+for (const field of ["progress_ms", "duration_ms"] as const) {
+  test(`Spotify rejects overflowed ${field} instead of serializing it as null`, async (t) => {
+    const payload =
+      field === "progress_ms"
+        ? { ...track, progress_ms: "overflow" }
+        : { ...track, item: { ...track.item, duration_ms: "overflow" } };
+    // This is valid JSON whose numeric exponent exceeds JavaScript's finite
+    // range. Response.json fixtures would serialize Infinity as null first.
+    const upstream = JSON.stringify(payload).replace('"overflow"', "1e400");
+    const queue = [token, () => new Response(upstream)];
+    const handler = await loadHandler("now-playing", t, async () =>
+      nextResponse(queue),
+    );
+    const response = await handler(request("now-playing"), testEnv);
+    assert.equal(response.status, 500);
+    assert.match(response.headers.get("Cache-Control") ?? "", /no-store/);
+    assert.deepEqual(await response.json(), {
+      error: "Failed to fetch now playing data",
+    });
+  });
+}
+
 for (const [label, images, expected] of [
+  [
+    "valid image after a blank best-fit URL",
+    [
+      { width: 300, url: "" },
+      { width: 640, url: "https://i.scdn.co/large" },
+    ],
+    "https://i.scdn.co/large",
+  ],
+  [
+    "valid dimensionless URL after blank URLs",
+    [{ url: "" }, { url: "   " }, { url: "https://i.scdn.co/fallback" }],
+    "https://i.scdn.co/fallback",
+  ],
   [
     "largest undersized image",
     [

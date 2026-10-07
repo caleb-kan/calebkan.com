@@ -64,6 +64,8 @@ function overflowPixels(element: HTMLElement): number {
 function useMarquee(
   hidden: boolean,
   trackId: string | null,
+  titleText: string | undefined,
+  artistText: string | undefined,
   titleRef: RefObject<HTMLAnchorElement | null>,
   artistRef: RefObject<HTMLParagraphElement | null>,
   controlRef: RefObject<HTMLButtonElement | null>,
@@ -152,7 +154,7 @@ function useMarquee(
       document.removeEventListener("visibilitychange", visibility);
       media.removeEventListener("change", schedule);
     };
-  }, [hidden, trackId, titleRef, artistRef, controlRef]);
+  }, [hidden, trackId, titleText, artistText, titleRef, artistRef, controlRef]);
 
   return layout;
 }
@@ -230,6 +232,8 @@ export function SpotifyCard() {
   const marquee = useMarquee(
     state.hidden,
     state.trackId,
+    state.track?.title,
+    state.track?.artist,
     titleRef,
     artistRef,
     textControlRef,

@@ -162,17 +162,22 @@ export function parseCalendarData(value: unknown): CalendarData {
   if (!isRecord(value) || !Array.isArray(value.contributions)) {
     throw new Error("GitHub API returned unexpected response shape");
   }
+  const dates = new Set<string>();
   const contributions = value.contributions.map((day: unknown) => {
     if (
       !isRecord(day) ||
       typeof day.date !== "string" ||
       !/^\d{4}-\d{2}-\d{2}$/.test(day.date) ||
+      !Number.isFinite(Date.parse(day.date)) ||
+      formatDate(new Date(day.date)) !== day.date ||
+      dates.has(day.date) ||
       typeof day.count !== "number" ||
       !Number.isSafeInteger(day.count) ||
       day.count < 0
     ) {
       throw new Error("GitHub API returned unexpected contribution data");
     }
+    dates.add(day.date);
     return { date: day.date, count: day.count };
   });
   return { contributions };
