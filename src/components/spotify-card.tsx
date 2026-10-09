@@ -16,6 +16,7 @@ import {
   PLACEHOLDER_IMAGE,
   POLL_INTERVAL_ACTIVE,
   RESIZE_DEBOUNCE,
+  isSafeSongUrl,
   marqueeDuration,
   progressPosition,
   spotifyReducer,
@@ -243,8 +244,10 @@ export function SpotifyCard() {
   useEffect(() => {
     const poller = createSpotifyPoller((data, resumed) => {
       if (
-        !data.isPlaying &&
-        cardRef.current?.contains(document.activeElement)
+        cardRef.current?.contains(document.activeElement) &&
+        (!data.isPlaying ||
+          (document.activeElement === titleRef.current &&
+            !isSafeSongUrl(data.songUrl)))
       ) {
         document.getElementById("page-title")?.focus();
       }
