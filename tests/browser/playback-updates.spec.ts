@@ -1,6 +1,62 @@
 import { expect, test } from "@playwright/test";
 import { mockServices, playing } from "./fixtures";
 
+for (const songUrl of ["", "javascript:alert(1)"]) {
+  test(`Spotify rescues focused song links when playback URL becomes ${JSON.stringify(songUrl)}`, async ({
+    page,
+  }) => {
+    await mockServices(page);
+    let track = { ...playing };
+    await page.route("**/api/now-playing", (route) =>
+      route.fulfill({ json: track }),
+    );
+    await page.goto("/");
+    const title = page.locator("#spotify-title");
+    await expect(title).toHaveAttribute("href", playing.songUrl);
+    await title.focus();
+    await expect(title).toBeFocused();
+
+    track = {
+      ...track,
+      songUrl: "https://open.spotify.com/track/next-focused-link",
+    };
+    await expect(title).toHaveAttribute("href", track.songUrl);
+    await expect(title).toBeFocused();
+
+    track = { ...track, songUrl };
+    await expect(title).not.toHaveAttribute("href");
+    await expect(page.locator("#spotify-card")).toBeVisible();
+    await expect(page.locator("#page-title")).toBeFocused();
+  });
+}
+
+test("Spotify preserves scrolling-control focus when only the song link becomes inert", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 1000 });
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await mockServices(page);
+  let track = {
+    ...playing,
+    title: "A long title that overflows the narrow Spotify player",
+  };
+  await page.route("**/api/now-playing", (route) =>
+    route.fulfill({ json: track }),
+  );
+  await page.goto("/");
+  const control = page.getByRole("button", {
+    name: "Pause text or resume text",
+  });
+  await expect(control).toBeVisible();
+  await control.focus();
+  await expect(control).toBeFocused();
+
+  track = { ...track, songUrl: "javascript:alert(1)" };
+  await expect(page.locator("#spotify-title")).not.toHaveAttribute("href");
+  await expect(control).toBeVisible();
+  await expect(control).toBeFocused();
+});
+
 test("same-track metadata updates refresh artwork and text scrolling", async ({
   page,
 }) => {

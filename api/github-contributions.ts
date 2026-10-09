@@ -190,7 +190,7 @@ export default async function handler(
     // Do not extend the lifetime of data already held by a warm Worker.
     const remaining = Math.max(
       0,
-      Math.ceil((cacheExpiresAt - Date.now()) / MS_PER_S),
+      Math.floor((cacheExpiresAt - Date.now()) / MS_PER_S),
     );
     return Response.json(data, {
       status: HTTP_OK,

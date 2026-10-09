@@ -8,7 +8,6 @@ const FETCH_TIMEOUT_MS = 5000;
 const MS_PER_S = 1000;
 const SECONDS_PER_MINUTE = 60;
 const TOKEN_REFRESH_MARGIN_MS = SECONDS_PER_MINUTE * MS_PER_S; // Re-fetch access token 60s before expiry to avoid clock-skew failures
-const DEFAULT_TOKEN_EXPIRY_S = 3600;
 const DEFAULT_RETRY_AFTER_SECONDS = 30;
 const MAX_RETRY_AFTER_SECONDS = 3600;
 const ALBUM_ART_TARGET_PX = 300; // Spotify medium size; close to 2x the 160px CSS display size for retina clarity
@@ -147,6 +146,16 @@ async function refreshAccessToken(
     throw new Error("Spotify token refresh returned no access token");
   }
 
+  const expiresInSeconds = data.expires_in;
+  if (
+    typeof expiresInSeconds !== "number" ||
+    !Number.isSafeInteger(expiresInSeconds) ||
+    expiresInSeconds <= 0 ||
+    !Number.isSafeInteger(requestedAt + expiresInSeconds * MS_PER_S)
+  ) {
+    throw new Error("Spotify token refresh returned an invalid lifetime");
+  }
+
   if (data.refresh_token) {
     console.warn(
       "Spotify issued a new refresh_token; the old token may be invalidated. " +
@@ -155,7 +164,6 @@ async function refreshAccessToken(
   }
 
   cachedToken = data.access_token;
-  const expiresInSeconds = Number(data.expires_in) || DEFAULT_TOKEN_EXPIRY_S;
   tokenExpiresAt =
     requestedAt + expiresInSeconds * MS_PER_S - TOKEN_REFRESH_MARGIN_MS;
 

@@ -263,13 +263,13 @@ test("refilling edge cache cannot extend GitHub's warm-cache lifetime", async (t
   const app = setup(t, async () => githubData(++calls));
   await app.fetch(GITHUB_PATH);
   await app.flush();
-  t.mock.timers.tick(30000);
+  t.mock.timers.tick(30001);
   app.entries.clear();
   const warm = await app.fetch(GITHUB_PATH);
   await app.flush();
-  assert.match(warm.headers.get("Cache-Control") ?? "", /s-maxage=30/);
+  assert.match(warm.headers.get("Cache-Control") ?? "", /s-maxage=29/);
   assert.equal(calls, 1);
-  t.mock.timers.tick(30001);
+  t.mock.timers.tick(29999);
   const fresh = await app.fetch(GITHUB_PATH);
   assert.equal(calls, 2);
   assert.deepEqual(await fresh.json(), {

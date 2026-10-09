@@ -355,6 +355,46 @@ test("a failed shared Spotify token refresh clears before the next attempt", asy
   assert.equal(tokenCalls, 2);
 });
 
+for (const expiresIn of [
+  undefined,
+  null,
+  0,
+  -1,
+  1.5,
+  "3600",
+  "1e400",
+  Number.MAX_SAFE_INTEGER,
+]) {
+  test(`Spotify rejects invalid token lifetime ${expiresIn} without caching the token`, async (t) => {
+    let tokenCalls = 0;
+    let playbackCalls = 0;
+    const handler = await loadHandler("now-playing", t, async (url) => {
+      if (url === "https://accounts.spotify.com/api/token") {
+        if (++tokenCalls > 1) return token();
+        return new Response(
+          JSON.stringify({
+            access_token: "bad-token",
+            expires_in: expiresIn,
+          }).replace('"1e400"', "1e400"),
+        );
+      }
+      playbackCalls++;
+      return new Response(null, { status: 204 });
+    });
+    const rejected = await handler(request("now-playing"), testEnv);
+    assert.equal(rejected.status, 500);
+    assert.deepEqual(await rejected.json(), {
+      error: "Failed to fetch now playing data",
+    });
+    assert.match(rejected.headers.get("Cache-Control") ?? "", /no-store/);
+    assert.equal(playbackCalls, 0);
+    const recovered = await handler(request("now-playing"), testEnv);
+    assert.equal(recovered.status, 200);
+    assert.equal(tokenCalls, 2);
+    assert.equal(playbackCalls, 1);
+  });
+}
+
 for (const endpoint of ["token", "playback"]) {
   test(`Spotify respects ${endpoint} Retry-After and recovers after the cooldown`, async (t) => {
     t.mock.timers.enable({
