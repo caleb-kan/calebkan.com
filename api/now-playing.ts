@@ -141,9 +141,9 @@ async function refreshAccessToken(
   if (
     !isRecord(data) ||
     typeof data.access_token !== "string" ||
-    !data.access_token
+    !/^[A-Za-z0-9._~+/-]+=*$/.test(data.access_token)
   ) {
-    throw new Error("Spotify token refresh returned no access token");
+    throw new Error("Spotify token refresh returned an invalid access token");
   }
 
   const expiresInSeconds = data.expires_in;

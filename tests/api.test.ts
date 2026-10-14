@@ -355,6 +355,102 @@ test("a failed shared Spotify token refresh clears before the next attempt", asy
   assert.equal(tokenCalls, 2);
 });
 
+for (const [label, accessToken] of [
+  ["missing", undefined],
+  ["null", null],
+  ["numeric", 42],
+  ["boolean", true],
+  ["object", {}],
+  ["array", []],
+  ["empty", ""],
+  ["NUL", "bad\0token"],
+  ["control character", "bad\u0001token"],
+  ["tab", "bad\ttoken"],
+  ["embedded CRLF", "bad\r\ntoken"],
+  ["final CR", "bad-token\r"],
+  ["final LF", "bad-token\n"],
+  ["final CRLF", "bad-token\r\n"],
+  ["final Unicode line separator", "bad-token\u2028"],
+  ["final Unicode paragraph separator", "bad-token\u2029"],
+  ["non-ASCII ByteString", "bad\u00e9token"],
+  ["non-ByteString", "bad\u0100token"],
+  ["embedded space", "bad token"],
+  ["leading space", " bad-token"],
+  ["trailing space", "bad-token "],
+  ["misplaced padding", "bad=token"],
+  ["leading padding", "=bad-token"],
+  ["all padding", "==="],
+  ["colon", "bad:token"],
+  ["comma", "bad,token"],
+] as const) {
+  test(`Spotify rejects ${label} access tokens without caching them and recovers on the next request`, async (t) => {
+    let tokenCalls = 0;
+    let playbackCalls = 0;
+    const handler = await loadHandler(
+      "now-playing",
+      t,
+      async (url, options) => {
+        const upstream = new Request(url, options);
+        if (upstream.url === "https://accounts.spotify.com/api/token") {
+          return ++tokenCalls === 1
+            ? json({ access_token: accessToken, expires_in: 3600 })
+            : token();
+        }
+        playbackCalls++;
+        return new Response(null, { status: 204 });
+      },
+    );
+    const rejected = await handler(request("now-playing"), testEnv);
+    assert.equal(rejected.status, 500);
+    assert.deepEqual(await rejected.json(), {
+      error: "Failed to fetch now playing data",
+    });
+    assert.match(rejected.headers.get("Cache-Control") ?? "", /no-store/);
+    assert.equal(playbackCalls, 0);
+
+    const recovered = await handler(request("now-playing"), testEnv);
+    assert.equal(recovered.status, 200);
+    assert.deepEqual(await recovered.json(), { isPlaying: false });
+    assert.equal(
+      tokenCalls,
+      2,
+      "An invalid token must not enter the warm cache",
+    );
+    assert.equal(playbackCalls, 1);
+  });
+}
+
+for (const accessToken of ["AaZz09-._~+/", "AaZz09-._~+/=", "AaZz09-._~+/=="]) {
+  test(`Spotify preserves and caches the valid bearer token ${accessToken}`, async (t) => {
+    let tokenCalls = 0;
+    let playbackCalls = 0;
+    const handler = await loadHandler(
+      "now-playing",
+      t,
+      async (url, options) => {
+        const upstream = new Request(url, options);
+        if (upstream.url === "https://accounts.spotify.com/api/token") {
+          tokenCalls++;
+          return json({ access_token: accessToken, expires_in: 3600 });
+        }
+        playbackCalls++;
+        assert.equal(
+          upstream.headers.get("Authorization"),
+          `Bearer ${accessToken}`,
+        );
+        return new Response(null, { status: 204 });
+      },
+    );
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const response = await handler(request("now-playing"), testEnv);
+      assert.equal(response.status, 200);
+      assert.deepEqual(await response.json(), { isPlaying: false });
+    }
+    assert.equal(tokenCalls, 1);
+    assert.equal(playbackCalls, 2);
+  });
+}
+
 for (const expiresIn of [
   undefined,
   null,
