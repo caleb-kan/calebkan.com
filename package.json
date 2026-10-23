@@ -18,28 +18,28 @@
     "deploy": "npm run build && wrangler deploy"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "1.62.5",
-    "@playwright/test": "1.63.0",
+    "@cloudflare/vite-plugin": "1.64.0",
+    "@playwright/test": "1.64.1",
     "@tailwindcss/vite": "4.3.3",
     "@types/node": "24.19.2",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
-    "@vitejs/plugin-react": "6.1.1",
+    "@vitejs/plugin-react": "6.1.2",
     "esbuild": "0.28.2",
-    "prettier": "3.9.9",
+    "prettier": "3.9.10",
     "tailwindcss": "4.3.3",
     "tsx": "4.23.15",
     "typescript": "7.0.2",
     "vite": "8.3.5",
-    "wrangler": "4.147.0"
+    "wrangler": "4.151.2"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "7.3.1",
     "@fortawesome/free-brands-svg-icons": "7.3.1",
     "@fortawesome/free-solid-svg-icons": "7.3.1",
     "@fortawesome/react-fontawesome": "3.5.0",
-    "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
   },
   "overrides": {
     "miniflare": {
