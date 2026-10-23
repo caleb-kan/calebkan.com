@@ -11,6 +11,9 @@ updates:
       npm-compatible:
         patterns: ["*"]
         update-types: ["minor", "patch"]
+    ignore:
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
     open-pull-requests-limit: 5
     commit-message:
       prefix: deps
