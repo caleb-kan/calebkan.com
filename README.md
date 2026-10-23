@@ -86,6 +86,8 @@ Dependabot checks npm dependencies and GitHub Actions every Monday at 06:00
 Europe/London, starting when `.github/dependabot.yml` is on the default branch.
 Minor and patch npm updates are grouped. Major npm updates remain separate.
 Security updates can open PRs independently of the weekly schedule.
+Node declaration updates stay within the Node 24 major selected by `.nvmrc`.
+Update that Dependabot exception when changing the supported Node runtime.
 
 Each dependency PR runs the normal CI checks. CI also runs
 `npm audit --audit-level=high` for production and development dependencies,
