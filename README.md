@@ -80,6 +80,24 @@ browser testing. For visual changes, also inspect first load, both themes,
 the 1100px / 768px / 600px breakpoints, reduced motion, and Spotify appearing
 and hiding. The calendar's reserved CSS aspect ratio must match its SVG viewBox.
 
+## Dependency Maintenance
+
+Dependabot checks npm dependencies and GitHub Actions every Monday at 06:00
+Europe/London, starting when `.github/dependabot.yml` is on the default branch.
+Minor and patch npm updates are grouped. Major npm updates remain separate.
+Security updates can open PRs independently of the weekly schedule.
+
+Each dependency PR runs the normal CI checks. CI also runs
+`npm audit --audit-level=high` for production and development dependencies,
+failing on high or critical advisories. Review dependency PRs before merging.
+`main` requires the current **Verify site and Worker** check to pass,
+including for administrators. Automatic merging is disabled.
+
+Keep **Dependabot alerts** and **Dependabot security updates** enabled in the
+repository's security settings. These settings operate separately from the
+version-update configuration. Review and merge updates only after their checks
+pass, then verify the deployed site.
+
 ## Hosting and Deployment
 
 The Cloudflare Worker is named `calebkan-com`. Cloudflare also manages DNS and
