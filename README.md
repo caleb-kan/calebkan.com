@@ -47,6 +47,12 @@ manifest. Development mode updates automatically.
   runtime style injection.
 - `api/*.ts` implement the upstream integrations. `worker/index.ts` routes
   requests and applies security headers and API CORS.
+- `worker/content-security-policy.ts` defines the page policies. The Worker
+  sends production CSP in HTTP headers with a fresh script nonce for
+  Cloudflare's injected detection script. HTML is private and not cached;
+  scripts, styles, fonts, images, and APIs retain their own cache policies.
+  Vite uses the same page policies with development-only meta tags and its
+  development nonce to permit HMR.
 - `callback.html` uses `src/callback.ts` and `src/callback.css` for Spotify
   authorization. Its script and styles compile to same-origin assets.
 

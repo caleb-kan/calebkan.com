@@ -38,7 +38,7 @@ test("only browser assets are published, with no source files or credentials", a
   assert.equal(config.observability.redact_query_string, true);
 });
 
-test("prerendered content, metadata, strict CSP, and synchronous boot survive the build", async () => {
+test("prerendered content, metadata, and synchronous boot survive the build", async () => {
   const html = await readFile(`${publicDirectory}/index.html`, "utf8");
   assert.match(html, /<h1 id="page-title" tabindex="-1">Caleb Kan<\/h1>/);
   assert.match(html, /href="mailto:calebkan1106@gmail.com"/);
@@ -47,8 +47,7 @@ test("prerendered content, metadata, strict CSP, and synchronous boot survive th
     html,
     /<link rel="canonical" href="https:\/\/www.calebkan.com\/"/,
   );
-  assert.match(html, /script-src 'self';/);
-  assert.match(html, /style-src 'self'; font-src 'self';/);
+  assert.doesNotMatch(html, /Content-Security-Policy|content-security-policy/);
   assert.doesNotMatch(html, /cdnjs\.cloudflare\.com|<style/);
   assert.match(html, /<svg[^>]+data-icon="github"/);
   assert.doesNotMatch(
@@ -65,7 +64,10 @@ test("prerendered content, metadata, strict CSP, and synchronous boot survive th
 
 test("callback uses same-origin compiled assets and no executable inline code", async () => {
   const html = await readFile(`${publicDirectory}/callback.html`, "utf8");
-  assert.match(html, /default-src 'none'; script-src 'self'; style-src 'self'/);
+  assert.doesNotMatch(
+    html,
+    /Content-Security-Policy|content-security-policy|nonce-/,
+  );
   assert.match(html, /name="robots" content="noindex, nofollow"/);
   assert.match(html, /name="referrer" content="no-referrer"/);
   assert.ok(html.indexOf('name="referrer"') < html.indexOf("<link"));

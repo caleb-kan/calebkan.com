@@ -44,9 +44,23 @@ function githubData(count = 3) {
   });
 }
 
-function assertHeaders(response: Response, isApi = false) {
+function assertHeaders(
+  response: Response,
+  isApi = false,
+  documentPolicy?: string,
+) {
   for (const [name, expected] of Object.entries(SECURITY_HEADERS)) {
-    assert.equal(response.headers.get(name), expected, name);
+    if (name === "Content-Security-Policy" && documentPolicy) {
+      const actual = response.headers.get(name) ?? "";
+      const nonce = actual.match(/'nonce-([\w-]+)'/)?.[1] ?? "";
+      assert.match(nonce, /^[\da-f]{8}(?:-[\da-f]{4}){3}-[\da-f]{12}$/);
+      assert.equal(
+        actual,
+        `${documentPolicy.replace("script-src 'self'", `script-src 'self' 'nonce-${nonce}'`)}; frame-ancestors 'none'`,
+      );
+    } else {
+      assert.equal(response.headers.get(name), expected, name);
+    }
   }
   assert.equal(
     response.headers.get("Access-Control-Allow-Origin"),
@@ -137,11 +151,14 @@ test("static assets retain their bodies and headers with every security header",
   app.env.ASSETS.fetch = async (input) => {
     const request = input instanceof Request ? input : new Request(input);
     assert.equal(request.url, `${ORIGIN}/assets/main-test.css?v=1`);
+    assert.equal(request.headers.get("If-None-Match"), '"previous-version"');
     return new Response("body { color: red; }", {
       headers: { "Content-Type": "text/css", ETag: '"asset-version"' },
     });
   };
-  const response = await app.fetch("/assets/main-test.css?v=1");
+  const response = await app.fetch("/assets/main-test.css?v=1", {
+    headers: { "If-None-Match": '"previous-version"' },
+  });
   assert.equal(response.status, 200);
   assert.equal(await response.text(), "body { color: red; }");
   assert.equal(response.headers.get("Content-Type"), "text/css");
@@ -150,27 +167,70 @@ test("static assets retain their bodies and headers with every security header",
   assert.equal(app.reads.length, 0);
 });
 
-for (const [path, assetPath] of [
-  ["/?source=direct", "/index.html?source=direct"],
-  ["/callback.html?code=a%2Bb", "/callback.html?code=a%2Bb"],
-]) {
-  test(`${path} resolves the intended HTML asset without dropping its query`, async (t) => {
-    const app = setup(t);
-    app.env.ASSETS.fetch = async (input) => {
-      const request = input instanceof Request ? input : new Request(input);
-      assert.equal(request.url, `${ORIGIN}${assetPath}`);
-      assert.equal(request.headers.get("If-None-Match"), '"previous-version"');
-      return new Response("<html></html>", {
-        headers: { "Content-Type": "text/html" },
-      });
-    };
-    const response = await app.fetch(path, {
-      headers: { "If-None-Match": '"previous-version"' },
+test("HTML responses provide a fresh nonce without caching the policy", async (t) => {
+  const app = setup(t);
+  app.env.ASSETS.fetch = async () =>
+    new Response("<html></html>", {
+      headers: { "Content-Type": "text/html" },
     });
-    assert.equal(response.status, 200);
-    assert.equal(response.headers.get("Location"), null);
-    assertHeaders(response);
-  });
+  const first = await app.fetch("/");
+  const second = await app.fetch("/");
+  const firstPolicy = first.headers.get("Content-Security-Policy") ?? "";
+  const secondPolicy = second.headers.get("Content-Security-Policy") ?? "";
+  assert.match(firstPolicy, /script-src 'self' 'nonce-[\w-]+'/);
+  assert.notEqual(firstPolicy, secondPolicy);
+  assert.equal(first.headers.get("Cache-Control"), "private, no-store");
+});
+
+for (const [path, assetPath, policy] of [
+  [
+    "/?source=direct",
+    "/index.html?source=direct",
+    "default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data: https://*.scdn.co; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'",
+  ],
+  [
+    "/callback.html?code=a%2Bb",
+    "/callback.html?code=a%2Bb",
+    "default-src 'none'; script-src 'self'; style-src 'self'; base-uri 'none'; form-action 'none'",
+  ],
+]) {
+  for (const method of ["GET", "HEAD"]) {
+    test(`${method} ${path} returns fresh HTML without dropping its query`, async (t) => {
+      const app = setup(t);
+      app.env.ASSETS.fetch = async (input) => {
+        const request = input instanceof Request ? input : new Request(input);
+        assert.equal(request.url, `${ORIGIN}${assetPath}`);
+        assert.equal(request.method, method);
+        assert.equal(request.headers.get("If-None-Match"), null);
+        assert.equal(request.headers.get("If-Modified-Since"), null);
+        return new Response(method === "HEAD" ? null : "<html></html>", {
+          headers: {
+            "Content-Type": "text/html",
+            "Cache-Control": "public, max-age=0, must-revalidate",
+            ETag: '"asset-version"',
+            "Last-Modified": "Mon, 21 Sep 2026 12:00:00 GMT",
+          },
+        });
+      };
+      const response = await app.fetch(path, {
+        method,
+        headers: {
+          "If-None-Match": '"previous-version"',
+          "If-Modified-Since": "Mon, 21 Sep 2026 12:00:00 GMT",
+        },
+      });
+      assert.equal(response.status, 200);
+      assert.equal(
+        await response.text(),
+        method === "HEAD" ? "" : "<html></html>",
+      );
+      assert.equal(response.headers.get("Location"), null);
+      assert.equal(response.headers.get("Cache-Control"), "private, no-store");
+      assert.equal(response.headers.get("ETag"), null);
+      assert.equal(response.headers.get("Last-Modified"), null);
+      assertHeaders(response, false, policy);
+    });
+  }
 }
 
 test("static asset 404 responses retain their status and security headers", async (t) => {

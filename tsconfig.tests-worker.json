@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig.worker.json",
   "compilerOptions": {
-    "types": ["node", "./worker-configuration.d.ts"]
+    "types": ["node", "vite/client", "./worker-configuration.d.ts"]
   },
   "include": [
     "api",

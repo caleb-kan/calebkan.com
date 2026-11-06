@@ -1,5 +1,6 @@
 import githubContributions from "../api/github-contributions";
 import nowPlaying from "../api/now-playing";
+import { DOCUMENT_POLICIES } from "./content-security-policy";
 
 const APEX_HOST = "calebkan.com";
 const CANONICAL_ORIGIN = "https://www.calebkan.com";
@@ -21,10 +22,31 @@ const SECURITY_HEADERS = {
   "Content-Security-Policy": "frame-ancestors 'none'",
 };
 
-function withHeaders(response: Response, isApi: boolean): Response {
+function withHeaders(
+  response: Response,
+  isApi: boolean,
+  documentPolicy?: string,
+): Response {
   const result = new Response(response.body, response);
   for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
     result.headers.set(name, value);
+  }
+  if (
+    documentPolicy &&
+    response.ok &&
+    response.headers.get("Content-Type")?.startsWith("text/html")
+  ) {
+    const policy = documentPolicy.replace(
+      "script-src 'self'",
+      `script-src 'self' 'nonce-${crypto.randomUUID()}'`,
+    );
+    result.headers.set(
+      "Content-Security-Policy",
+      `${policy}; frame-ancestors 'none'`,
+    );
+    result.headers.set("Cache-Control", "private, no-store");
+    result.headers.delete("ETag");
+    result.headers.delete("Last-Modified");
   }
   if (isApi) {
     result.headers.set("Access-Control-Allow-Origin", CANONICAL_ORIGIN);
@@ -86,6 +108,7 @@ export default {
       }
 
       let response: Response;
+      let documentPolicy: string | undefined;
       if (url.pathname === GITHUB_PATH) {
         response = await githubResponse(request, env, ctx);
       } else if (url.pathname === SPOTIFY_PATH) {
@@ -99,12 +122,19 @@ export default {
         // Exact HTML paths preserve Spotify's registered callback URL.
         if (url.pathname === "/") {
           url.pathname = "/index.html";
-          response = await env.ASSETS.fetch(new Request(url, request));
-        } else {
-          response = await env.ASSETS.fetch(request);
         }
+        if (!import.meta.env?.DEV) {
+          documentPolicy = DOCUMENT_POLICIES.get(url.pathname);
+        }
+        const assetRequest = new Request(url, request);
+        if (documentPolicy) {
+          // A fresh nonce cannot be paired with a previously cached document.
+          assetRequest.headers.delete("If-None-Match");
+          assetRequest.headers.delete("If-Modified-Since");
+        }
+        response = await env.ASSETS.fetch(assetRequest);
       }
-      return withHeaders(response, isApi);
+      return withHeaders(response, isApi, documentPolicy);
     } catch (error) {
       console.error("Worker request failed:", error);
       return withHeaders(
