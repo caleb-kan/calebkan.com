@@ -25,9 +25,13 @@ test("production asset boundary rejects source, credentials, and unknown paths",
   ]) {
     const response = await request.get(path);
     expect(response.status(), path).toBe(200);
-    expect(response.headers()["content-security-policy"], path).toBe(
-      "frame-ancestors 'none'",
-    );
+    const policy = response.headers()["content-security-policy"];
+    if (path === "/favicon/favicon.png") {
+      expect(policy, path).toBe("frame-ancestors 'none'");
+    } else {
+      expect(policy, path).toMatch(/script-src 'self' 'nonce-[\w-]+'/);
+      expect(policy, path).toContain("frame-ancestors 'none'");
+    }
     expect(response.headers()["x-frame-options"], path).toBe("DENY");
   }
 });
