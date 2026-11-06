@@ -1,4 +1,4 @@
-import { resolve } from "node:path";
+import { basename, resolve } from "node:path";
 import { randomUUID } from "node:crypto";
 import { cloudflare } from "@cloudflare/vite-plugin";
 import tailwindcss from "@tailwindcss/vite";
@@ -7,7 +7,13 @@ import { build } from "esbuild";
 import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { tsImport } from "tsx/esm/api";
-import { defineConfig, type HmrContext, type ViteDevServer } from "vite";
+import {
+  defineConfig,
+  type HmrContext,
+  type IndexHtmlTransformContext,
+  type ViteDevServer,
+} from "vite";
+import { DOCUMENT_POLICIES } from "./worker/content-security-policy";
 
 export default defineConfig(async ({ command }) => {
   let server: ViteDevServer | undefined;
@@ -47,11 +53,13 @@ export default defineConfig(async ({ command }) => {
         },
         transformIndexHtml: {
           order: "pre",
-          async handler(html: string) {
-            // Vite's refresh preamble and injected development styles receive
-            // this nonce. Production retains the original self-only policy.
-            if (developmentNonce) {
-              html = html.replace(
+          async handler(html: string, context: IndexHtmlTransformContext) {
+            const policy = DOCUMENT_POLICIES.get(
+              `/${basename(context.filename)}`,
+            );
+            let cspMeta = "";
+            if (developmentNonce && policy) {
+              let developmentPolicy = policy.replace(
                 /(script-src|style-src) 'self'/g,
                 `$1 'self' 'nonce-${developmentNonce}'`,
               );
@@ -66,20 +74,16 @@ export default defineConfig(async ({ command }) => {
                 })
                 .join(" ");
               if (websocketSources) {
-                html = html.replace(
-                  /(\bcontent=")([^"]*\bdefault-src\b[^"]*)(")/g,
-                  (_match, prefix: string, policy: string, suffix: string) => {
-                    const developmentPolicy = /\bconnect-src\b/.test(policy)
-                      ? policy.replace(
-                          /\bconnect-src[^;]*/,
-                          (directive) => `${directive} ${websocketSources}`,
-                        )
-                      : `${policy}; connect-src 'self' ${websocketSources}`;
-                    return `${prefix}${developmentPolicy}${suffix}`;
-                  },
-                );
+                developmentPolicy = /\bconnect-src\b/.test(developmentPolicy)
+                  ? developmentPolicy.replace(
+                      /\bconnect-src[^;]*/,
+                      (directive) => `${directive} ${websocketSources}`,
+                    )
+                  : `${developmentPolicy}; connect-src 'self' ${websocketSources}`;
               }
+              cspMeta = `<meta http-equiv="Content-Security-Policy" content="${developmentPolicy}" />`;
             }
+            html = html.replace("<!--content-security-policy-->", cspMeta);
             if (!html.includes("<!--app-html-->")) return html;
             const { App } = server
               ? await server.ssrLoadModule("/src/app.tsx")

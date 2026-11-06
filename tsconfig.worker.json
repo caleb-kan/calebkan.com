@@ -9,7 +9,7 @@
     "skipLibCheck": true,
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
-    "types": ["./worker-configuration.d.ts"]
+    "types": ["vite/client", "./worker-configuration.d.ts"]
   },
   "include": ["api", "worker", "worker-configuration.d.ts"]
 }
