@@ -13,7 +13,7 @@ import {
   type IndexHtmlTransformContext,
   type ViteDevServer,
 } from "vite";
-import { DOCUMENT_POLICIES } from "./worker/content-security-policy";
+import { DOCUMENT_POLICIES } from "./worker/content-security-policy.ts";
 
 export default defineConfig(async ({ command }) => {
   let server: ViteDevServer | undefined;
