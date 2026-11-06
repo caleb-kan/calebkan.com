@@ -191,7 +191,7 @@ for (const [path, assetPath, policy] of [
   [
     "/callback.html?code=a%2Bb",
     "/callback.html?code=a%2Bb",
-    "default-src 'none'; script-src 'self'; style-src 'self'; base-uri 'none'; form-action 'none'",
+    "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'",
   ],
 ]) {
   for (const method of ["GET", "HEAD"]) {
