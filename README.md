@@ -49,8 +49,8 @@ manifest. Development mode updates automatically.
   requests and applies security headers and API CORS.
 - `worker/content-security-policy.ts` defines the page policies. The Worker
   sends production CSP in HTTP headers with a fresh script nonce for
-  Cloudflare's injected detection script. HTML is private and not cached;
-  scripts, styles, fonts, images, and APIs retain their own cache policies.
+  Cloudflare's injected detection script. HTML is private and not cached.
+  Scripts, styles, fonts, images, and APIs retain their own cache policies.
   Vite uses the same page policies with development-only meta tags and its
   development nonce to permit HMR.
 - `callback.html` uses `src/callback.ts` and `src/callback.css` for Spotify
@@ -122,7 +122,7 @@ pass, then verify the deployed site.
 
 The Cloudflare Worker is named `calebkan-com`. Cloudflare also manages DNS and
 HTTPS. `calebkan.com` redirects to `www.calebkan.com`, preserving paths and
-query strings. `wrangler.jsonc` defines both custom domains and the runtime;
+query strings. `wrangler.jsonc` defines both custom domains and the runtime.
 Vite generates the final asset and bundle paths during the build.
 
 GitHub Actions checks pull requests and pushes to `main`, including a deployment
@@ -150,11 +150,11 @@ Update a secret without printing it using `npx wrangler secret put NAME`.
 To roll back, use the Worker's **Deployments** page in Cloudflare or
 `npx wrangler rollback`.
 
-Spotify refresh tokens expire six months after authorization; refreshing an
+Spotify refresh tokens expire six months after authorization. Refreshing an
 access token does not extend that lifetime. If Spotify returns `invalid_grant`,
 reauthorize the app and replace `SPOTIFY_REFRESH_TOKEN` securely with
 `npx wrangler secret put SPOTIFY_REFRESH_TOKEN`. Replace the local `.dev.vars`
-value separately. A rotated refresh token also needs a secret update; the
+value separately. A rotated refresh token also needs a secret update. The
 Worker reports rotation without logging the token. See Spotify's
 [refresh-token lifecycle](https://developer.spotify.com/documentation/web-api/tutorials/refreshing-tokens).
 
@@ -165,7 +165,7 @@ security challenge. Keep it enabled: completing a challenge on the apex and
 then redirecting from the Worker can trigger a download in Safari. The rule
 matches `http.host eq "calebkan.com"`, returns status `308`, targets
 `concat("https://www.calebkan.com", http.request.uri.path)`, and preserves the
-query string. Manage it under **Cloudflare → calebkan.com → Rules**;
+query string. Manage it under **Cloudflare → calebkan.com → Rules**.
 Wrangler deployments do not manage zone rules.
 
 Keep **Browser Cache TTL** set to **Respect Existing Headers** (`0` in the
