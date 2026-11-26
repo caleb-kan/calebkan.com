@@ -166,12 +166,24 @@ Concurrent GitHub cache misses and Spotify token refreshes share their upstream
 request within each warm Worker instance. Spotify rate limits trigger a validated
 cooldown and return `429` with `Retry-After`, without caching playback data.
 
-**Under Attack Mode remains enabled** on the custom domains, with verification
-on the canonical `www` host. Browsers may see a security verification page, and
-command-line probes can receive a challenge. The Worker test URL is
-<https://calebkan-com.caleb-kan.workers.dev>.
+Keep **HSTS** enabled under **SSL/TLS → Edge Certificates** with a max-age of
+`63072000` (two years), **Include subdomains**, **Preload**, and **No-Sniff**.
+On the custom domains, Cloudflare replaces the Worker's
+`Strict-Transport-Security` header with this setting. It is also the only HSTS
+source for the apex redirect, because the Single Redirect answers before the
+Worker runs. Change it together with `SECURITY_HEADERS` in `worker/index.ts`.
+The dashboard offers at most 12 months, so set the max-age through the API
+with `PATCH /zones/{zone_id}/settings/security_header`. Saving the dashboard's
+HSTS dialog can store only 12 months or less. Keep **Minimum TLS Version** at
+**TLS 1.2**.
+
+**I'm Under Attack Mode is off**, so browsers, link previews, and command-line
+probes reach the site without a security verification page. **Bot Fight Mode**
+remains enabled and can still challenge clients it classifies as bots. The
+Worker test URL is <https://calebkan-com.caleb-kan.workers.dev>.
 
 After redirect changes, use a fresh private Safari window starting at
-`https://calebkan.com/`. It must reach the `www` security check and then render
+`https://calebkan.com/`. It must reach `https://www.calebkan.com/` and render
 the site without a download prompt. A direct apex request must return `308`
-with the expected `Location` and no `cf-mitigated: challenge` header.
+with the expected `Location`, the two-year HSTS header, and no
+`cf-mitigated: challenge` header.
