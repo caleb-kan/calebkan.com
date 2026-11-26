@@ -83,8 +83,9 @@ npm run test:browser
 
 Run `npm run check` first and stop any servers on ports 8787 and 8788 before
 browser testing. For visual changes, also inspect first load, both themes,
-the 1100px / 768px / 600px breakpoints, reduced motion, and Spotify appearing
-and hiding. The calendar's reserved CSS aspect ratio must match its SVG viewBox.
+the 768px and 600px breakpoints, reduced motion, and Spotify appearing and
+hiding. The Spotify card stays below the main card at every width. The
+calendar's reserved CSS aspect ratio must match its SVG viewBox.
 
 ## Dependency Maintenance
 
@@ -100,6 +101,17 @@ Each dependency PR runs the normal CI checks. CI also runs
 failing on high or critical advisories. Review dependency PRs before merging.
 `main` requires the current **Verify site and Worker** check to pass,
 including for administrators. Automatic merging is disabled.
+
+`@cloudflare/vite-plugin` depends on one exact Wrangler version. Keep the
+`wrangler` devDependency at that version. To print it, run:
+
+```sh
+npm view @cloudflare/vite-plugin@<version> dependencies.wrangler
+```
+
+A grouped update often selects a newer Wrangler. That mismatch installs a
+second Wrangler, Miniflare, and `workerd` runtime for the plugin, so the build
+and deploy tools run different versions. Align it before merging.
 
 Keep **Dependabot alerts** and **Dependabot security updates** enabled in the
 repository's security settings. These settings operate separately from the
