@@ -18,8 +18,8 @@
     "deploy": "npm run build && wrangler deploy"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "1.69.1",
-    "@playwright/test": "1.65.0",
+    "@cloudflare/vite-plugin": "1.70.1",
+    "@playwright/test": "1.65.1",
     "@tailwindcss/vite": "4.3.5",
     "@types/node": "24.19.2",
     "@types/react": "19.3.0",
@@ -31,7 +31,7 @@
     "tsx": "4.23.15",
     "typescript": "7.0.2",
     "vite": "8.3.8",
-    "wrangler": "4.161.0"
+    "wrangler": "4.164.0"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "7.3.1",
